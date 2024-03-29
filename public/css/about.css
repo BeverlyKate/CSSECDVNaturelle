@@ -3,7 +3,7 @@
 }
 
 #salon-banner {
-    width: 100%;
+    width: 89%;
 }
 
 #about-header {
@@ -47,12 +47,13 @@
     font-size: 1.125em;
     letter-spacing: 0.5px;
     line-height: 1.65;
+    font-weight:bold;
 }
 
 .about-body > .about-body-branding {
     font-size: 1.25em;
     font-weight: 900;
-    color: var(--clr-primary-200);
+    color: #DF60F9;
     letter-spacing: 0;
     text-shadow: 2px 1px 16px var(--clr-analogous-2-100);
 }
