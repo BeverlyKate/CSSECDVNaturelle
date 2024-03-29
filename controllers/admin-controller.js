@@ -8,6 +8,16 @@ const Reservation = require('../models/Reservation.js');
 const InCartService = require('../models/InCartService.js');
 const bcrypt = require('bcrypt');
 
+function generateRandomPassword(length) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
+    let password = '';
+  
+    for (let i = 0; i < length; i++) {
+      password += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+  
+    return password;
+}
 
 function isEmailValid(email) {
     const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -22,13 +32,14 @@ function isContactNumValid(contactNum) {
 const controller = {
     getAdminLogin: function(req, res, next) {
         if (!req.session.logged_in) {
-            res.render('login-admin', {layout: 'admin-no-sidebar'});
+            res.render('login-admin', {layout: 'no-sidebar'});
         } else if (req.session.logged_in.type !== "admin") {
             res.render('login-admin', {
-                layout: 'admin-no-sidebar',
+                layout: 'no-sidebar',
                 logged_in: req.session.logged_in,
                 snackbar: {
                     type: "error",
+                    persistent: true,
                     text: "You need to logout as a customer before you can login as an admin.",
                     action: {
                         text: "LOGOUT",
@@ -47,7 +58,7 @@ const controller = {
 
         if (username === undefined || password === undefined) {
             res.render('login-admin', {
-                layout: 'admin-no-sidebar',
+                layout: 'no-sidebar',
                 active: {login: true},
                 error: 'Please enter your username and password.'
             });
@@ -58,7 +69,7 @@ const controller = {
 
         if (result == null) {
             res.render('login-admin', {
-                layout: 'admin-no-sidebar',
+                layout: 'no-sidebar',
                 active: {login: true},
                 error: 'Incorrect username or password.'
             });
@@ -69,7 +80,7 @@ const controller = {
 
         if (!passwordCompare) {
             res.render('login-admin', {
-                layout: 'admin-no-sidebar',
+                layout: 'no-sidebar',
                 active: {login: true},
                 error: 'Incorrect username or password.'
             });
@@ -122,12 +133,30 @@ const controller = {
 
     getAllReservations: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+            res.sendStatus(403); // HTTP 403: Forbidden
+            return;
+        }
+
+        let reservations = await Reservation.find({}, '').populate('services').populate('userID', 'firstName lastName').exec();
+        console.log(reservations)
+        /*reservations.forEach(reservation => {
+            console.log(reservation.services);
+        })*/
+        res.send(reservations);
+    },
+
+    postUpdateReservationStatus: async function(req, res) {
+        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
             res.status(403); // HTTP 403: Forbidden
             return;
         }
 
-        let reservations = await Reservation.find({}, '').populate('services');
-        res.send(reservations);
+        await Reservation.updateOne({_id: req.body.reservation_id}, {status: req.body.reservation_status});
+        res.sendStatus(200);
+    },
+
+    getServicesOfReservation: async function(req, res) {
+        res.send(await Reservation.findOne({_id: req.query.reservation_id}, 'services').populate("services").exec());
     },
   
     getAdminEmployees: function(req, res) {
@@ -145,7 +174,7 @@ const controller = {
 
     getAllEmployees: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -155,7 +184,7 @@ const controller = {
 
     postAddEmployee: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -178,21 +207,25 @@ const controller = {
             return;
         }
 
+        let generatedPassword = generateRandomPassword(20)
+
         let employee = {
             firstName: fname,
             lastName: lname,
             email: email,
-            contactNumber: contact
+            contactNumber: contact,
+            password: generatedPassword,
+            changedPassword: false
         };
 
         await Employee.create(employee);
 
-        res.sendStatus(201); // HTTP 201: Created
+        res.status(201).json({password: generatedPassword}); // HTTP 201: Created
     },
 
     postEditEmployee: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -230,7 +263,7 @@ const controller = {
 
     postDeleteEmployee: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -322,7 +355,7 @@ const controller = {
 
     getFindServiceCollection: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -334,7 +367,7 @@ const controller = {
 
     getServiceCollections: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -382,7 +415,7 @@ const controller = {
 
     postAddServiceCollection: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
         // check if service title is unique
@@ -425,7 +458,7 @@ const controller = {
 
     postEditServiceCollection: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
         
@@ -480,7 +513,7 @@ const controller = {
 
     postDeleteServiceCollection: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
         
@@ -498,7 +531,7 @@ const controller = {
 
     getFAQ: function (req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -511,7 +544,7 @@ const controller = {
 
     getAllFAQs: async function (req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -521,7 +554,7 @@ const controller = {
 
     getFindFAQ: async function (req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -531,7 +564,7 @@ const controller = {
     
     postAddFAQ: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -547,7 +580,7 @@ const controller = {
 
     postEditFAQ: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
@@ -563,7 +596,7 @@ const controller = {
 
     postDeleteFAQ: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
+            res.sendStatus(403); // HTTP 403: Forbidden
             return;
         }
 
