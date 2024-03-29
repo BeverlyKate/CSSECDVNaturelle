@@ -186,6 +186,9 @@ input[type="radio"]:checked + .status-cancelled {
     outline-color: var(--clr-primary-500);
 }
 
+#reason-error-msg {
+    margin-top: 1em;
+}
 
 @media (max-width: 1200px) {
     #admin-reservations-container {

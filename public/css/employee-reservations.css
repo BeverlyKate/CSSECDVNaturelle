@@ -340,6 +340,10 @@ input[type="radio"]:checked + .status-cancelled {
     outline-color: var(--clr-triadic-1-300);
 }
 
+#employee-reason-error-msg {
+    margin-top: 1em;
+}
+
 @media (max-width: 1200px) {
     #employee-reservations-container {
         grid-template-columns: 1fr;

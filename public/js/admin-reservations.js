@@ -1,5 +1,5 @@
 import {formatDateTime} from "./datetime.js";
-
+import {showError, validateForm} from "./form.js";
 // to change
 /**
 document.addEventListener('DOMContentLoaded', function() {
@@ -37,12 +37,22 @@ let reservations_cache = [];
 document.addEventListener("DOMContentLoaded", function () {
     showReservations(RESERVATION_GET_URL, RESERVATION_WRAPPER);
 
-    document.getElementById("btn-modal-reservation-save").addEventListener("click", function() {
+    document.getElementById("btn-modal-reservation-save").addEventListener("click", function(e) {
         let modal_reservation_status = this.closest("#modal-reservation-status");
 
         let reservation_id = document.getElementById("input-reservation-id").value;
         let reservation_status_radio = document.querySelector("#modal-reservation-status-controls-container > input[type='radio']:checked");
         let reason_for_change = document.getElementById("status-change-reason").value;
+        let reason_field = document.getElementById("status-change-reason");
+
+        let validForm = validateForm(reason_field);
+
+        if (!validForm) {
+            e.preventDefault();
+            reason_field.focus();
+            showError("Please enter a reason for the status change.", "#reason-error-msg");
+            return;
+        }
 
         if (reservation_status_radio.hasAttribute("disabled")) {
             bootstrap.Modal.getInstance(modal_reservation_status).hide();

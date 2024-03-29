@@ -1,6 +1,7 @@
 import {formatDateTime} from "./datetime.js";
 import { Element } from "./element.js";
 import { checkCache } from "./dataCache.js";
+import {showError, validateForm} from "./form.js";
 
 const RESERVATION_GET_URL = "/employee/get-reservations";
 const RESERVATION_WRAPPER = "#employee-reservations-container";
@@ -35,7 +36,7 @@ function onBtnServicesClick(e) {
 
     modal_reservation_user.textContent = reservation_user;
     modal_reservation_datetime.textContent = reservation_datetime;
-
+    document.querySelector("#employee-reason-error-msg").setAttribute("data-error-status", "normal");
     $.get("/employee/get-services", {
         reservation_id: reservation_id,
         employee_id: employee_id
@@ -228,9 +229,8 @@ function onStatusButtonClick(e) {
     let reservation_id= document.querySelector("#reservation-id").textContent;
     let modal_reservation_services = this.closest("#modal-reservation-services");
     let reason = document.querySelector("#service-status-change-reason").value;
-    console.log(service_id)
-    console.log(reservation_id)
-    console.log(reason)
+    let reason_field = document.querySelector("#service-status-change-reason");
+
     let service_status
     if (e.currentTarget.classList.contains("approve-btn")) {
         service_status = "Approved"
@@ -239,6 +239,15 @@ function onStatusButtonClick(e) {
     } else if (e.currentTarget.classList.contains("cancelled-btn")) {
         service_status = "Cancelled"
     }
+
+    let validForm = validateForm(reason_field);
+
+        if (!validForm) {
+            e.preventDefault();
+            reason_field.focus();
+            showError("Please enter a reason for the status change.", "#employee-reason-error-msg");
+            return;
+        }
 
     $.post("/employee/update-service-status", {id: service_id, service_status: service_status, reservation_id: reservation_id, reason:reason}, (data, status, xhr) => {
         if (status === "success" && xhr.status === 200) {
