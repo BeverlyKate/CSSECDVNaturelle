@@ -5,6 +5,7 @@ on:
     branches:
       - feature-notification-improvements
       - feature-admin-change-status-reservation
+      - develop
       
   workflow_dispatch:
     
