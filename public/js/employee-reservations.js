@@ -1,6 +1,7 @@
 import {formatDateTime} from "./datetime.js";
 import { Element } from "./element.js";
 import { checkCache } from "./dataCache.js";
+import {showError, validateForm} from "./form.js";
 
 const RESERVATION_GET_URL = "/employee/get-reservations";
 const RESERVATION_WRAPPER = "#employee-reservations-container";
@@ -35,7 +36,7 @@ function onBtnServicesClick(e) {
 
     modal_reservation_user.textContent = reservation_user;
     modal_reservation_datetime.textContent = reservation_datetime;
-
+    document.querySelector("#employee-reason-error-msg").setAttribute("data-error-status", "normal");
     $.get("/employee/get-services", {
         reservation_id: reservation_id,
         employee_id: employee_id
@@ -127,9 +128,13 @@ function onBtnServicesClick(e) {
             accordion_item.append(accordion_header, accordion_collapse);
 
             document.querySelector("#modal-reservation-services-container").append(accordion_item);
-
         }
+        let reservationID = new Element("#reservation-id", {
+            text: reservation_id
+        }).getElement();
 
+        reservationID.style.display = "none"
+        document.querySelector("#modal-reservation-services-container").append(reservationID);
         bootstrap.Modal.getOrCreateInstance(document.querySelector("#modal-reservation-services")).show();
     });
 
@@ -221,8 +226,11 @@ function showModal() {
 function onStatusButtonClick(e) {
     let status_buttons_container = e.currentTarget.closest(".status-buttons-container");
     let service_id = status_buttons_container.firstElementChild.textContent.trim()
+    let reservation_id= document.querySelector("#reservation-id").textContent;
     let modal_reservation_services = this.closest("#modal-reservation-services");
-    console.log(service_id)
+    let reason = document.querySelector("#service-status-change-reason").value;
+    let reason_field = document.querySelector("#service-status-change-reason");
+
     let service_status
     if (e.currentTarget.classList.contains("approve-btn")) {
         service_status = "Approved"
@@ -232,7 +240,16 @@ function onStatusButtonClick(e) {
         service_status = "Cancelled"
     }
 
-    $.post("/employee/update-service-status", {id: service_id, service_status: service_status}, (data, status, xhr) => {
+    let validForm = validateForm(reason_field);
+
+        if (!validForm) {
+            e.preventDefault();
+            reason_field.focus();
+            showError("Please enter a reason for the status change.", "#employee-reason-error-msg");
+            return;
+        }
+
+    $.post("/employee/update-service-status", {id: service_id, service_status: service_status, reservation_id: reservation_id, reason:reason}, (data, status, xhr) => {
         if (status === "success" && xhr.status === 200) {
             bootstrap.Modal.getInstance(modal_reservation_services).hide();
             snackbar({
