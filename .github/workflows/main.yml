@@ -1,14 +1,13 @@
 name: Test and Deploy to Render
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - feature-notification-improvements
       - feature-admin-change-status-reservation
       - develop
-      
-  workflow_dispatch:
-    
+          
 jobs:
 
   backend-reservations-test:
