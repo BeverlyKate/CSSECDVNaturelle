@@ -2,7 +2,11 @@ name: Test and Deploy to Render
 
 on:
   workflow_dispatch:
-  
+  push:
+    branches:
+      - feature-admin-change-status-reservation
+      - features-notification-improvements
+      - develop
 jobs:
 
   backend-reservations-test:
@@ -56,7 +60,7 @@ jobs:
     - name: Run test
       run: npm test scripts/accounts.test.js
       
-  deploy:
+  deploy-to-render:
     runs-on: ubuntu-latest
     needs: backend-accounts-test
 
