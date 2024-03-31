@@ -77,6 +77,7 @@ app.get('/employee/request-temp-password', employee_controller.getRequestTempPas
 app.get('/employee/get-reservations', employee_controller.getEmployeeReservations);
 app.get('/employee/get-services', employee_controller.getEmployeeServicesOfReservation);
 app.post('/employee/update-service-status', employee_controller.postUpdateServiceStatus);
+app.post('/employee/settings', employee_controller.postEmployeeSettings);
 
 app.get('/admin/faq', admin_controller.getFAQ);
 app.get('/admin/faq/get-faqs', admin_controller.getAllFAQs);

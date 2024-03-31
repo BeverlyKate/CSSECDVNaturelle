@@ -297,6 +297,118 @@ const controller = {
         console.log(notification)
 
         res.sendStatus(200)
+    },
+
+    postEmployeeSettings: async function(req, res) {
+        if (!req.session.logged_in || req.session.logged_in.type !== "employee") {
+            res.sendStatus(401); // HTTP 401: Unauthorized
+            return;
+        }
+        
+        let employee_id = req.body.id;
+        let fname = req.body.fname;
+        let lname = req.body.lname;
+        let email = req.body.email;
+        let contactNumber = req.body.contactNumber;
+        let current_password = req.body.current_password;
+        let new_password = req.body.new_password;
+
+        if (fname === "") {
+            res.status(400).send({error: "Please enter a first name."});
+            return;
+        }
+    
+        if (lname === "") {
+            res.status(400).send({error: "Please enter a last name."});
+            return;
+        }
+    
+        const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        if (email.value === "" || !validEmailRegex.test(email)) {
+            res.status(400).send({error: "Please enter a valid email."});
+            return;
+        }
+    
+        const validContactNumRegex = /^(09)\d{9}/;
+        if (contactNumber === "" || !validContactNumRegex.test(contactNumber)) {
+            res.status(400).send({error: "Please enter a valid contact number."});
+            return;
+        }
+    
+        if (current_password === "") {
+            res.status(400).send({error: "Please enter your current password"});
+            return;
+        }
+
+        let comparePassword = await Employee.findOne({_id: employee_id});
+        
+        let matched = await bcrypt.compare(current_password, comparePassword.password);
+
+        if (!matched) {
+            res.status(403).send({error: "Current password is incorrect!"});
+            return;
+        }
+
+        if (new_password !== "") {
+            if (new_password.length < 8) {
+                res.status(403).send({error: "Password must contain at least 8 characters!"});
+                return;
+            }
+
+            let passwordHashed = await bcrypt.hash(new_password, 10);
+
+            await Employee.updateOne({_id: employee_id}, {
+                firstName: fname,
+                lastName: lname,
+                email: email,
+                contactNumber: contactNumber,
+                password: passwordHashed
+            });
+
+            let employee_name = fname + " "+ lname
+
+            req.session.logged_in = {
+                state: true,
+                type: "employee",
+                user: {
+                    employee_id: employee_id,
+                    employee_name: employee_name,
+                    employee_firstName: fname,
+                    employee_lastName: lname,
+                    employee_email: email,
+                    employee_contactNumber: contactNumber,
+                    employee_changedPassword: true
+                }
+            };
+
+            res.sendStatus(200);
+            return;
+        }
+
+        await Employee.updateOne({_id: employee_id}, {
+            firstName: fname,
+            lastName: lname,
+            email: email,
+            contactNumber: contactNumber
+        });
+
+        let employee_name = fname + " "+ lname
+
+        req.session.logged_in = {
+            state: true,
+            type: "employee",
+            user: {
+                employee_id: employee_id,
+                employee_name: employee_name,
+                employee_firstName: fname,
+                employee_lastName: lname,
+                employee_email: email,
+                employee_contactNumber: contactNumber,
+                employee_changedPassword: true
+            }
+        };
+
+        res.sendStatus(200);
     }
 }
 

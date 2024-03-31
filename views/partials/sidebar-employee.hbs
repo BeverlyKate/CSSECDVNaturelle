@@ -2,6 +2,7 @@
 <link rel="stylesheet" href="/css/fab.css">
 <link rel="stylesheet" href="/css/modal.css">
 <script src="/js/fab.js"></script>
+<script src="/js/employee-settings.js" type="module"></script>
 
 <div id="sidenav">
     <div id="salon-title">Salon<br/>Naturelle</div>
@@ -19,7 +20,7 @@
     <div id="bottom-btn-container">
         <a href="/" class="btn bottom-btn" id="customer-view-btn"><i class="fa fa-solid fa-laptop"></i>Customer View</a>
         <div id="account-tab-container">
-            <button class="btn bottom-btn" id="settings-btn" data-bs-toggle="modal" data-bs-target="#modal-settings-edit"><i class="fa fa-solid fa-gear"></i>Settings</button>
+            <button class="btn bottom-btn" id="settings-btn" data-bs-toggle="modal" data-bs-target="#modal-employee-settings-edit"><i class="fa fa-solid fa-gear"></i>Settings</button>
             <a href="/logout" class="btn bottom-btn" id="admin-logout-btn"><i class="fa fa-solid fa-right-from-bracket"></i>Log Out</a>
         </div>
     </div>
@@ -46,35 +47,49 @@
     </div>
 </div>
 
-<div class="modal modal-md fade" id="modal-settings-edit">
+<div class="modal modal-md fade" id="modal-employee-settings-edit">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Account Settings</h5>
+                <h5 class="modal-title">Edit Information</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="form-settings-edit">
+                <form id="form-employee-settings">
+                    <input type="hidden" id="input-settings-employee-id" name="employee_id" value="{{logged_in.user.employee_id}}">
                     <div class="row mb-3">
                         <div class="col">
-                            <label for="input-edit-username" class="form-label">Username</label>
-                            <input type="text" id="input-edit-username" name="username" class="form-control">
+                            <label for="input-settings-employee-fname" class="form-label">First Name</label>
+                            <input type="text" id="input-settings-employee-fname" name="employee_fname" class="form-control" value="{{logged_in.user.employee_firstName}}">
+                        </div>
+                        <div class="col">
+                            <label for="input-settings-employee-lname" class="form-label">Last Name</label>
+                            <input type="text" id="input-settings-employee-lname" name="employee_lname" class="form-control" value="{{logged_in.user.employee_lastName}}">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="input-edit-old-password" class="form-label">Old Password</label>
-                        <input type="password" id="input-edit-old-password" name="old_password" class="form-control">
+                        <label for="input-settings-employee-email" class="form-label">Email Address</label>
+                        <input type="text" id="input-settings-employee-email" name="employee_email" class="form-control"value="{{logged_in.user.employee_email}}">
                     </div>
                     <div class="mb-3">
-                        <label for="input-edit-new-password" class="form-label">New Password</label>
-                        <input type="password" id="input-edit-new-password" name="new_password" class="form-control">
+                        <label for="input-settings-employee-contact" class="form-label">Contact Number</label>
+                        <input type="text" id="input-settings-employee-contact" name="employee_contact" class="form-control" value="{{logged_in.user.employee_contactNumber}}">
                     </div>
-                    <div class="error-msg" id="form-employee-edit-error" data-error-status="normal"></div>
+                    <div class="mb-3">
+                        <label for="input-settings-employee-current-password" class="form-label">Current Password</label>
+                        <input type="password" id="input-settings-employee-current-password" name="old_password" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="input-settings-employee-new-password" class="form-label">New Password</label>
+                        <input type="password" id="input-settings-employee-new-password" name="new_password" class="form-control" placeholder="*Only fill up if you intend to change your password.">
+                    </div>
+                    <div id="form-password-notice">You need to enter your current password<br />to make any changes.</div>
+                    <div class="error-msg" id="form-employee-settings-error" data-error-status="normal"></div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-discard" data-bs-dismiss="modal"><i class="fa fa-trash"></i>Discard</button>
-                <button type="submit" class="btn btn-modal-success" form="form-employee-edit"><i class="fa fa-check"></i>Save</button>
+                <button type="submit" class="btn btn-modal-success" form="form-employee-settings"><i class="fa fa-check"></i>Save</button>
             </div>
         </div>
     </div>

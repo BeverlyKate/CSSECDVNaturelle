@@ -187,6 +187,13 @@
     color: var(--clr-triadic-1-300);
 }
 
+input[type='password']{
+    font-family: Verdana;
+    letter-spacing: 0em;
+    font-style: italic; 
+    font-size: .8em;
+}
+
 @media (max-width: 992px) {
     #sidenav {
         position: fixed;
