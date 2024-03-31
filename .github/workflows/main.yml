@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - feature-admin-change-status-reservation
-      - features-notification-improvements
+      - feature-notification-improvements
       - develop
 jobs:
 
