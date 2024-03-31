@@ -1,7 +1,10 @@
 <link rel="stylesheet" href="/css/sidebar.css">
 <link rel="stylesheet" href="/css/fab.css">
 <link rel="stylesheet" href="/css/modal.css">
+<link rel="stylesheet" href="/css/bs-form-override.css">
+<link rel="stylesheet" href="/css/form.css">
 <script src="/js/fab.js"></script>
+<script src="/js/admin-settings.js" type="module"></script>
 
 <div id="sidenav">
     <div id="salon-title">Salon<br/>Naturelle</div>
@@ -45,7 +48,7 @@
                 <div class="fab-item-label">Customer View</div>
                 <div class="fab-item-icon"><i class="fa fa-laptop"></i></div>
             </a>
-            <a href="" class="fab-item-group" id="settings-fab">
+            <a href="#" class="fab-item-group" id="settings-fab" data-bs-toggle="modal" data-bs-target="#modal-settings-edit">
                 <div class="fab-item-label">Settings</div>
                 <div class="fab-item-icon"><i class="fa fa-gear"></i></div>
             </a>
@@ -68,24 +71,25 @@
                 <form id="form-settings-edit">
                     <div class="row mb-3">
                         <div class="col">
-                            <label for="input-edit-username" class="form-label">Username</label>
-                            <input type="text" id="input-edit-username" name="username" class="form-control">
+                            <label for="input-settings-username" class="form-label">Username</label>
+                            <input type="text" id="input-settings-username" name="username" class="form-control" value="{{logged_in.user.username}}">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="input-edit-old-password" class="form-label">Old Password</label>
-                        <input type="password" id="input-edit-old-password" name="old_password" class="form-control">
+                        <label for="input-settings-old-password" class="form-label">Old Password</label>
+                        <input type="password" id="input-settings-old-password" name="old_password" class="form-control">
                     </div>
                     <div class="mb-3">
-                        <label for="input-edit-new-password" class="form-label">New Password</label>
-                        <input type="password" id="input-edit-new-password" name="new_password" class="form-control">
+                        <label for="input-settings-new-password" class="form-label">New Password</label>
+                        <input type="password" id="input-settings-new-password" name="new_password" class="form-control">
                     </div>
-                    <div class="error-msg" id="form-employee-edit-error" data-error-status="normal"></div>
+                    <div id="form-password-notice">You need to enter your current password<br />to make any changes.</div>
+                    <div class="error-msg" id="form-settings-error" data-error-status="normal"></div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-discard" data-bs-dismiss="modal"><i class="fa fa-trash"></i>Discard</button>
-                <button type="submit" class="btn btn-modal-success" form="form-employee-edit"><i class="fa fa-check"></i>Save</button>
+                <button type="submit" class="btn btn-modal-success" form="form-settings-edit"><i class="fa fa-check"></i>Save</button>
             </div>
         </div>
     </div>

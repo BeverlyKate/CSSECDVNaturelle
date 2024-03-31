@@ -48,6 +48,8 @@ app.get('/admin', admin_controller.getAdminLogin, admin_controller.getAdminDashb
 app.post('/admin', admin_controller.postAdminLogin);
 app.get('/admin/getuser', admin_controller.getCurrentUser);
 
+app.post('/admin/settings', admin_controller.postAdminSettings);
+
 app.get('/admin/reservations', admin_controller.getAdminReservations);
 app.get('/admin/reservations/get', admin_controller.getAllReservations);
 app.post('/admin/reservations/update-status', admin_controller.postUpdateReservationStatus);
