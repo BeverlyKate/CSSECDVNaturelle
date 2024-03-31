@@ -204,12 +204,17 @@ input[type='password']{
 }
 
 #employee-save-settings-btn{
-    background-color: var(--clr-triadic-1-300);
+    background-color: var(--clr-triadic-1) !important;
 }
 
 #employee-save-settings-btn:hover{
     background-color: var(--clr-triadic-1-100) !important;
 }
+
+#employee-save-settings-btn:active {
+    background-color: var(--clr-triadic-1-500) !important;
+}
+
 @media (max-width: 992px) {
     #sidenav {
         position: fixed;
