@@ -6,6 +6,7 @@ on:
       - main
       - feature-admin-change-status-reservation
       - features-notification-improvements
+      - develop
   workflow_dispatch:
     
 jobs:
