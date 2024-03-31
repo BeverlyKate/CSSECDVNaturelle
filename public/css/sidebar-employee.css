@@ -194,6 +194,22 @@ input[type='password']{
     font-size: .8em;
 }
 
+.form-control:focus{
+    box-shadow: 0 0 0 0.25rem var(--clr-triadic-1-50) !important;
+    border-color: var(--clr-triadic-1-300) !important;
+}
+
+.form-label:has(+ .form-control:focus){
+    color: var(--clr-triadic-1-300) !important;
+}
+
+#employee-save-settings-btn{
+    background-color: var(--clr-triadic-1-300);
+}
+
+#employee-save-settings-btn:hover{
+    background-color: var(--clr-triadic-1-100) !important;
+}
 @media (max-width: 992px) {
     #sidenav {
         position: fixed;
