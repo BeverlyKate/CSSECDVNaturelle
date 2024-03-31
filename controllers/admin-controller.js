@@ -106,6 +106,66 @@ const controller = {
         res.send(username)
     },
 
+    postAdminSettings: async function(req, res) {
+        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+            res.sendStatus(401); // HTTP 401: Unauthorized
+            return;
+        }
+
+        let username = req.body.username;
+        let old_password = req.body.old_password;
+        let new_password = req.body.new_password;
+
+        if (username === "") {
+            res.status(400).send({error: "Please enter a username."});
+            return;
+        }
+
+        if (old_password === "") {
+            res.status(400).send({error: "Please enter your current password to continue."});
+            return;
+        }
+
+        let currentPassword = await Admin.findOne({username: req.session.logged_in.user.username}, 'password');
+
+        let passwordCompare = await bcrypt.compare(old_password, currentPassword.password);
+        if (!passwordCompare) {
+            res.status(403).send({error: "Current password is incorrect!"});
+            return;
+        }
+
+        if (new_password !== "") {
+            if (new_password.length < 8) {
+                res.status(403).send({error: "Password must contain at least 8 characters!"});
+                return;
+            }
+
+            let passwordHashed = await bcrypt.hash(new_password, 10);
+
+            await Admin.updateOne({username: req.session.logged_in.user.username}, {
+                username: username,
+                password: passwordHashed
+            });
+
+            res.sendStatus(200);
+            return;
+        }
+
+        await Admin.updateOne({username: req.session.logged_in.user.username}, {
+            username: username
+        });
+
+        req.session.logged_in = {
+            state: true,
+            type: "admin",
+            user: {
+                username: username
+            }
+        };
+
+        res.sendStatus(200);
+    },
+
     getAdminDashboard: function(req, res, next) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
             next();
