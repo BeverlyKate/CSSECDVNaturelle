@@ -16,6 +16,19 @@ export function validateForm(...forms) {
     return valid;
 }
 
+export function resetError(error_container) {
+    if (error_container.nodeType !== Node.ELEMENT_NODE) {
+        throw new Error("Parameter 'error_container' is not an element!");
+    }
+
+    if (!error_container.classList.contains("error-msg") || !error_container.getAttribute("data-error-status")) {
+        throw new Error("Parameter 'error_container' is not an error container element!");
+    }
+
+    error_container.setAttribute("data-error-status", "normal");
+    error_container.textContent = "";
+}
+
 export function showError(error_text, msg_field) {
     let error_container = $(msg_field);
     error_container.attr('data-error-status', 'error');
