@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - feature-admin-change-status-reservation
-      
+      - features-notification-improvements
   workflow_dispatch:
     
 jobs:
