@@ -96,28 +96,28 @@ const controller = {
 
             first_time_login_id = result._id
             res.redirect("/employee/first-time-login")
-            return;
-        };
-
-        req.session.logged_in = {
-            state: true,
-            type: "employee",
-            user: {
-                employee_id: result._id,
-                employee_name: employee_name,
-                employee_firstName: result.firstName,
-                employee_lastName: result.lastName,
-                employee_email: result.email,
-                employee_contactNumber: result.contactNumber,
-                employee_changedPassword: result.changedPassword
-            }
-        };
-
-        res.redirect('/employee/home');
+        }
+        else {
+            req.session.logged_in = {
+                state: true,
+                type: "employee",
+                user: {
+                    employee_id: result._id,
+                    employee_name: employee_name,
+                    employee_firstName: result.firstName,
+                    employee_lastName: result.lastName,
+                    employee_email: result.email,
+                    employee_contactNumber: result.contactNumber,
+                    employee_changedPassword: result.changedPassword
+                }
+            };
+    
+            res.redirect('/employee/home');
+        }
     },
 
     getEmployeeFirstTimeLogin: function(req, res) {
-        console.log(!req.session.first_time)
+        console.log(req.session.first_time)
         if (req.session.first_time) {
             res.render('employee-first-time-login', {layout: 'employee-no-sidebar', logged_in: {state: "valid"}});
         } else if (!req.session.first_time) {
