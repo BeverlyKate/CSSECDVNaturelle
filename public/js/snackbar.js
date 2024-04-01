@@ -1,3 +1,8 @@
+const DURATION = {
+    SHORT: 4000,
+    LONG: 8000
+};
+
 function snackbar(sb) {
     if (document.getElementById('snackbar-container') == null) {
         let sb_container = document.createElement("div");
@@ -42,7 +47,7 @@ function snackbar(sb) {
     document.getElementById('snackbar-container').appendChild(snackbar_el);
 
     if (sb.persistent === undefined || sb.persistent !== false) {
-        let duration = (sb.duration === undefined || sb.duration === "short") ? 4000 : (sb.duration === "long" ? 8000 : 4000);
+        let duration = (sb.duration === undefined || sb.duration === "short") ? DURATION.SHORT : (sb.duration === "long" ? DURATION.LONG : DURATION.SHORT);
         setTimeout(() => {
             snackbar_el.classList.add("sb-out");
         }, duration);
