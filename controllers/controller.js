@@ -1,9 +1,12 @@
+const bcrypt = require('bcrypt');
+
 const ServiceCollection = require('../models/ServiceCollection.js');
 const Service = require('../models/Service.js');
 const SpecialService = require('../models/SpecialService.js');
 const FAQ = require('../models/FAQ.js');
 const Reservation = require('../models/Reservation.js');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 
 const controller = {
     getLogout: function (req, res) {
@@ -277,6 +280,135 @@ const controller = {
         }
         res.send(formattedReservation)
     },
+
+    getSettings: function(req, res) {
+        if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
+            res.redirect("/login?next=" + encodeURIComponent("/settings"));
+            return;
+        }
+
+        res.render('customer-settings', {
+            layout: 'index',
+            logged_in: req.session.logged_in
+        });
+    },
+
+    postSettings: async function(req, res) {
+        if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
+            res.sendStatus(401); // HTTP 401: Unauthorized
+            return;
+        }
+
+        let customer_id = req.body.customer_id;
+        let fname = req.body.fname;
+        let lname = req.body.lname;
+        let email = req.body.email;
+        let contact = req.body.contact;
+        let old_password = req.body.old_password;
+        let new_password = req.body.new_password;
+
+        if (fname === "") {
+            res.status(400).send({error: "Please enter your first name."});
+            return;
+        }
+
+        if (lname === "") {
+            res.status(400).send({error: "Please enter your last name."});
+            return;
+        }
+
+        if (email === "") {
+            res.status(400).send({error: "Please enter your email address."});
+            return;
+        }
+
+        if (contact === "") {
+            res.status(400).send({error: "Please enter your contact number."});
+            return;
+        }
+
+        if (old_password === "") {
+            res.status(400).send({error: "Please enter your current password to continue."});
+            return;
+        }
+
+        const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        let isEmailValid = validEmailRegex.test(email);
+
+        if (!isEmailValid) {
+            res.status(400).send({error: "Please enter a valid email address."});
+            return;
+        }
+
+        const validContactNumRegex = /^(09)\d{9}/;
+        let isContactNumValid = validContactNumRegex.test(contact);
+
+        if (!isContactNumValid) {
+            res.status(400).send({error: "Please enter a valid contact number."});
+            return;
+        }
+
+        let currentPassword = await User.findOne({_id: customer_id}, 'password');
+
+        let passwordCompare = await bcrypt.compare(old_password, currentPassword.password);
+        if (!passwordCompare) {
+            res.status(403).send({error: "Current password is incorrect!"});
+            return;
+        }
+
+        if (new_password !== "") {
+            if (new_password.length < 8) {
+                res.status(403).send({error: "Password must contain at least 8 characters!"});
+                return;
+            }
+
+            let passwordHashed = await bcrypt.hash(new_password, 10);
+
+            await User.updateOne({_id: customer_id}, {
+                firstName: fname,
+                lastName: lname,
+                email: email,
+                contactNumber: contact,
+                password: passwordHashed
+            });
+
+            req.session.logged_in = {
+                state: true,
+                type: "customer",
+                user: {
+                    userID: customer_id,
+                    firstName: fname,
+                    lastName: lname,
+                    contactNumber: contact,
+                    email: email
+                }
+            }
+
+            res.sendStatus(200);
+            return;
+        }
+
+        await User.updateOne({_id: customer_id}, {
+            firstName: fname,
+            lastName: lname,
+            email: email,
+            contactNumber: contact
+        });
+
+        req.session.logged_in = {
+            state: true,
+            type: "customer",
+            user: {
+                userID: customer_id,
+                firstName: fname,
+                lastName: lname,
+                contactNumber: contact,
+                email: email
+            }
+        }
+
+        res.sendStatus(200);
+    }
 }
 
 module.exports = controller;
