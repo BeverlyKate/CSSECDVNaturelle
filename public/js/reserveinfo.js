@@ -4,6 +4,8 @@ import {Element} from "./element.js";
 const RESERVATION_GET_URL="/reserveinfo/get-user-reservations"
 const RESERVATION_WRAPPER="#reservation-list-container"
 
+dayjs.extend(window.dayjsPluginUTC.default);
+
 $(document).ready(function(){
     showReservations(RESERVATION_GET_URL, RESERVATION_WRAPPER);
 
@@ -63,7 +65,7 @@ function showReservations (url, container) {
             
 
             let timestamp = new Element(".timestamp", {
-                text: rsrv.timestamp
+                text: dayjs.utc(dayjs(rsrv.timestamp)).format('MMM DD, YYYY hh:mm A')
             }).getElement();
 
             rsrv.services.forEach(srv => {

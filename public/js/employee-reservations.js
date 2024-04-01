@@ -3,8 +3,11 @@ import { Element } from "./element.js";
 import { checkCache } from "./dataCache.js";
 import {showError, validateForm} from "./form.js";
 
+
 const RESERVATION_GET_URL = "/employee/get-reservations";
 const RESERVATION_WRAPPER = "#employee-reservations-container";
+
+dayjs.extend(window.dayjsPluginUTC.default);
 
 let reservations_cache = [];
 
@@ -184,7 +187,7 @@ function showReservations(url, container) {
             }).getElement();
 
             let reservation_datetime = new Element(".reservation-datetime", {
-                text: formatDateTime(new Date(reservation.timestamp), "%MMM. %dd – %h:%mm %tt")
+                text: dayjs.utc(dayjs(reservation.timestamp)).format('MMM DD - h:mm A')
             }).getElement();
 
             reservation_details.append(reservation_user, reservation_datetime);

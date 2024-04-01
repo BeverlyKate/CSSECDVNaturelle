@@ -1,5 +1,5 @@
 import {Element} from "./element.js";
-
+dayjs.extend(window.dayjsPluginUTC.default);
 
 $(document).ready(function(){
     checkUnreadNotifs();

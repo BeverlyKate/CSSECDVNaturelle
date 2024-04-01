@@ -1,5 +1,6 @@
 import {formatDateTime} from "./datetime.js";
 import {showError, validateForm} from "./form.js";
+dayjs.extend(window.dayjsPluginUTC.default);
 // to change
 /**
 document.addEventListener('DOMContentLoaded', function() {
@@ -263,7 +264,7 @@ function showReservations(url, container) {
             }).getElement();
 
             let reservation_datetime = new Element(".reservation-datetime", {
-                text: formatDateTime(new Date(reservation.timestamp), "%MMM. %dd – %h:%mm %tt")
+                text: dayjs.utc(dayjs(reservation.timestamp)).format('MMM DD - h:mm A')
             }).getElement();
 
             reservation_details.append(reservation_user, reservation_datetime);
