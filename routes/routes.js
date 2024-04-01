@@ -20,6 +20,9 @@ app.get('/logout', controller.getLogout);
 app.get('/register', auth_controller.getRegister);
 app.post('/register', auth_controller.postRegister);
 
+app.get('/settings', controller.getSettings);
+app.post('/settings', controller.postSettings);
+
 
 app.get('/serviceform', auth_controller.getAddToCart);
 app.post('/serviceform', auth_controller.postAddToCart);
