@@ -1,0 +1,52 @@
+<link rel="stylesheet" href="/css/form.css">
+<link rel="stylesheet" href="/css/bs-form-override.css">
+<link rel="stylesheet" href="/css/customer-settings.css">
+
+<script src="/js/snackbar.js" type="module"></script>
+<script src="/js/customer-settings.js" type="module"></script>
+
+<div id="settings-wrapper" class="row g-0 bg-noise-pattern">
+    <div class="col-5" id="settings-header-container">
+        <h2 id="settings-header">Profile<br />Settings</h2>
+    </div>
+    <div class="col-7" id="settings-container">
+        <div id="settings-form-container">
+            <form method="POST" action="/settings" id="form-customer-settings">
+                <input type="hidden" id="input-settings-customer-id" name="customer_id" value="{{logged_in.user.userID}}">
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="input-settings-customer-fname" class="form-label">First Name</label>
+                        <input type="text" id="input-settings-customer-fname" name="customer_fname" class="form-control" value="{{logged_in.user.firstName}}">
+                    </div>
+                    <div class="col">
+                        <label for="input-settings-customer-lname" class="form-label">Last Name</label>
+                        <input type="text" id="input-settings-customer-lname" name="customer_lname" class="form-control" value="{{logged_in.user.lastName}}">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="input-settings-customer-email" class="form-label">Email Address</label>
+                    <input type="text" id="input-settings-customer-email" name="customer_email" class="form-control" value="{{logged_in.user.email}}">
+                </div>
+                <div class="mb-3">
+                    <label for="input-settings-customer-contact" class="form-label">Contact Number</label>
+                    <input type="text" id="input-settings-customer-contact" name="customer_contact" class="form-control" value="{{logged_in.user.contactNumber}}">
+                </div>
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="input-settings-customer-current-password" class="form-label">Current Password</label>
+                        <input type="password" id="input-settings-customer-old-password" name="old_password" class="form-control">
+                    </div>
+                    <div class="col">
+                        <label for="input-settings-customer-new-password" class="form-label">New Password</label>
+                        <input type="password" id="input-settings-customer-new-password" name="new_password" class="form-control" placeholder="* Only if you want to change your password.">
+                    </div>
+                </div>
+            </form>
+            <div class="error-msg" id="form-customer-settings-error" data-error-status="normal"></div>
+            <div id="settings-footer">
+                <div id="form-password-notice">You need to enter your current password to make any changes.</div>
+                <button type="submit" class="btn" id="customer-save-settings-btn" form="form-customer-settings"><i class="fa fa-check"></i>Save</button>
+            </div>
+        </div>
+    </div>
+</div>
