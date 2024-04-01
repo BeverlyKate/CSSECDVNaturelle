@@ -344,6 +344,11 @@ input[type="radio"]:checked + .status-cancelled {
     margin-top: 1em;
 }
 
+.no-reservations-text{
+    font-size: 1.5em;
+    font-style: italic;
+}
+
 @media (max-width: 1200px) {
     #employee-reservations-container {
         grid-template-columns: 1fr;

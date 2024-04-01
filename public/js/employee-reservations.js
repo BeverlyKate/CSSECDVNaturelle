@@ -158,9 +158,17 @@ function showReservations(url, container) {
     $.get(url, {id:employee_id}, (data, status, xhr) => {
         if (checkCache(data, reservations_cache)) return;
         document.querySelector(container).innerHTML = "";
+
+        if (data.length == 0){
+            let no_reservations = new Element(".no-reservations-text", {
+                text: "You currently have no service requests."
+            }).getElement();
+
+            document.querySelector(".employee-container").prepend(no_reservations);
+            return;
+        }
+
         data.forEach(reservation => {
-            
-            console.log(reservation)
             let reservation_container = new Element(".reservation-container", {
                 attr: {
                     "data-reservation-id": reservation._id
