@@ -1,0 +1,62 @@
+#settings-wrapper {
+    background-color: var(--clr-primary-50);
+}
+
+#settings-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#settings-header {
+    font-size: 3em;
+    font-weight: 900;
+    color: var(--clr-primary-700);
+    text-align: center;
+}
+
+#settings-container {
+    padding: 3rem;
+}
+
+#settings-form-container {
+    background-color: #FFF;
+    padding: 2.5rem;
+    box-shadow: 2px 1px 16px rgba(0, 0, 0, 0.15);
+    border-radius: calc(var(--radius) / 1.25);
+}
+
+#settings-footer {
+    margin-top: 3rem;
+    display: flex;
+    align-items: center;
+}
+
+.error-msg[data-error-status=error] + #settings-footer {
+    margin-top: 0;
+}
+
+#form-password-notice {
+    margin: 0;
+    text-align: left;
+}
+
+#customer-save-settings-btn {
+    font-weight: 700;
+    border-radius: var(--radius);
+    padding: 0.5rem 1.5rem;
+    background-color: var(--salon-purple);
+    color: #FFF;
+    display: block;
+    margin-left: auto;
+}
+
+#customer-save-settings-btn:hover {
+    background-color: var(--clr-primary-200) !important;
+    color: #FFF !important;
+}
+
+#customer-save-settings-btn:active {
+    background-color: var(--clr-primary-500) !important;
+    color: #FFF !important;
+}
