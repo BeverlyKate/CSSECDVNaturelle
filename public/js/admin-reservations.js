@@ -192,7 +192,15 @@ function onBtnServicesClick(e) {
             }).getElement();
             serviceDetails.prepend(serviceDetailsHeader);
 
-            accordion_body.append(preferredEmployee, serviceDetails);
+            let status = new Element("div", {
+                text: data.services[i].status
+            }).getElement();
+            let statusHeader = new Element("b", {
+                text: "Status: "
+            }).getElement();
+            status.prepend(statusHeader);
+
+            accordion_body.append(preferredEmployee, serviceDetails, status);
             accordion_collapse.append(accordion_body);
 
             accordion_item.append(accordion_header, accordion_collapse);
