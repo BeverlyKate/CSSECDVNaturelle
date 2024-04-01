@@ -4,8 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feature-admin-change-status-reservation
-      - feature-notification-improvements
       - develop
 jobs:
 
