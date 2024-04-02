@@ -33,6 +33,7 @@ $(document).ready(function(){
 
         $.get("/get-notifications", {}, (data, status, xhr) => {
             data.forEach(nt => {
+                console.log(data)
                 let notif_details_container = new Element ("li.dropdown-item.notif-details-container", {
                     attr: {
                         "data-bs-toggle": "modal",
@@ -69,11 +70,11 @@ $(document).ready(function(){
                     }).getElement()
                 } else if (nt.type == "Employee Set Approved") {
                     notif_preview_body = new Element ("div.notif-preview-body", {
-                        text: "Service Request Set to Pending"
+                        text: "Service Request Approved"
                     }).getElement()
                 } else if (nt.type == "Employee Set Pending") {
                     notif_preview_body = new Element ("div.notif-preview-body", {
-                        text: "Service Request Approved"
+                        text: "Service Request Set to Pending"
                     }).getElement()
                 } else if (nt.type == "Employee Set Cancelled") {
                     notif_preview_body = new Element ("div.notif-preview-body", {
@@ -177,7 +178,7 @@ function onNotifClick (e) {
                 let details = new Element(".details.detail-notif", {
                     text: srv.details
                 }).getElement();
-                let service_status = new Element(".service_status.detail-notif", {
+                let service_status = new Element(".service-status.detail-notif", {
                     text: srv.status
                 }).getElement();
 

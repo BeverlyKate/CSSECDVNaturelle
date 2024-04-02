@@ -100,10 +100,10 @@ const controller = {
             return;
         }
 
-        let userID = req.session.logged_in.user.generatedUserID;
-
-        let reservation_info = await Reservation.find({ currentUserID: userID }).populate('services').lean().exec();
-
+        let userID = req.session.logged_in.user.userID;
+        console.log(userID)
+        let reservation_info = await Reservation.find({ userID: userID }).populate('services').lean().exec();
+        console.log(reservation_info)
         let reservationsWithFormattedDate = reservation_info.map(coll => {
             
             formattedDate = new Date(coll.timestamp).toUTCString();

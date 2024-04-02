@@ -41,7 +41,6 @@ $(document).ready(function(){
 function showReservations (url, container) {
     $.get(url, {}, (data, status, xhr) => {
         data.forEach(rsrv => {
-
             let reservation_details_container
             if (rsrv.status == "Cancelled"){
                 reservation_details_container = new Element(".reservation-details-container.cancelled", {
@@ -80,6 +79,9 @@ function showReservations (url, container) {
                 let label_details = new Element("div.desc",{
                     text: "Details: "
                 }).getElement()
+                let label_service_status = new Element("div.desc",{
+                    text: "Status: "
+                }).getElement()
 
                 let service_title = new Element(".service-title.detail", {
                     text: srv.serviceTitle
@@ -90,15 +92,19 @@ function showReservations (url, container) {
                 let details = new Element(".details.detail", {
                     text: srv.details
                 }).getElement();
+                let service_status = new Element(".service-status.detail", {
+                    text: srv.status
+                }).getElement();
 
                 label_service_title.append(service_title)
                 label_preferred_employee.append(preferred_employee)
+                label_service_status.append(service_status)
 
                 if (srv.details != "") {
                     label_details.append(details)
-                    reservation_details.append(label_service_title, label_preferred_employee, label_details)
+                    reservation_details.append(label_service_title, label_preferred_employee, label_details, label_service_status)
                 } else {
-                    reservation_details.append(label_service_title, label_preferred_employee)
+                    reservation_details.append(label_service_title, label_preferred_employee, label_service_status)
                 }
                 services_container.append(reservation_details)
             });
