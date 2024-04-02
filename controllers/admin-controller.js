@@ -35,13 +35,17 @@ const controller = {
         if (!req.session.logged_in) {
             res.render('login-admin', {layout: 'no-sidebar'});
         } else if (req.session.logged_in.type !== "admin") {
+            let pre_text = "You need to logout as a";
+            if (req.session.logged_in.type === "employee" || req.session.logged_in.type === "admin") pre_text += "n";
+            pre_text += " ";
+
             res.render('login-admin', {
                 layout: 'no-sidebar',
                 logged_in: req.session.logged_in,
                 snackbar: {
                     type: "error",
                     persistent: true,
-                    text: "You need to logout as a customer before you can login as an admin.",
+                    text: pre_text + req.session.logged_in.type + " before you can login as an admin.",
                     action: {
                         text: "LOGOUT",
                         link: "/logout?next=%2Fadmin"

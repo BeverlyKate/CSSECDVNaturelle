@@ -38,6 +38,9 @@
             <script>
                 snackbar({
                     type: "{{snackbar.type}}",
+                    {{#if (isDefined snackbar.persistent)}}
+                        persistent: {{snackbar.persistent}},
+                    {{/if}}
                     text: "{{snackbar.text}}",
                     {{#if (isDefined snackbar.action)}}
                         action: {

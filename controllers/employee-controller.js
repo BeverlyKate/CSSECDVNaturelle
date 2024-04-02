@@ -10,17 +10,21 @@ const { ObjectId } = require('mongodb');
 
 
 const controller = {
-    getEmployeeLogin: function(req, res) {
+    getEmployeeLogin: function(req, res, next) {
         if (!req.session.logged_in) {
             res.render('login-employee', {layout: 'employee-no-sidebar'});
         } else if (req.session.logged_in.type !== "employee") {
+            let pre_text = "You need to logout as a";
+            if (req.session.logged_in.type === "employee" || req.session.logged_in.type === "admin") pre_text += "n";
+            pre_text += " ";
+
             res.render('login-employee', {
                 layout: 'employee-no-sidebar',
                 logged_in: req.session.logged_in,
                 snackbar: {
                     type: "error",
                     persistent: true,
-                    text: "You need to logout on other accounts before you can login as an employee.",
+                    text: pre_text + req.session.logged_in.type + " before you can login as an employee.",
                     action: {
                         text: "LOGOUT",
                         link: "/logout?next=%2Femployee"
@@ -28,7 +32,7 @@ const controller = {
                 }
             });
         } else {
-            res.redirect('/employee/home');
+            next();
         }
     },
 
@@ -112,7 +116,7 @@ const controller = {
                 }
             };
     
-            res.redirect('/employee/home');
+            res.redirect('/employee');
         }
     },
 
@@ -135,7 +139,7 @@ const controller = {
                 }
             });
         } else {
-            res.redirect('/employee/home');
+            res.redirect('/employee');
         }
     },
 
@@ -185,12 +189,12 @@ const controller = {
 
         delete req.session.first_time
 
-        res.redirect('/employee/home');
+        res.redirect('/employee');
     },
 
-    getEmployeeDashboard: function(req, res) {
+    getEmployeeDashboard: function(req, res, next) {
         if (!req.session.logged_in || req.session.logged_in.type !== "employee") {
-            res.redirect('/employee');
+            next();
             return;
         }
 

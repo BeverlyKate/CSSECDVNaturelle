@@ -49,6 +49,15 @@ document.querySelector("#form-settings-edit").addEventListener("submit", functio
                 type: "primary",
                 text: "Admin account settings have been successfully edited!"
             });
+            setTimeout(function() {
+                snackbar({
+                    type: "primary",
+                    text: "Reloading the page…"
+                });
+                setTimeout(function() {
+                    window.location.reload();
+                }, DURATION.SHORT + 300);
+            }, DURATION.SHORT + 300);
         }
     }).fail(function(data, status, xhr) {
         btn_save_icon.className = "";

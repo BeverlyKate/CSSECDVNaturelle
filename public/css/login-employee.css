@@ -1,5 +1,10 @@
 @import url("form.css");
 
+.form-control:focus, .form-select:focus {
+    border-color: var(--clr-triadic-1-100);
+    box-shadow: 0 0 0 0.25rem var(--clr-triadic-1-50);
+}
+
 #form-wrapper {
     min-height: 100vh;
     background-color: var(--clr-triadic-1-400);
@@ -23,6 +28,10 @@
 
 #btn-submit:hover{
     background-color: var(--clr-triadic-1-200);
+}
+
+#btn-submit:active {
+    background-color: var(--clr-triadic-1-600);
 }
 
 #salon-title-login{

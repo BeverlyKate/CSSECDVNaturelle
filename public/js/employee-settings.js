@@ -83,7 +83,15 @@ document.querySelector("#form-employee-settings").addEventListener("submit", fun
                 type: "primary",
                 text: "Employee account settings have been successfully edited!"
             });
-            location.reload()
+            setTimeout(function() {
+                snackbar({
+                    type: "primary",
+                    text: "Reloading the page…"
+                });
+                setTimeout(function() {
+                    window.location.reload();
+                }, DURATION.SHORT + 300);
+            }, DURATION.SHORT + 300);
         }
     }).fail(function(data, status, xhr) {
         btn_save_icon.className = "";
