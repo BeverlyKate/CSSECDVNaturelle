@@ -12,6 +12,10 @@ const controller = {
         if (!req.session.logged_in) {
             res.render('login', { layout: 'index', active: { login: true } });
         } else if (req.session.logged_in.type !== "customer") {
+            let pre_text = "You need to logout as a";
+            if (req.session.logged_in.type === "employee") pre_text += "n";
+            pre_text += " ";
+
             res.render('login', {
                 layout: 'index',
                 active: { login: true },
@@ -19,7 +23,7 @@ const controller = {
                 snackbar: {
                     type: "error",
                     persistent: true,
-                    text: "You need to logout on other accounts before you can login as a customer.",
+                    text: pre_text + req.session.logged_in.type + " before you can login as a customer.",
                     action: {
                         text: "LOGOUT",
                         link: "/logout?next=%2Flogin"
