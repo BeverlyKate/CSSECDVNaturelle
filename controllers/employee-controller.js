@@ -139,7 +139,7 @@ const controller = {
                 }
             });
         } else {
-            res.redirect('/employee/home');
+            res.redirect('/employee');
         }
     },
 
@@ -189,7 +189,7 @@ const controller = {
 
         delete req.session.first_time
 
-        res.redirect('/employee/home');
+        res.redirect('/employee');
     },
 
     getEmployeeDashboard: function(req, res, next) {
