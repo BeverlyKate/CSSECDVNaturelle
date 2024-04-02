@@ -15,6 +15,19 @@ $(document).ready(function() {
         }
     });
 
+    $("#form-login-employee").on("submit", function(e) {
+        let email = $("#input-email");
+        let password = $("#input-password");
+
+        let validForm = validateForm(email, password);
+
+        if (!validForm) {
+            e.preventDefault();
+            email.focus();
+            showError("Please enter your email and password.", "#login-employee-error-msg")
+        }
+    });
+
     $("#form-login").on("submit", function(e) {
         let email = $("#input-email");
         let password = $("#input-password");
