@@ -13,7 +13,7 @@ const controller = {
             res.render('login', { layout: 'index', active: { login: true } });
         } else if (req.session.logged_in.type !== "customer") {
             let pre_text = "You need to logout as a";
-            if (req.session.logged_in.type === "employee") pre_text += "n";
+            if (req.session.logged_in.type === "employee" || req.session.logged_in.type === "admin") pre_text += "n";
             pre_text += " ";
 
             res.render('login', {

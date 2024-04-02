@@ -36,7 +36,7 @@ const controller = {
             res.render('login-admin', {layout: 'no-sidebar'});
         } else if (req.session.logged_in.type !== "admin") {
             let pre_text = "You need to logout as a";
-            if (req.session.logged_in.type === "employee") pre_text += "n";
+            if (req.session.logged_in.type === "employee" || req.session.logged_in.type === "admin") pre_text += "n";
             pre_text += " ";
 
             res.render('login-admin', {
