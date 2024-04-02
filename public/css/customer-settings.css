@@ -60,3 +60,10 @@
     background-color: var(--clr-primary-500) !important;
     color: #FFF !important;
 }
+
+input[type='password']{
+    font-family: 'Verdana', sans-serif;
+    letter-spacing: 0;
+    font-style: italic;
+    font-size: .8em;
+}
