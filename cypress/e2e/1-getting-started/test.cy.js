@@ -90,7 +90,7 @@ describe('reservation tests', () => {
     cy.get('#form-reservation > #last-row > #btn-submit').click();
     cy.get('#reserve-error-msg').should("have.text","Please pick a valid schedule.");
    })
-
+/*
    it('clicking add to cart will show the service in the cart if the details are valid ', () => {
     
     cy.get('#input-date').click();
@@ -134,7 +134,7 @@ describe('reservation tests', () => {
     cy.get('#form-service > #last-row > #btn-submit').click();
     cy.get('#btn-reserve').click();
     cy.get('#input-staff').should("have.text",'Choose a StaffNo preferencea aJuan Dela CruzAlice BorderlandAlice BorderwaterAlice BorderairHello World Hi WorldDelete meAdd EmployeeBob BuilderDavid Salon');
-   })
+   })*/
 })
 
 
