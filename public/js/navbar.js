@@ -121,7 +121,7 @@ function onNotifClick (e) {
             data.notif_details.type == "Employee Set Approved" || data.notif_details.type == "Customer Set Cancelled"){
             document.querySelector('#modal-notif-title').innerText = data.notif_details.title
             document.querySelector('#modal-notif-body').innerText = data.notif_details.body
-            document.querySelector('#modal-notif-timestamp').innerText = dayjs(data.notif_details.timestamp).format('MMMM DD, YYYY, hh:mm A')
+            document.querySelector('#modal-notif-timestamp').innerText = dayjs.utc(dayjs(data.notif_details.timestamp)).format('MMM DD, YYYY h:mm A')
             document.querySelector('#modal-reservation-details-container-notif').style.display = "block"
             let reservation_details_container = document.querySelector('#modal-reservation-details-container-notif');
             
@@ -146,7 +146,7 @@ function onNotifClick (e) {
             }).getElement();
 
             let services_container = new Element(".services-container-notif").getElement();
-            let time_formatted = dayjs(data.reservation_details.timestamp).format('MMM DD, YYYY hh:mm A')
+            let time_formatted = dayjs.utc(dayjs(data.reservation_details.timestamp)).format('MMM DD - h:mm A')
             let timestamp = new Element(".timestamp-notif", {
                 text: time_formatted
             }).getElement();
@@ -198,7 +198,7 @@ function onNotifClick (e) {
         else {
             document.querySelector('#modal-notif-title').innerText = data.notif_details.title
             document.querySelector('#modal-notif-body').innerText = data.notif_details.body
-            document.querySelector('#modal-notif-timestamp').innerText = dayjs(data.notif_details.timestamp).format('MMMM DD, YYYY, hh:mm A')
+            document.querySelector('#modal-notif-timestamp').innerText = dayjs.utc(dayjs(data.notif_details.timestamp)).format('MMM DD - h:mm A')
             document.querySelector('#modal-reservation-details-container-notif').style.display = "none"
         }
     })
