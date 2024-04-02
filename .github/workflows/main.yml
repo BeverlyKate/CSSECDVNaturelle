@@ -23,6 +23,9 @@ jobs:
     
       - name: Run test
         uses: cypress-io/github-action@v6
+        with:
+          start: npm install
+          browser: chrome
 
   backend-reservations-test:
     runs-on: ubuntu-latest
