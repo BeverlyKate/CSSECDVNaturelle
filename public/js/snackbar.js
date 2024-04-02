@@ -46,7 +46,7 @@ function snackbar(sb) {
 
     document.getElementById('snackbar-container').appendChild(snackbar_el);
 
-    if (sb.persistent === undefined || sb.persistent !== false) {
+    if (sb.persistent === undefined || sb.persistent !== true) {
         let duration = (sb.duration === undefined || sb.duration === "short") ? DURATION.SHORT : (sb.duration === "long" ? DURATION.LONG : DURATION.SHORT);
         setTimeout(() => {
             snackbar_el.classList.add("sb-out");
