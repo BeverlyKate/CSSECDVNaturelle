@@ -21,7 +21,7 @@ jobs:
       run: npm install
       
     - name: Run test
-      run: cypress run
+      run: npm test scripts/test.cy.js
 
   backend-reservations-test:
     runs-on: ubuntu-latest
@@ -38,7 +38,7 @@ jobs:
     - name: Install dependencies
       run: npm install
     - name: Run test
-      run: npm test scripts/reservations.test.js
+      run: npm test scripts/test.cy.js
 
   backend-notifications-test:
     runs-on: ubuntu-latest
