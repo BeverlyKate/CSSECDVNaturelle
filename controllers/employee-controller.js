@@ -10,7 +10,7 @@ const { ObjectId } = require('mongodb');
 
 
 const controller = {
-    getEmployeeLogin: function(req, res) {
+    getEmployeeLogin: function(req, res, next) {
         if (!req.session.logged_in) {
             res.render('login-employee', {layout: 'employee-no-sidebar'});
         } else if (req.session.logged_in.type !== "employee") {
@@ -32,7 +32,7 @@ const controller = {
                 }
             });
         } else {
-            res.redirect('/employee/home');
+            next();
         }
     },
 
@@ -116,7 +116,7 @@ const controller = {
                 }
             };
     
-            res.redirect('/employee/home');
+            res.redirect('/employee');
         }
     },
 
@@ -192,9 +192,9 @@ const controller = {
         res.redirect('/employee/home');
     },
 
-    getEmployeeDashboard: function(req, res) {
+    getEmployeeDashboard: function(req, res, next) {
         if (!req.session.logged_in || req.session.logged_in.type !== "employee") {
-            res.redirect('/employee');
+            next();
             return;
         }
 

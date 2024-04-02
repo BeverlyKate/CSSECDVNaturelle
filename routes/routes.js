@@ -71,8 +71,7 @@ app.post('/admin/services/add-service-collection', admin_controller.postAddServi
 app.post('/admin/services/edit-service-collection', admin_controller.postEditServiceCollection);
 app.post('/admin/services/delete-service-collection', admin_controller.postDeleteServiceCollection);
 
-app.get('/employee', employee_controller.getEmployeeLogin);
-app.get('/employee/home', employee_controller.getEmployeeDashboard);
+app.get('/employee', employee_controller.getEmployeeLogin, employee_controller.getEmployeeDashboard);
 app.post('/employee', employee_controller.postEmployeeLogin);
 app.get('/employee/first-time-login', employee_controller.getEmployeeFirstTimeLogin);
 app.post('/employee/first-time-login', employee_controller.postEmployeeFirstTimeLogin);
