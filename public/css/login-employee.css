@@ -30,6 +30,10 @@
     background-color: var(--clr-triadic-1-200);
 }
 
+#btn-submit:active {
+    background-color: var(--clr-triadic-1-600);
+}
+
 #salon-title-login{
     font-family: "Dr Sugiyama", cursive;
     color: var(--clr-triadic-1-400);
