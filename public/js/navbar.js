@@ -111,6 +111,7 @@ $(document).ready(function(){
 })
 
 function onNotifClick (e) {
+    checkUnreadNotifs();
     document.querySelector('#modal-reservation-details-container-notif').innerHTML = ""
     let notif_id = e.currentTarget.closest(".notif-details-container").getAttribute("data-notif-id");
     $.get("/find-notification", {id:notif_id}, (data, status, xhr) => {
