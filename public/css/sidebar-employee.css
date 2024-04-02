@@ -124,14 +124,14 @@
     font-weight: 700;
     font-size: 1.125em;
     color: var(--clr-triadic-1-500);
-    background-color: var(--clr-triadic-1-100);
-    border-color: var(--clr-triadic-1-300);
+    background-color: var(--clr-triadic-1-50);
+    border-color: var(--clr-triadic-1-100);
     padding: 0.75rem 0;
 }
 
 #customer-view-btn:hover {
     background-color: var(--clr-triadic-1-500);
-    color: var(--clr-primary-50);
+    color: var(--clr-triadic-1-50);
 }
 
 #settings-btn {
@@ -188,8 +188,8 @@
 }
 
 input[type='password']{
-    font-family: Verdana;
-    letter-spacing: 0em;
+    font-family: 'Verdana', sans-serif;
+    letter-spacing: 0;
     font-style: italic; 
     font-size: .8em;
 }
@@ -208,7 +208,7 @@ input[type='password']{
 }
 
 #employee-save-settings-btn:hover{
-    background-color: var(--clr-triadic-1-100) !important;
+    background-color: var(--clr-triadic-1-200) !important;
 }
 
 #employee-save-settings-btn:active {
@@ -289,7 +289,7 @@ input[type='password']{
     }
 
     #employee-info-container{
-        padding: 0em;
+        padding: 0;
         border: none;
     }
     

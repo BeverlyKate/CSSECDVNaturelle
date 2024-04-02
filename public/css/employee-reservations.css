@@ -101,7 +101,7 @@ body {
 }
 
 .reservation-container {
-    border: 2px solid var(--clr-primary-50);
+    border: 2px solid var(--clr-triadic-1-50);
     border-radius: calc(var(--radius) / 1.5);
     display: flex;
     flex-direction: column;
@@ -368,13 +368,13 @@ input[type="radio"]:checked + .status-cancelled {
     }
 
     .employee-header-wrapper {
-        border-bottom: 2px solid var(--clr-primary-50);
+        border-bottom: 2px solid var(--clr-triadic-1-50);
     }
 
     .employee-header-container {
         margin: 1rem;
         padding: 3rem 1.5rem;
-        background-color: var(--clr-primary-50);
+        background-color: var(--clr-triadic-1-50);
         border-radius: var(--radius);
     }
 
@@ -432,7 +432,7 @@ input[type="radio"]:checked + .status-cancelled {
     .reservation-container {
         border: none;
         border-radius: 0;
-        border-bottom: 2px solid var(--clr-primary-50);
+        border-bottom: 2px solid var(--clr-triadic-1-50);
         padding: calc(var(--radius) / 2);
     }
 
