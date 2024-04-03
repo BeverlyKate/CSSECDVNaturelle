@@ -64,28 +64,38 @@ jobs:
     - name: Install dependencies
       run: npm install
     - name: Run test
-      run: npm test scripts/notifications.test.js
-
-  backend-accounts-test:
-    runs-on: ubuntu-latest
-    needs: backend-notifications-test
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4.1.1
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v4.0.2
+      run: npm test scripts/notifications.test.js -- --reporters=default --reporters=jest-junit
+    - name: Test Summary
+      uses: test-summary/action@v2
       with:
-        node-version: 20.10.0
-
-    - name: Install dependencies
-      run: npm install
-    - name: Run test
-      run: npm test scripts/accounts.test.js
+        paths: "**/junit.xml"
+      if: always()
+    
+  backend-accounts-test:
+     runs-on: ubuntu-latest
+     needs: backend-notifications-test
+     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+    
+      - name: Set up Node.js
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: 20.10.0
+    
+      - name: Install dependencies
+        run: npm install
+      - name: Run test
+        run: npm test scripts/accounts.test.js -- --reporters=default --reporters=jest-junit
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "**/junit.xml"
+        if: always()
       
   deploy-to-render:
     runs-on: ubuntu-latest
-    needs: backend-accounts-test
+    needs: [backend-accounts-test,frontend-test]
 
     
     steps:
