@@ -3,13 +3,13 @@
 <!-- TODO: Recode so that blanks will be filled with data from to the database / a json file -->
 
 <div id="services-page-container">
-    
-    <div id="services-container">
-        <img id="hair_length" src="/assets/images/hair_length.jpg" alt="hair length">
-        {{#each serviceCollections}}
-            {{>servicesection this}}
-        {{/each}}
-        
+    <div id="service-wrapper">
+        <div id="services-container">
+            {{#each serviceCollections}}
+                {{>servicesection this}}
+            {{/each}}
+        </div>
+        <div id="hair_length"></div>
     </div>
     <div class="reminders-container">
         <div class="reminder">*Prices are based on thin to normal hair. Additional charges on thick and super extra long hair.</div>

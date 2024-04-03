@@ -1,13 +1,21 @@
 #hair_length{
-    float: right;
+    min-height: 40vh;
+    min-width: 70vh;
+    background-image: url("/assets/images/hair_length.jpg");
+    background-attachment: fixed;
+    background-position: 100% 100%;
+    background-repeat: no-repeat;
 }
 
+#service-wrapper{
+    display: flex;
+}
 
 #services-page-container {
     display: flex;
     flex-direction: column;
     background-color: var(--clr-analogous-2-50);
-    padding: 5rem;
+    padding: 2rem;
     gap: 2rem;
     justify-content: center;
     align-items: center;
