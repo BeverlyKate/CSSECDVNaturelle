@@ -193,7 +193,7 @@ describe("Password Changing for users (negative)", () => {
     }
 
     jest.spyOn(Employee, 'findOne').mockResolvedValue({_id: req.body.employee_id}, 'password');
-    bCrypt.compare.mockResolvedValue(false);
+    bCrypt.compare.mockResolvedValue(true);
     res.status.mockImplementation(() => res);
 
     await employeeController.postEmployeeSettings(req, res);
