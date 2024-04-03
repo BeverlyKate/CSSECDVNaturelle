@@ -197,7 +197,7 @@ describe("Password Changing for users (negative)", () => {
     res.status.mockImplementation(() => res);
 
     await employeeController.postEmployeeSettings(req, res);
-    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.status).toHaveBeenCalledWith(403);
 
   });
 });
