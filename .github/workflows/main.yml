@@ -48,7 +48,7 @@ jobs:
        if: always()
        with:
          name: test-results-reservations
-         path: scripts/reports/jest-*.xml
+         path: "**/junit.xml"
 
   backend-notifications-test:
     runs-on: ubuntu-latest
