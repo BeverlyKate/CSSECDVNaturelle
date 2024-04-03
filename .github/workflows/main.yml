@@ -43,12 +43,11 @@ jobs:
        run: npm install
      - name: Run test
        run: npm test scripts/reservations.test.js -- --reporters=default --reporters=jest-junit
-     - name: Upload test results
-       uses: actions/upload-artifact@v3
-       if: always()
+     - name: Test Summary
+       uses: test-summary/action@v2
        with:
-         name: test-results-reservations
-         path: "**/junit.xml"
+         paths: "**/junit.xml"
+       if: always()
 
   backend-notifications-test:
     runs-on: ubuntu-latest
@@ -93,26 +92,6 @@ jobs:
         with:
           paths: "**/junit.xml"
         if: always()
-
-
-  generate-test-report:
-    needs: [backend-reservations-test, backend-notifications-test, backend-accounts-test]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download test results
-        uses: actions/download-artifact@v3
-        with:
-          name: test-results-*
-          path: reports
-      
-      - name: Generate Test Report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          artifact: test-results-*
-          name: JEST Tests
-          path: 'reports/jest-*.xml'
-          reporter: jest-junit
 
 
   deploy-to-render:
