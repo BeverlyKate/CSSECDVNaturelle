@@ -2,26 +2,25 @@
     padding: 0rem;
 }
 
-.about_bg {
-    background-size: cover;
-    background-position: center top;
+.about-wrapper{
+    display: flex;
+    background-image: url("/assets/images/about_bg.jpg");
+    background-size:cover;
+    background-position: 90% center;
     background-repeat: no-repeat;
-    float: none;
-    
+    min-height: 90vh;
 }
 
 .about-body {
-    position: absolute;
-    left: 25px;
-    right: 50%;
-    bottom: 10px;
-    top: 25%;
     padding: 10px;
     color: #555;
     font-size: 1.3em;
     letter-spacing: 0.5px;
     line-height: 1.65;
-
+    margin-right: auto;
+    margin-left: 1em;
+    margin-top: 2em;
+    max-width: 40%;
 }
 
 .about-body > .about-body-branding {
