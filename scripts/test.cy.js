@@ -67,7 +67,7 @@ describe('reservation tests', () => {
   it('clicking check availability with valid  date will show that the desirable schedule is available ', () => {
     
     cy.get('#input-date').click();
-    cy.get('#input-date').type('2024-04-04');
+    cy.get('#input-date').type('2024-04-14');
     cy.get('#input-time').select('10:00 AM');
     cy.get('#form-reservation > #last-row > #btn-submit').click();
     cy.get('#reserve-error-msg').should("have.text","The desired schedule is available");
@@ -94,7 +94,7 @@ describe('reservation tests', () => {
    it('clicking add to cart will show the service in the cart if the details are valid ', () => {
     
     cy.get('#input-date').click();
-    cy.get('#input-date').type('2024-04-04');
+    cy.get('#input-date').type('2024-04-14');
     cy.get('#input-time').select('10:00 AM');
     cy.get('#form-reservation > #last-row > #btn-submit').click();
 
@@ -109,7 +109,7 @@ describe('reservation tests', () => {
    it('clicking x next to the cart item would remove item from cart ', () => {
     
     cy.get('#input-date').click();
-    cy.get('#input-date').type('2024-04-04');
+    cy.get('#input-date').type('2024-04-14');
     cy.get('#input-time').select('10:00 AM');
     cy.get('#form-reservation > #last-row > #btn-submit').click();
 
@@ -125,7 +125,7 @@ describe('reservation tests', () => {
    it('clicking reserve would remove the item from cart and would mark it as reserved ', () => {
     
     cy.get('#input-date').click();
-    cy.get('#input-date').type('2024-04-04');
+    cy.get('#input-date').type('2024-04-14');
     cy.get('#input-time').select('10:00 AM');
     cy.get('#form-reservation > #last-row > #btn-submit').click();
 
