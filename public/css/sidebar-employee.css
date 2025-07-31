@@ -28,6 +28,79 @@
     border-radius: var(--radius);
 }
 
+#report-info-container-successful{
+    margin-top: 0.5em;
+    display: flex;
+    align-items: center;
+    padding: 1em;
+    padding-left: 2em;
+    border: 3px rgb(24, 194, 137) solid;
+    background-color: rgb(212, 255, 235);
+    border-radius: var(--radius);
+    margin-bottom: 0.5em;
+}
+
+#report-info-container-unsucessful{
+    display: flex;
+    align-items: center;
+    padding: 1em;
+    padding-left: 2em;
+    border: 3px rgb(227, 17, 17) solid;
+    background-color: rgb(255, 212, 215);
+    border-radius: var(--radius);
+    margin-bottom: 0.5em;
+}
+
+#alert-icon {
+    background-image:url("../assets/images/exclamation-triangle-fill.svg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 25px 25px;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius);
+    margin-right: 0.5em;
+    transition: background-image 180ms ease-in-out, background-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#alert-unsuccessful-text{
+    font-size: 1.2em;
+    font-weight: bolder;
+    color: rgb(227, 17, 17);
+}
+
+
+#alert-successful-text{
+    font-size: 1.2em;
+    font-weight: bolder;
+    color: rgb(7, 169, 115);
+}
+
+
+#alert-time{
+    font-weight: bold;
+    color:rgba(15, 15, 20, 0.597);
+    margin-right: 0.25em;
+}
+
+#alert-link{
+    text-decoration: none;
+    margin-left: 0.25em;
+    padding-left:0.25em;
+    color:rgba(26, 26, 27, 0.555);
+    border-left:rgba(26, 26, 27, 0.555) solid;
+    border-width: thin;
+}
+
+#alert-link:hover{
+    font-weight: 500;
+}
+
+.flex-container {
+  display: flex;
+}
+
+
 #employee-name{
     font-size: 1.2em;
     font-weight: 700;
@@ -302,4 +375,55 @@ input[type='password']{
         font-size: .8em;
         color: var(--clr-triadic-1-400);
     }
+
+    #report-info-container-unsucessful{
+        padding-top: 0;
+        padding-right: 0.5em;
+        padding-bottom: 0;
+        padding-left: 0.5em;
+        border-left: #b3b3b3 solid;
+        border-top: #ffffff00;
+        border-bottom: #ffffff00;
+        border-right: #ffffff00;
+        border-width: thin;
+        border-radius: 0%;
+        background-color: rgba(255, 255, 255, 0);
+    }
+
+    #report-info-container-successful{
+        margin-left: 0.5em;
+        padding-top: 0;
+        padding-right: 0.5em;
+        padding-bottom: 0;
+        padding-left: 0.5em;
+        border-left: #b3b3b3 solid;
+        border-top: #ffffff00;
+        border-bottom: #ffffff00;
+        border-right: #ffffff00;
+        border-width: thin;
+        border-radius: 0%;
+        background-color: rgba(255, 255, 255, 0);
+    }
+
+    #alert-time{
+        font-weight: 500;
+        margin-right: 0.2em;
+        font-size: .8em;
+    }
+
+    #alert-link{
+        margin-left: 0.2em;
+        font-size: .8em;
+    }
+
+    #alert-unsuccessful-text{
+        font-size: 1em;
+        font-weight: 700;
+    }
+
+    #alert-successful-text{
+        font-size: 1em;
+        font-weight: 700;
+    }
+
 }
