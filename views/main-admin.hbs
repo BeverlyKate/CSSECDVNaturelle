@@ -56,10 +56,54 @@
             </div>
         </div>
     </div>
-    <div id="logs-container">
+    <div id="logs-wrapper">
         <div id="logs-header-container">
             <h3 id="logs-header"><i class="fa fa-solid fa-clock-rotate-left"></i>Recent Logs</h3>
-            <button class="btn" id="btn-view-logs">View more logs <i class="fa fa-solid fa-chevron-right me-0 ms-2"></i></button>
+            <button class="btn" id="btn-view-logs">View more logs<i class="fa fa-solid fa-chevron-right me-0 ms-2"></i></button>
+        </div>
+        <div id="logs-notice-container">
+            <div id="logs-notice">This section only shows the 3 most recent logs per category.  Some columns are hidden.  To view the full data, click the button above.</div>
+        </div>
+        <div id="logs-container">
+            <div id="logs-tabs-container">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#logs-inputvalidation" type="button" role="tab">Input Validation failures</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#logs-authattempts" type="button" role="tab">Authentication Attempts</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#logs-accesscontrol" type="button" role="tab">Access Control failures</button>
+                    </li>
+                </ul>
+            </div>
+            <div id="logs-list-container" class="tab-content">
+                <div id="logs-inputvalidation" class="log-container tab-pane fade show active" role="tabpanel">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Endpoint</th>
+                            <th>Field Name</th>
+                            <th>Validation Rule</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            {{#each logs_inputvalidation_recent}}
+                                <tr>
+                                    <td>{{this.timestamp}}</td>
+                                    <td>{{this.userId}}</td>
+                                    <td><code>{{this.endpoint}}</code></td>
+                                    <td><code>{{this.fieldName}}</code></td>
+                                    <td><code>{{this.validationRule}}</code></td>
+                                </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>

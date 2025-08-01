@@ -70,7 +70,7 @@
 
 .tool-count {
     text-align: left;
-    font-size: 2em;
+    font-size: 1.5em;
     line-height: 1;
     font-weight: 400;
 }
@@ -120,7 +120,7 @@
     font-weight: 700;
 }
 
-#logs-container {
+#logs-wrapper {
     margin-top: 2rem;
 }
 
@@ -137,7 +137,7 @@
 }
 
 #btn-view-logs {
-    background-color: var(--clr-primary-50);
+    border: 1px solid var(--clr-primary-100);
     color: var(--salon-purple);
     font-weight: 600;
     border-radius: var(--radius);
@@ -147,6 +147,59 @@
 #btn-view-logs:hover {
     background-color: var(--salon-purple);
     color: #FFF;
+}
+
+#logs-notice-container {
+    padding: 0.5rem 2rem;
+}
+
+#logs-notice {
+    font-size: 0.9em;
+    color: #888;
+}
+
+#logs-container {
+    margin-top: 1rem;
+    display: flex;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    gap: 2rem;
+}
+
+#logs-tabs-container .nav {
+    flex-wrap: nowrap;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#logs-tabs-container .nav .nav-link {
+    color: #888;
+    border-radius: var(--radius);
+    font-weight: 700;
+    padding: calc(var(--radius) / 4) calc(var(--radius) / 2);
+    width: 100%;
+    text-align: left;
+}
+
+#logs-tabs-container .nav .nav-link.active {
+    background-color: var(--clr-primary-50);
+    color: var(--salon-purple);
+}
+
+#logs-tabs-container .nav .nav-link:hover {
+    color: var(--salon-purple);
+}
+
+#logs-list-container {
+    flex-grow: 1;
+}
+
+#logs-list-container table th {
+    font-size: 0.9em;
+}
+
+#logs-list-container table td {
+    font-size: 0.85em;
 }
 
 @media (max-width: 992px) {
