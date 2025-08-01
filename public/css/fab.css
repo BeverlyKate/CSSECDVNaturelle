@@ -5,12 +5,14 @@
     display: flex;
     flex-direction: column-reverse;
     align-items: flex-end;
-    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /*transition: bottom 0.5s cubic-bezier(0.25, 0.75, 0, 1);*/
+    animation: bottom-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 #fab-container.hidden {
-    bottom: -2rem;
-    transition: bottom 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    /*bottom: -2rem;*/
+    /*transition: bottom 0.5s cubic-bezier(0.25, 0.75, 0, 1);*/
+    animation: bottom-out 0.5s cubic-bezier(0.25, 0.75, 0, 1) forwards;
 }
 
 #btn-fab {
@@ -34,7 +36,7 @@
     height: 3px;
     background-color: #FFF;
     border-radius: var(--radius);
-    transition: rotate 0.375s cubic-bezier(0.4, 0, 0.2, 1), transform 0.375s cubic-bezier(0.4, 0, 0.2, 1), width 1s cubic-bezier(0.25, 0.75, 0, 1) 180ms;
+    transition: rotate 1s cubic-bezier(0.25, 0.75, 0, 1), transform 1s cubic-bezier(0.25, 0.75, 0, 1), width 0.5s cubic-bezier(0.25, 0.75, 0, 1) 0.3s;
 }
 
 #btn-fab > .icon-bar + .icon-bar {
@@ -49,18 +51,18 @@
 #fab-container.active > #btn-fab > .icon-bar:first-child {
     rotate: 45deg;
     transform: translate(0.35rem, 0.35rem);
-    transition: rotate 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.25, 0.75, 0, 1);
+    transition: rotate 0.3s cubic-bezier(0.25, 0.75, 0, 1) 0.3s, transform 0.5s cubic-bezier(0.25, 0.75, 0, 1) 180ms;
 }
 
 #fab-container.active > #btn-fab > .icon-bar:not(:first-child):not(:last-child) {
     width: 0;
-    transition: width 1s cubic-bezier(0.25, 0.75, 0, 1) 180ms;
+    transition: width 0.5s cubic-bezier(0.25, 0.75, 0, 1);
 }
 
 #fab-container.active > #btn-fab > .icon-bar:last-child {
     rotate: -45deg;
     transform: translate(0.35rem, -0.35rem);
-    transition: rotate 0.5s cubic-bezier(0.25, 0.75, 0, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: rotate 0.5s cubic-bezier(0.25, 0.75, 0, 1) 0.3s, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) 180ms;
 }
 
 .fab-blur {
@@ -69,8 +71,8 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: rgba(255, 255, 255, 0.8);
-    animation: fade-in 180ms ease-in-out;
+    background-color: rgba(255, 255, 255, 0.5);
+    animation: opacity 180ms ease-in-out, blur-in 0.3s ease-in-out forwards;
 }
 
 @keyframes fade-in {
@@ -81,6 +83,16 @@
 @keyframes fade-out {
     from { opacity: 1; }
     to { opacity: 0; }
+}
+
+@keyframes blur-in {
+    from { backdrop-filter: blur(0) saturate(1); }
+    to { backdrop-filter: blur(10px) saturate(1.5); }
+}
+
+@keyframes blur-out {
+    from { backdrop-filter: blur(5px) saturate(1.5); }
+    to { backdrop-filter: blur(0) saturate(1); }
 }
 
 #fab-items-container {
@@ -139,11 +151,15 @@
 }
 
 @keyframes slide-in {
-    from {
+    0% {
         opacity: 0;
-        transform: translateY(5px);
+        transform: translateY(50px);
     }
-    to {
+    50% {
+        opacity: 0.5;
+        transform: translateY(-7px);
+    }
+    100% {
         opacity: 1;
         transform: translateY(0);
     }
@@ -157,5 +173,34 @@
     to {
         opacity: 0;
         transform: translateY(5px);
+    }
+}
+
+@keyframes bottom-in {
+    0% {
+        bottom: -2rem;
+    }
+    50% {
+        bottom: 5.5rem;
+    }
+    100% {
+        bottom: 5rem;
+    }
+}
+
+@keyframes bottom-out {
+    from { bottom: 5rem; }
+    to { bottom: -2rem; }
+}
+
+@keyframes fab-click {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
     }
 }
