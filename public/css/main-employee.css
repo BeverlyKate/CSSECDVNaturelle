@@ -1,5 +1,5 @@
 body {
-    background-color: var(--clr-primary-50);
+    background-color: var(--clr-triadic-1-200);
 }
 
 #main-wrapper > .row {
@@ -10,7 +10,7 @@ body {
     padding-left: 1rem;
 }
 
-.admin-wrapper {
+.employee-wrapper {
     display: flex;
     flex-direction: column;
     background-color: #FFF;
@@ -20,31 +20,31 @@ body {
     overflow: hidden;
 }
 
-.admin-header-container {
+.employee-header-container {
     margin: 3rem 2rem 2rem 3rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.admin-header {
+.employee-header {
     font-size: 3em;
     font-weight: 800;
-    color: var(--salon-purple);
+    color: var(--clr-triadic-1-500);
     margin: 0;
 }
 
-.admin-header-container:has(> .admin-header-btn) {
+.employee-header-container:has(> .employee-header-btn) {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.admin-header-btn {
+.employee-header-btn {
 
 }
 
-.admin-container {
+.employee-container {
     flex-grow: 1;
     border-radius: var(--radius);
     overflow: auto;
@@ -53,11 +53,11 @@ body {
     padding-bottom: 2rem;
 }
 
-.admin-responsive-controls-container {
+.employee-responsive-controls-container {
     display: none;
 }
 
-.admin-list-btn-edit, .admin-list-btn-delete, .admin-list-btn-password{
+.employee-list-btn-edit, .employee-list-btn-delete, .employee-list-btn-password{
     border: 1px solid;
     border-radius: var(--radius);
     padding: 0.5rem 2rem;
@@ -67,34 +67,34 @@ body {
     justify-content: center;
 }
 
-.admin-list-btn-edit {
+.employee-list-btn-edit {
     color: #888;
     border-color: #CCC;
 }
 
-.admin-list-btn-delete {
+.employee-list-btn-delete {
     color: var(--clr-triadic-1-300);
     border-color: var(--clr-triadic-1-100);
 }
 
-.admin-list-btn-password {
+.employee-list-btn-password {
     color: var(--clr-analogous-1-300);
     border-color: var(--clr-analogous-1-300);
 }
 
-.admin-list-btn-edit:hover, .admin-list-btn-edit:active {
+.employee-list-btn-edit:hover, .employee-list-btn-edit:active {
     color: #FFF !important;
     background-color: #888 !important;
     border-color: #888 !important;
 }
 
-.admin-list-btn-delete:hover, .admin-list-btn-delete:active {
+.employee-list-btn-delete:hover, .employee-list-btn-delete:active {
     color: #FFF !important;
     background-color: var(--clr-triadic-1-300) !important;
     border-color: var(--clr-triadic-1-300) !important;
 }
 
-.admin-list-btn-password:hover, .admin-list-btn-password:active {
+.employee-list-btn-password:hover, .employee-list-btn-password:active {
     color: #FFF !important;
     background-color: var(--clr-analogous-1-300) !important;
     border-color: var(--clr-analogous-1-300) !important;
@@ -114,7 +114,7 @@ body {
         width: 100%;
     }
 
-    .admin-wrapper {
+    .employee-wrapper {
         padding-left: 0;
         padding-right: 0;
         background-color: #FFF;
@@ -124,19 +124,19 @@ body {
         overflow: visible;
     }
 
-    .admin-header-wrapper {
+    .employee-header-wrapper {
         border-bottom: 2px solid var(--clr-primary-50);
     }
 
-    .admin-header-container {
+    .employee-header-container {
         margin: 1rem;
         padding: 2rem 1.5rem;
-        background-color: var(--clr-primary-50);
+        background-color: var(--clr-triadic-1-50);
         border-radius: var(--radius);
         display: block;
     }
 
-    .admin-header {
+    .employee-header {
         font-size: 2em;
         text-align: center;
         display: flex;
@@ -144,15 +144,15 @@ body {
         gap: 0.5rem;
     }
 
-    .admin-header-container:has(.admin-header-btn) {
+    .employee-header-container:has(.employee-header-btn) {
         display: block;
     }
     
-    .admin-header-container > .admin-header-btn {
+    .employee-header-container > .employee-header-btn {
         display: none;
     }
 
-    .admin-container {
+    .employee-container {
         margin-left: 0;
         margin-right: 0;
         border-radius: 0;
@@ -160,7 +160,7 @@ body {
         overflow: visible;
     }
 
-    .admin-responsive-controls-container {
+    .employee-responsive-controls-container {
         display: flex;
         justify-content: center;
         padding: 1rem;
@@ -170,11 +170,15 @@ body {
         top: 0;
     }
 
-    .admin-responsive-controls-container > .admin-header-btn {
+    .employee-responsive-controls-container > .employee-header-btn {
         font-size: 1em !important;
     }
 
-    .admin-list-btn-edit, .admin-list-btn-delete, .admin-list-btn-password {
+    .employee-wrapper {
+        padding-bottom: 5rem;
+    }
+
+    .employee-list-btn-edit, .employee-list-btn-delete, .employee-list-btn-password {
         padding: 0.5rem 1.25rem;
         font-size: 0.85em;
     }

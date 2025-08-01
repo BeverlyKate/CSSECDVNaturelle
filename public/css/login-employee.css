@@ -1,17 +1,24 @@
+@import url("auth.css");
 @import url("form.css");
+
+#main-wrapper {
+    background-color: var(--clr-analogous-2-50);
+    background-image: url("https://www.toptal.com/designers/subtlepatterns/uploads/light_toast.png");
+    background-blend-mode: lighten;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3rem;
+}
 
 .form-control:focus, .form-select:focus {
     border-color: var(--clr-triadic-1-100);
     box-shadow: 0 0 0 0.25rem var(--clr-triadic-1-50);
 }
 
-#form-wrapper {
-    min-height: 100vh;
-    background-color: var(--clr-triadic-1-400);
-}
-
 .form-container {
-    width: 40%;
+    width: 35%;
 }
 
 #form-header {
@@ -35,11 +42,7 @@
 }
 
 #salon-title-login{
-    font-family: "Dr Sugiyama", cursive;
     color: var(--clr-triadic-1-400);
-    font-size: 2em;
-    text-align: center;
-    line-height: 1em;
 }
 
 .password-container{
