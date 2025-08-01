@@ -6,7 +6,7 @@ var relativeTime = require('dayjs/plugin/relativeTime');
 dayjs.extend(relativeTime);
 
 const mongoose = require('mongoose');
-const MONGODB_URL = "mongodb+srv://naturellesalon:4XsQADUybHP6qwtt@naturellesalon.daylhxq.mongodb.net/NaturelleSalon?retryWrites=true&w=majority";
+const MONGODB_URL = "mongodb+srv://naturellesalon:j0qLPvkOqtodntWw@naturellesalon.5oqzv8q.mongodb.net/NaturelleSalon?retryWrites=true&w=majority";
 
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
