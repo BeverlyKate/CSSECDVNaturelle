@@ -1,9 +1,10 @@
 <link rel="stylesheet" href="/css/login-admin.css">
 <script type="module" src="/js/auth.js"></script>
 
+<div id="salon-title-login">Salon</br>Naturelle</div>
+
 <div id="form-wrapper">
     <form id="form-login-admin" class="form-container" method="post">
-        <div id="salon-title-login">Salon</br>Naturelle</div>
         <h2 id="form-header">Admin Login</h2>
         <div class="mb-3">
             <input class="form-control form-control-lg" id="input-username" name="username" type="text" placeholder="Username"{{#if (isDefined logged_in)}}{{#unless (isEqual logged_in.type "admin")}} disabled{{/unless}}{{/if}}>

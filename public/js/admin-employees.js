@@ -60,10 +60,36 @@ function onBtnPasswordClick(e) {
     })
 }
 
+function filterEmployee(filter) {
+    filter = filter.toUpperCase();
+
+    let admin_employees_containers = document.getElementsByClassName("admin-employees-container");
+    Array.from(admin_employees_containers).forEach(a_e_c => {
+        if (a_e_c.querySelector(".employee-name").textContent.toUpperCase().indexOf(filter) > -1) {
+            a_e_c.style.display = "";
+        } else {
+            a_e_c.style.display = "none";
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
     showEmployees(EMPLOYEE_GET_URL, EMPLOYEES_WRAPPER);
 
-    document.getElementById("input-employee-search").addEventListener("keyup", function() {
+    let input_employee_search = document.getElementById("input-employee-search");
+    let input_employee_search_mobile = document.getElementById("input-employee-search-mobile");
+
+    input_employee_search.addEventListener("input", function(e) {
+        input_employee_search_mobile.value = e.target.value;
+        filterEmployee(e.target.value);
+    })
+
+    input_employee_search_mobile.addEventListener("input", function(e) {
+        input_employee_search.value = e.target.value;
+        filterEmployee(e.target.value);
+    });
+
+    /*document.getElementById("input-employee-search").addEventListener("keyup", function() {
         let filter = this.value.toUpperCase();
 
         let admin_employees_containers = document.getElementsByClassName("admin-employees-container");
@@ -74,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 a_e_c.style.display = "none";
             }
         });
-    });
+    });*/
 
     document.querySelectorAll(".btn-employee-edit").forEach(btn_edit => {
         btn_edit.addEventListener("click", onBtnEditClick);

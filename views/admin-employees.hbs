@@ -7,12 +7,16 @@
 <div class="admin-wrapper bg-noise-pattern">
     <div class="admin-header-wrapper">
         <div class="admin-header-container">
-            <h2 class="admin-header">Employees</h2>
+            <h2 class="admin-header"><i class="fa fa-solid fa-users-cog"></i>Employees</h2>
+            <div id="admin-employees-container-header">
+                <input type="search" placeholder="Search" class="form-control form-control-lg" id="input-employee-search">
+                <button class="btn" id="btn-employee-add" data-bs-toggle="modal" data-bs-target="#modal-employee-add"><i class="fa fa-plus"></i>Add</button>
+            </div>
         </div>
     </div>
     <div class="admin-container container-bottom">
-        <div id="admin-employees-container-header">
-            <input type="search" placeholder="Search" class="form-control form-control-lg" id="input-employee-search">
+        <div id="admin-employees-container-header-mobile">
+            <input type="search" placeholder="Search" class="form-control form-control-lg" id="input-employee-search-mobile">
             <button class="btn" id="btn-employee-add" data-bs-toggle="modal" data-bs-target="#modal-employee-add"><i class="fa fa-plus"></i>Add</button>
         </div>
         <div id="admin-employees-wrapper">

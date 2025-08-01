@@ -1,22 +1,7 @@
-#sidenav {
-    display: flex;
-    flex-direction: column;
-    background-color: #FFF;
-    box-shadow: 2px 1px 16px rgba(0, 0, 0, 0.15);
-    align-items: center;
-    height: 100vh;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
+@import url("sidebar.css");
 
 #salon-title {
-    font-family: "Dr Sugiyama", cursive;
     color: var(--clr-triadic-1-400);
-    font-size: 3em;
-    text-align: center;
-    line-height: 1em;
-    padding: .5em;
 }
 
 #employee-info-container{
@@ -38,153 +23,15 @@
     color: var(--clr-triadic-1-400);
 }
 
-#sidenav-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 1.5rem;
-    margin-bottom: auto;
-}
-
-#sidenav-container > .nav {
-    flex-wrap: nowrap;
-    flex-direction: column;
-    gap: 0.3em
-}
-
-#sidenav-container .nav-link {
-    color: #888;
-    font-weight: 700;
-    display: flex;
-    margin-right: auto;
-    width: 100%;
-    align-items: center;
-    padding: calc(var(--radius) / 4) calc(var(--radius) / 2);
-    border-radius: var(--radius);
-    font-size: 1.125em;
-}
-
-#sidenav-container .nav-link > .fa {
-    margin-left: auto;
-    margin-right: 0;
-}
-
-#sidenav-container .nav-link:hover {
-    color: var(--clr-primary);
-}
-
-#sidenav-container .nav-item.active > .nav-link {
-    background-color: var(--clr-primary-50);
-    color: var(--salon-purple);
-}
-
-#sidenav-container hr {
-    border-top-color: #888;
-}
-
-#admin-info {
-    display: flex;
-    flex-direction: column;
-}
-
-#bottom-btn-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
-    padding: 1.5em;
-    justify-content: center;
-    width: 100%;
-}
-
-#account-tab-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    font-weight: 600;
-    gap: .5em;
-}
-
-.bottom-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-width: 1px;
-    border-style: solid;
-    border-radius: var(--radius);
-    padding: 0.5rem 0;
-    font-weight: 600;
-}
-
-.bottom-btn:hover {
-    border-color: transparent !important;
-}
-
 #customer-view-btn {
-    font-weight: 700;
-    font-size: 1.125em;
     color: var(--clr-triadic-1-500);
     background-color: var(--clr-triadic-1-50);
     border-color: var(--clr-triadic-1-100);
-    padding: 0.75rem 0;
 }
 
 #customer-view-btn:hover {
     background-color: var(--clr-triadic-1-500);
     color: var(--clr-triadic-1-50);
-}
-
-#settings-btn {
-    color: #888;
-    border-color: #CCC;
-    flex: 5 0 0;
-}
-
-#settings-btn:hover {
-    color: #FFF;
-    background-color: #888;
-}
-
-#admin-logout-btn {
-    color: var(--clr-triadic-1-300);
-    border-color: var(--clr-triadic-1-100);
-    flex: 5 0 0;
-}
-
-#admin-logout-btn:hover {
-    color: #FFF;
-    background-color: var(--clr-triadic-1-300);
-}
-
-#fab-container {
-    display: none !important;
-}
-
-#customer-view-fab > .fab-item-label {
-    background-color: var(--salon-purple);
-    color: #FFF;
-}
-
-#customer-view-fab > .fab-item-icon {
-    color: var(--salon-purple);
-}
-
-#settings-fab > .fab-item-label {
-    background-color: #888;
-    color: #FFF;
-}
-
-#settings-fab > .fab-item-icon {
-    color: #888;
-}
-
-#logout-fab > .fab-item-label {
-    background-color: var(--clr-triadic-1-300);
-    color: #FFF;
-}
-
-#logout-fab > .fab-item-icon {
-    color: var(--clr-triadic-1-300);
 }
 
 input[type='password']{

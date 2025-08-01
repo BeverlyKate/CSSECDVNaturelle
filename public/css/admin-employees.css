@@ -5,7 +5,15 @@
 #admin-employees-container-header {
     display: flex;
     gap: 1rem;
-    padding: 2rem;
+    position: sticky;
+    top: 0;
+    background-color: #FFF;
+    border-radius: var(--radius);
+}
+
+#admin-employees-container-header-mobile {
+    display: none;
+    gap: 1rem;
     position: sticky;
     top: 0;
     background-color: #FFF;
@@ -29,7 +37,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 3rem;
+    padding: 0 2rem;
     font-weight: 700;
     font-size: 1.25em;
     transition: background-color 180ms ease-in-out, box-shadow 0.3s ease-in-out;
@@ -44,17 +52,12 @@
     background-color: var(--clr-primary-500);
 }
 
-#admin-employees-wrapper {
-    padding-left: 2rem;
-    padding-right: 2rem;
-}
-
 .admin-employees-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
     column-gap: 1.5rem;
-    padding: 1rem 2rem;
+    padding: 1.5rem 3rem;
     border-bottom: 1px solid var(--clr-primary-50);
 }
 
@@ -136,19 +139,24 @@
 
 @media (max-width: 992px) {
     #admin-employees-container-header {
+        display: none;
+    }
+
+    #admin-employees-container-header-mobile {
+        display: flex;
         background-color: #FAFAFA;
         border-bottom: 1px solid #E6E6E6;
         padding: 1rem;
         border-radius: 0;
     }
 
-    #input-employee-search {
+    #input-employee-search-mobile {
         padding: calc(var(--radius) / 6) calc(var(--radius) / 2);
         font-size: 1.125rem;
         background-color: #FFF;
     }
 
-    #btn-employee-add {
+    #admin-employees-container-header-mobile #btn-employee-add {
         padding: 0 1.5rem;
         font-size: 1em;
     }

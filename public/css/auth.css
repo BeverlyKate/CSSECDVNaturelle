@@ -1,0 +1,65 @@
+#salon-title-login {
+    font-family: "Dr Sugiyama", cursive;
+    font-size: 3em;
+    text-align: center;
+    line-height: 1em;
+}
+
+#form-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-container {
+    width: 35%;
+    background-color: #FFF;
+    box-shadow: 2px 1px 16px rgba(0, 0, 0, 0.15);
+    padding: 2rem 3rem;
+    border-radius: var(--radius);
+}
+
+#form-header {
+    color: var(--clr-primary-700);
+    font-size: 2.5em;
+    font-weight: 900;
+    text-align: center;
+    margin-top: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+#form-switch-text {
+    font-size: 1em;
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+#form-switch-link {
+    color: var(--clr-primary-700);
+    cursor: pointer;
+    font-size: 1em;
+    text-decoration: none;
+    font-weight: 500;
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+@media (max-width: 992px) {
+    .form-container {
+        border-radius: calc(var(--radius) / 1.5);
+        padding: 1.5rem 2rem;
+    }
+
+    #form-header {
+        font-size: 2em;
+    }
+
+    #form-switch-text {
+        font-size: 1em;
+    }
+
+    #form-switch-link {
+        font-size: 1em;
+    }
+}

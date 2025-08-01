@@ -1,20 +1,19 @@
 @import url("form.css");
+@import url("auth.css");
 
-#form-wrapper {
+#main-wrapper {
+    background-color: var(--clr-analogous-2-50);
+    background-image: url("https://www.toptal.com/designers/subtlepatterns/uploads/light_toast.png");
+    background-blend-mode: lighten;
     min-height: 100vh;
-    background-color: var(--salon-purple);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3rem;
 }
 
-.form-container {
-    width: 40%;
-}
-
-#salon-title-login{
-    font-family: "Dr Sugiyama", cursive;
+#salon-title-login {
     color: var(--salon-purple);
-    font-size: 2em;
-    text-align: center;
-    line-height: 1em;
 }
 
 @media (max-width: 992px) {

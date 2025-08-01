@@ -4,19 +4,21 @@
     background-color: #FFF;
     box-shadow: 2px 1px 16px rgba(0, 0, 0, 0.15);
     align-items: center;
-    height: 100vh;
+    height: calc(100vh - (1rem * 2));
     position: sticky;
-    top: 0;
+    top: 1rem;
     z-index: 1000;
+    border-radius: calc(var(--radius) / 2);
+    overflow: auto;
 }
 
 #salon-title {
     font-family: "Dr Sugiyama", cursive;
     color: var(--salon-purple);
-    font-size: 3em;
+    font-size: 2.5em;
     text-align: center;
     line-height: 1em;
-    padding: .5em;
+    padding: 1em 1em 0.5em;
 }
 
 #sidenav-container {
@@ -24,7 +26,7 @@
     flex-direction: column;
     gap: 0.5rem;
     width: 100%;
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     margin-bottom: auto;
 }
 
@@ -43,7 +45,7 @@
     align-items: center;
     padding: calc(var(--radius) / 4) calc(var(--radius) / 2);
     border-radius: var(--radius);
-    font-size: 1.125em;
+    font-size: 1em;
 }
 
 #sidenav-container .nav-link > .fa {
@@ -62,6 +64,8 @@
 
 #sidenav-container hr {
     border-top-color: #888;
+    margin: 1rem auto;
+    width: 50%;
 }
 
 #admin-info {
@@ -72,8 +76,8 @@
 #bottom-btn-container {
     display: flex;
     flex-direction: column;
-    gap: 1em;
-    padding: 1.5em;
+    gap: 0.75rem;
+    padding: 1rem;
     justify-content: center;
     width: 100%;
 }
@@ -177,6 +181,8 @@
         right: 0;
         display: block;
         height: auto;
+        border-radius: 0;
+        overflow: visible;
     }
 
     #salon-title {
