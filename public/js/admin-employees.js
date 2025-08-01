@@ -174,10 +174,13 @@ document.addEventListener("DOMContentLoaded", function() {
             btn_add_icon.classList.add("fa", "fa-plus");
 
             let employee_add_modal = document.querySelector("#modal-employee-add");
-            bootstrap.Modal.getInstance(employee_add_modal).hide();
+
             btn_add.disabled = false;
 
-            if (res.status === 403) {
+            if (res.status === 400) {
+                showError(res.responseJSON.error, error_container);
+            } else if (res.status === 403) {
+                bootstrap.Modal.getInstance(employee_add_modal).hide();
                 snackbar({
                     type: "error",
                     text: "Error: You are not logged in as an admin.",
@@ -188,6 +191,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 });
             } else {
+                bootstrap.Modal.getInstance(employee_add_modal).hide();
                 snackbar({
                     type: "error",
                     text: "Error: Something went wrong while adding an employee.",
@@ -264,11 +268,13 @@ document.addEventListener("DOMContentLoaded", function() {
             btn_edit_icon.classList.add("fa", "fa-edit");
 
             let employee_edit_modal = document.querySelector("#modal-employee-edit");
-            bootstrap.Modal.getInstance(employee_edit_modal).hide();
 
             btn_edit.disabled = false;
 
-            if (res.status === 403) {
+            if (res.status === 400) {
+                showError(res.responseJSON.error, error_container);
+            } else if (res.status === 403) {
+                bootstrap.Modal.getInstance(employee_edit_modal).hide();
                 snackbar({
                     type: "error",
                     text: "Error: You are not logged in as an admin.",
@@ -279,6 +285,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 });
             } else {
+                bootstrap.Modal.getInstance(employee_edit_modal).hide();
                 snackbar({
                     type: "error",
                     text: "Error: Something went wrong while editing the employee.",
