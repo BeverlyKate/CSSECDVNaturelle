@@ -1,13 +1,65 @@
-<link rel="stylesheet" href="/css/homepage-admin.css">
+<link rel="stylesheet" href="/css/admin-dashboard.css">
 
-<div id="dashboard-wrapper" class="bg-noise-pattern">
-    <div id="dashboard-header-container">
-        <h2 id="dashboard-header">Admin Dashboard</h2>
+<div class="admin-wrapper">
+    <div class="admin-header-wrapper">
+        <div class="admin-header-container">
+            <h2 class="admin-header"><i class="fa fa-solid fa-home"></i>Admin Dashboard</h2>
+        </div>
     </div>
     <div id="tools-container">
-        <a href="/admin/reservations" class="tool-btn"><i class="fa fa-solid fa-sticky-note"></i>Reservations</a>
-        <a href="/admin/services" class="tool-btn"><i class="fa fa-solid fa-spa"></i>Services</a>
-        <a href="/admin/employees" class="tool-btn"><i class="fa fa-solid fa-users-cog"></i>Employees</a>
-        <a href="/admin/faq" class="tool-btn"><i class="fa fa-solid fa-question-circle"></i>FAQ</a>
+        <a href="/admin/reservations" class="tool-btn">
+            <div class="tool-btn-header-container">
+                <div class="tool-btn-header">Reservations</div>
+                <i class="fa fa-solid fa-sticky-note"></i>
+            </div>
+            <div class="tool-count">{{reservations_count}}</div>
+        </a>
+        <a href="/admin/services" class="tool-btn">
+            <div class="tool-btn-header-container">
+                <div class="tool-btn-header">Services</div>
+                <i class="fa fa-solid fa-spa"></i>
+            </div>
+            <div class="tool-count">{{services_count}}</div>
+        </a>
+        <a href="/admin/employees" class="tool-btn">
+            <div class="tool-btn-header-container">
+                <div class="tool-btn-header">Employees</div>
+                <i class="fa fa-solid fa-users-cog"></i>
+            </div>
+            <div class="tool-count">{{employees_count}}</div>
+        </a>
+        <a href="/admin/faq" class="tool-btn">
+            <div class="tool-btn-header-container">
+                <div class="tool-btn-header">FAQ</div>
+                <i class="fa fa-solid fa-question-circle"></i>
+            </div>
+            <div class="tool-count">{{faq_count}}</div>
+        </a>
+    </div>
+    <div id="last-login-container">
+        <div id="last-login-success-container">
+            <div class="last-login-icon-container">
+                <i class="fa fa-solid fa-user-check"></i>
+            </div>
+            <div class="last-login-details-container">
+                <div class="last-login-details-header">Last successful login</div>
+                <div class="last-login-details-info">August 1, 2025 • 3:24 PM</div>
+            </div>
+        </div>
+        <div id="last-login-fail-container">
+            <div class="last-login-icon-container">
+                <i class="fa fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="last-login-details-container">
+                <div class="last-login-details-header">Last unsuccessful login</div>
+                <div class="last-login-details-info">August 1, 2025 • 3:36 PM</div>
+            </div>
+        </div>
+    </div>
+    <div id="logs-container">
+        <div id="logs-header-container">
+            <h3 id="logs-header"><i class="fa fa-solid fa-clock-rotate-left"></i>Recent Logs</h3>
+            <button class="btn" id="btn-view-logs">View more logs <i class="fa fa-solid fa-chevron-right me-0 ms-2"></i></button>
+        </div>
     </div>
 </div>

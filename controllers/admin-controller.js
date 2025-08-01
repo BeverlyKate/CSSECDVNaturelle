@@ -170,16 +170,25 @@ const controller = {
         res.sendStatus(200);
     },
 
-    getAdminDashboard: function(req, res, next) {
+    getAdminDashboard: async function(req, res, next) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
             next();
             return;
         }
 
+        let reservations_count = await Reservation.countDocuments();
+        let services_count = await Service.countDocuments();
+        let employees_count = await Employee.countDocuments();
+        let faq_count = await FAQ.countDocuments();
+
         res.render('main-admin', {
             layout: 'admin',
             logged_in: req.session.logged_in,
-            active: {admin_home: true}
+            active: {admin_home: true},
+            reservations_count: reservations_count,
+            services_count: services_count,
+            employees_count: employees_count,
+            faq_count: faq_count
         });
     },
 

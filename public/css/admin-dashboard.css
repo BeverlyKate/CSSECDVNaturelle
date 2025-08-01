@@ -18,25 +18,21 @@
 }
 
 #tools-container {
-    background-color: #FFF;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    padding: 1.5rem;
+    display: flex;
+    padding: 0 1.5rem;
     gap: 1rem;
     border-radius: var(--radius);
-    box-shadow: 2px 1px 16px rgba(0, 0, 0, 0.15);
-    width: 80%;
 }
 
 .tool-btn {
+    flex: 1 1 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    gap: 1.5rem;
-    padding: 2rem;
+    gap: 0.5rem;
+    padding: 1.5rem;
     background-color: #FFF;
-    border-radius: var(--radius);
+    border-radius: calc(var(--radius) / 1.5);
     border: 2px solid var(--clr-primary-50);
     font-weight: 700;
     font-size: 1.5em;
@@ -56,9 +52,101 @@
     border-color: var(--clr-primary-200);
 }
 
-.tool-btn > .fa {
-    font-size: 2em;
+.tool-btn-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.tool-btn-header {
+    font-weight: 800;
+}
+
+.tool-btn .fa {
+    font-size: 1em;
     margin-right: 0;
+}
+
+.tool-count {
+    text-align: left;
+    font-size: 2em;
+    line-height: 1;
+    font-weight: 400;
+}
+
+#last-login-container {
+    margin-top: 2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+#last-login-success-container, #last-login-fail-container {
+    border: 1px solid;
+    border-radius: calc(var(--radius) / 2);
+    flex: 1 1 0;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+#last-login-success-container {
+    background-color: var(--clr-complementary-50);
+    border-color: var(--clr-complementary);
+}
+
+#last-login-fail-container {
+    background-color: var(--clr-triadic-1-50);
+    border-color: var(--clr-triadic-1);
+}
+
+.last-login-icon-container .fa {
+    font-size: 2.5em;
+}
+
+#last-login-success-container .last-login-icon-container .fa,
+#last-login-success-container .last-login-details-header {
+    color: var(--clr-complementary-800);
+}
+
+#last-login-fail-container .last-login-icon-container .fa,
+#last-login-fail-container .last-login-details-header {
+    color: var(--clr-triadic-1-500);
+}
+
+.last-login-details-header {
+    font-weight: 700;
+}
+
+#logs-container {
+    margin-top: 2rem;
+}
+
+#logs-header-container {
+    margin: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#logs-header {
+    color: var(--salon-purple);
+    font-weight: 700;
+}
+
+#btn-view-logs {
+    background-color: var(--clr-primary-50);
+    color: var(--salon-purple);
+    font-weight: 600;
+    border-radius: var(--radius);
+    padding: 0.5rem 1rem;
+}
+
+#btn-view-logs:hover {
+    background-color: var(--salon-purple);
+    color: #FFF;
 }
 
 @media (max-width: 992px) {
