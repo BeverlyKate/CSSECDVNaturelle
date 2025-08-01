@@ -4,12 +4,21 @@ document.addEventListener("DOMContentLoaded", () => {
             let fab_active;
 
             let fab_container = document.getElementById("fab-container");
+            let btn_fab = fab_container.querySelector("#btn-fab");
             if (fab_container.classList.contains("active")) {
                 fab_container.classList.remove("active");
                 fab_active = false;
+                btn_fab.style.animation = "fab-click 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+                setTimeout(function() {
+                    btn_fab.style.animation = "none";
+                }, 300);
             } else {
                 fab_container.classList.add("active");
                 fab_active = true;
+                btn_fab.style.animation = "fab-click 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+                setTimeout(function() {
+                    btn_fab.style.animation = "none";
+                }, 300);
             }
 
             let fab_blur_target = e.currentTarget.getAttribute("data-fab-blur-target");
@@ -29,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (fab_blur.childNodes[i].classList && fab_blur.childNodes[i].classList.contains("fab-blur")) {
                                 setTimeout(() => {
                                     fab_blur.childNodes[i].style.opacity = "0";
-                                    fab_blur.childNodes[i].style.animation = "fade-out 0.3s ease-in-out";
+                                    fab_blur.childNodes[i].style.animation = "fade-out 0.375s ease-in-out, blur-out 0.3s ease-in-out";
 
                                     setTimeout(() => {
                                         fab_blur.childNodes[i].remove();
@@ -49,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 let fab_item_groups = document.querySelectorAll("#fab-items-container > .fab-item-group");
                 for (let i = 0; i < fab_item_groups.length; i++) {
                     fab_item_groups[fab_item_groups.length - i - 1].style.opacity = "0";
-                    fab_item_groups[fab_item_groups.length - i - 1].style.animation = "slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) " + (0.1 * (i + 1)) + "s";
+                    fab_item_groups[fab_item_groups.length - i - 1].style.animation = "slide-in 0.375s cubic-bezier(0.4, 0, 0.2, 1) " + (0.085 * (i + 1)) + "s";
                 }
             } else {
                     let fab_item_groups = document.querySelectorAll("#fab-items-container > .fab-item-group");
