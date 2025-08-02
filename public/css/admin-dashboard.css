@@ -134,9 +134,10 @@
 #logs-header {
     color: var(--salon-purple);
     font-weight: 700;
+    margin-bottom: 0;
 }
 
-#btn-view-logs {
+.btn-view-logs {
     border: 1px solid var(--clr-primary-100);
     color: var(--salon-purple);
     font-weight: 600;
@@ -144,9 +145,13 @@
     padding: 0.5rem 1rem;
 }
 
-#btn-view-logs:hover {
+.btn-view-logs:hover {
     background-color: var(--salon-purple);
     color: #FFF;
+}
+
+.btn-view-logs#btn-view-logs-mobile {
+    display: none;
 }
 
 #logs-notice-container {
@@ -179,6 +184,7 @@
     padding: calc(var(--radius) / 4) calc(var(--radius) / 2);
     width: 100%;
     text-align: left;
+    white-space: nowrap;
 }
 
 #logs-tabs-container .nav .nav-link.active {
@@ -200,6 +206,39 @@
 
 #logs-list-container table td {
     font-size: 0.85em;
+}
+
+@media (max-width: 1400px) {
+    .tool-btn {
+        padding: 1.25rem;
+    }
+
+    .tool-btn-header, .tool-btn .fa {
+        font-size: 0.85em;
+    }
+
+    .tool-count {
+        font-size: 1.25em;
+    }
+
+    #logs-tabs-container .nav {
+        gap: 0.25rem;
+    }
+
+    #logs-tabs-container .nav-link {
+        font-size: 0.85em;
+    }
+
+    .log-container {
+        font-size: 0.85em;
+    }
+}
+
+@media (max-width: 1200px) {
+    #tools-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @media (max-width: 992px) {
@@ -259,5 +298,80 @@
         border: 1px solid var(--clr-primary-50);
         border-radius: var(--radius);
         padding: 1rem;
+    }
+
+    #last-login-container {
+        flex-direction: column;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    #last-login-success-container, #last-login-fail-container {
+        padding: 0.75rem 1.25rem;
+    }
+
+    .last-login-icon-container {
+        font-size: 0.65em;
+    }
+
+    .last-login-details-header {
+        font-size: 0.9em;
+    }
+
+    .last-login-details-info {
+        font-size: 0.85em;
+    }
+
+    #logs-header-container {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+
+    .btn-view-logs#btn-view-logs {
+        display: none;
+    }
+
+    .btn-view-logs#btn-view-logs-mobile {
+        display: block;
+    }
+
+    #logs-notice-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    #logs-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    #logs-tabs-container {
+        margin-left: -1rem;
+        margin-right: -1rem;
+    }
+
+    #logs-tabs-container .nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    #logs-tabs-container .nav-link {
+        white-space: nowrap;
+        font-size: 1em;
+    }
+
+    #logs-list-container {
+        margin-left: -1rem;
+        margin-right: -1rem;
+    }
+
+    .log-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        font-size: 1em;
     }
 }

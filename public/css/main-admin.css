@@ -16,7 +16,7 @@ body {
     background-color: #FFF;
     border-radius: calc(var(--radius) / 2);
     box-shadow: 2px 1px 16px rgba(0, 0, 0, 0.15);
-    height: calc(100vh - (1rem * 2));
+    min-height: calc(100vh - (1rem * 2));
     overflow: hidden;
 }
 
