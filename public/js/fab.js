@@ -43,13 +43,13 @@ document.addEventListener("DOMContentLoaded", () => {
                                     setTimeout(() => {
                                         fab_blur.childNodes[i].remove();
                                     }, 500);
-                                }, 300);
+                                }, 500);
                             }
                         }
 
                         setTimeout(() => {
                             fab_items_container.style.display = "none";
-                        }, 500);
+                        }, 700);
                     }
                 });
             }
@@ -57,14 +57,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (fab_active) {
                 let fab_item_groups = document.querySelectorAll("#fab-items-container > .fab-item-group");
                 for (let i = 0; i < fab_item_groups.length; i++) {
-                    fab_item_groups[fab_item_groups.length - i - 1].style.opacity = "0";
-                    fab_item_groups[fab_item_groups.length - i - 1].style.animation = "slide-in 0.375s cubic-bezier(0.4, 0, 0.2, 1) " + (0.085 * (i + 1)) + "s";
+                    fab_item_groups[i].style.opacity = "0";
+                    fab_item_groups[i].style.animation = "slide-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) " + (0.05 + (0.085 * (i + 1))) + "s";
                 }
             } else {
                     let fab_item_groups = document.querySelectorAll("#fab-items-container > .fab-item-group");
                     for (let i = 0; i < fab_item_groups.length; i++) {
-                        fab_item_groups[i].style.opacity = "1";
-                        fab_item_groups[i].style.animation = "slide-out 180ms cubic-bezier(0.4, 0, 0.2, 1) " + (0.05 * (i + 1)) + "s";
+                        fab_item_groups[fab_item_groups.length - i - 1].style.opacity = "1";
+                        fab_item_groups[fab_item_groups.length - i - 1].style.animation = "slide-out 0.375s cubic-bezier(0.4, 0, 0.2, 1) " + (0.075 * (i + 1)) + "s";
                     }
             }
         })
