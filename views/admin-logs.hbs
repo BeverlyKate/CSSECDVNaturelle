@@ -1,0 +1,69 @@
+<link rel="stylesheet" href="/css/admin-logs.css">
+<script src="/js/admin-logs.js"></script>
+
+<div class="admin-wrapper">
+    <div class="admin-header-wrapper">
+        <div class="admin-header-container">
+            <h2 class="admin-header"><i class="fa fa-solid fa-clock-rotate-left"></i>Logs</h2>
+        </div>
+    </div>
+    <div id="logs-wrapper">
+        <div id="logs-container">
+            <div id="logs-tabs-container">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#logs-inputvalidation" type="button" role="tab">Input Validation failures</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#logs-authattempts" type="button" role="tab">Authentication Attempts</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#logs-accesscontrol" type="button" role="tab">Access Control failures</button>
+                    </li>
+                </ul>
+            </div>
+            <div id="logs-list-container" class="tab-content">
+                <div id="logs-inputvalidation" class="log-container tab-pane fade show active table-responsive" role="tabpanel">
+                    <table class="table" id="tbl-logs-inputvalidation">
+                        <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Endpoint</th>
+                            <th>Field Name</th>
+                            <th>Validation Rule</th>
+                            <th>Input Value</th>
+                            <th>Message</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#each logs_inputvalidation_recent}}
+                            <tr>
+                                <td>{{this.timestamp}}</td>
+                                <td>{{this.userId}}</td>
+                                <td><code>{{this.endpoint}}</code></td>
+                                <td><code>{{this.fieldName}}</code></td>
+                                <td><code>{{this.validationRule}}</code></td>
+                                <td><code>{{this.inputValue}}</code></td>
+                                <td><code>{{this.message}}</code></td>
+                            </tr>
+                        {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdn.datatables.net/v/bs5/dt-2.3.2/datatables.min.css" rel="stylesheet" integrity="sha384-nt2TuLL4RlRQ9x6VTFgp009QD7QLRCYX17dKj9bj51w2jtWUGFMVTveRXfdgrUdx" crossorigin="anonymous">
+<script src="https://cdn.datatables.net/v/bs5/dt-2.3.2/datatables.min.js" integrity="sha384-rL0MBj9uZEDNQEfrmF51TAYo90+AinpwWp2+duU1VDW/RG7flzbPjbqEI3hlSRUv" crossorigin="anonymous"></script>
+<script>
+    new DataTable("#tbl-logs-inputvalidation", {
+        scrollX: "75rem",
+        order: {
+            idx: 0,
+            dir: "des"
+        }
+    });
+</script>

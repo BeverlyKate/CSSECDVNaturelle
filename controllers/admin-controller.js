@@ -210,6 +210,37 @@ const controller = {
         });
     },
 
+    getAdminLogs: async function(req, res, next) {
+        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+            res.redirect("/admin?next=" + encodeURIComponent("/admin/logs"));
+            return;
+        }
+
+        let reservations_count = await Reservation.countDocuments();
+        let services_count = await Service.countDocuments();
+        let employees_count = await Employee.countDocuments();
+        let faq_count = await FAQ.countDocuments();
+
+        let logs_inputvalidation_recent = await Logs_InputValidation.find().sort({timestamp: -1}).lean();
+        await Promise.all(logs_inputvalidation_recent.map(async log => {
+            log.timestamp = new Date(log.timestamp).toLocaleString();
+            const admin_result = await Admin.findById(log.userId, '_id username').lean();
+            //log.userId = `${admin_result.username} (${admin_result._id})`;
+            log.userId = admin_result.username;
+        }));
+
+        res.render('admin-logs', {
+            layout: 'admin',
+            logged_in: req.session.logged_in,
+            active: {admin_logs: true},
+            reservations_count: reservations_count,
+            services_count: services_count,
+            employees_count: employees_count,
+            faq_count: faq_count,
+            logs_inputvalidation_recent: logs_inputvalidation_recent
+        });
+    },
+
     getAdminReservations: function (req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
             res.redirect("/admin?next=" + encodeURIComponent("/admin/reservations"));
