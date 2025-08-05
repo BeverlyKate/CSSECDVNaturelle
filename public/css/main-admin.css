@@ -16,7 +16,7 @@ body {
     background-color: #FFF;
     border-radius: calc(var(--radius) / 2);
     box-shadow: 2px 1px 16px rgba(0, 0, 0, 0.15);
-    min-height: calc(100vh - (1rem * 2));
+    height: calc(100vh - (1rem * 2));
     overflow: hidden;
 }
 
@@ -42,6 +42,10 @@ body {
 
 .admin-header-btn {
 
+}
+
+#admin-container {
+    overflow: auto;
 }
 
 .admin-container {
