@@ -233,10 +233,6 @@ const controller = {
             layout: 'admin',
             logged_in: req.session.logged_in,
             active: {admin_logs: true},
-            reservations_count: reservations_count,
-            services_count: services_count,
-            employees_count: employees_count,
-            faq_count: faq_count,
             logs_inputvalidation_recent: logs_inputvalidation_recent
         });
     },
