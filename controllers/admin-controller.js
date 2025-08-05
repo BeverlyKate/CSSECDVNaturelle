@@ -221,8 +221,8 @@ const controller = {
         let employees_count = await Employee.countDocuments();
         let faq_count = await FAQ.countDocuments();
 
-        let logs_inputvalidation_recent = await Logs_InputValidation.find().sort({timestamp: -1}).lean();
-        await Promise.all(logs_inputvalidation_recent.map(async log => {
+        let logs_inputvalidation = await Logs_InputValidation.find().sort({timestamp: -1}).lean();
+        await Promise.all(logs_inputvalidation.map(async log => {
             log.timestamp = new Date(log.timestamp).toLocaleString();
             const admin_result = await Admin.findById(log.userId, '_id username').lean();
             //log.userId = `${admin_result.username} (${admin_result._id})`;
@@ -233,7 +233,7 @@ const controller = {
             layout: 'admin',
             logged_in: req.session.logged_in,
             active: {admin_logs: true},
-            logs_inputvalidation_recent: logs_inputvalidation_recent
+            logs_inputvalidation: logs_inputvalidation
         });
     },
 
