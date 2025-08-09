@@ -20,7 +20,7 @@
     padding: 1em;
     padding-left: 2em;
     border: 3px rgb(24, 194, 137) solid;
-    background-color: rgb(212, 255, 235);
+    background-color: rgb(226, 255, 241);
     border-radius: var(--radius);
     margin-bottom: 0.5em;
 }
@@ -31,10 +31,15 @@
     padding: 1em;
     padding-left: 2em;
     border: 3px rgb(227, 17, 17) solid;
-    background-color: rgb(255, 212, 215);
+    background-color: rgb(255, 224, 226);
     border-radius: var(--radius);
     margin-bottom: 0.5em;
 }
+
+.fa-user-check{
+    color: rgb(24, 194, 137);
+}
+
 
 #alert-icon {
     background-image:url("../assets/images/exclamation-triangle-fill.svg");
