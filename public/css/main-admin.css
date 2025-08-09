@@ -44,6 +44,10 @@ body {
 
 }
 
+#admin-container {
+    overflow: auto;
+}
+
 .admin-container {
     flex-grow: 1;
     border-radius: var(--radius);

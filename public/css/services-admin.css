@@ -232,7 +232,7 @@
     }
 
     .admin-responsive-controls-container{
-        z-index: 1000;
+        z-index: 1;
     }
 
     #service-collection-container {

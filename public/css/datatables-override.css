@@ -1,0 +1,29 @@
+.dt-container {
+    padding-bottom: 0.5rem;
+}
+
+.dt-container input.form-control {
+    padding: calc(var(--radius) / 6) calc(var(--radius) / 2) !important;
+}
+
+.dt-container .form-select {
+    padding: calc(var(--radius) / 6) calc(var(--radius) / 1.5) calc(var(--radius) / 6) calc(var(--radius) / 3) !important;
+}
+
+.dt-container .dt-paging .pagination .active > .page-link, .dt-container .dt-paging .pagination .page-link.active {
+    background-color: var(--salon-purple);
+    border-color: var(--salon-purple);
+    color: #FFF;
+}
+
+.dt-container .dt-paging .pagination .page-link {
+    color: var(--salon-purple);
+}
+
+.dt-container .dt-paging .pagination .page-link:focus {
+    box-shadow: none;
+}
+
+.dt-container .dt-layout-table {
+    overflow: auto;
+}

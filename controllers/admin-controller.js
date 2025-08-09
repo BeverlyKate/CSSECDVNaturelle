@@ -8,6 +8,8 @@ const Reservation = require('../models/Reservation.js');
 const InCartService = require('../models/InCartService.js');
 const bcrypt = require('bcrypt');
 const Notification = require('../models/Notification');
+const Logs_InputValidation = require('../models/Logs_InputValidation');
+const {logInputValidation, ValidationRule} = require("../utils/util-log-input-validation");
 
 function generateRandomPassword(length) {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
@@ -26,7 +28,7 @@ function isEmailValid(email) {
 }
 
 function isContactNumValid(contactNum) {
-    const validContactNumRegex = /^(09)\d{9}/;
+    const validContactNumRegex = /^(09)\d{9}$/;
     return validContactNumRegex.test(contactNum);
 }
 
@@ -96,6 +98,7 @@ const controller = {
             state: true,
             type: "admin",
             user: {
+                id: result._id,
                 username: result.username
             }
         };
@@ -121,12 +124,16 @@ const controller = {
         let new_password = req.body.new_password;
 
         if (username === "") {
-            res.status(400).send({error: "Please enter a username."});
+            const error_msg = "Please enter a username.";
+            await logInputValidation(req.session.logged_in.user.id, req.path, "username", ValidationRule.Required, username, error_msg);
+            res.status(400).send({error: error_msg});
             return;
         }
 
         if (old_password === "") {
-            res.status(400).send({error: "Please enter your current password to continue."});
+            const error_msg = "Please enter your current password to continue."
+            await logInputValidation(req.session.logged_in.user.id, req.path, "old_password", ValidationRule.Required, old_password, error_msg);
+            res.status(400).send({error: error_msg});
             return;
         }
 
@@ -140,7 +147,9 @@ const controller = {
 
         if (new_password !== "") {
             if (new_password.length < 8) {
-                res.status(403).send({error: "Password must contain at least 8 characters!"});
+                const error_msg = "Password must contain at least 8 characters!";
+                await logInputValidation(req.session.logged_in.user.id, req.path, "new_password", ValidationRule.InvalidLengthMin, new_password, error_msg);
+                res.status(403).send({error: error_msg});
                 return;
             }
 
@@ -170,16 +179,61 @@ const controller = {
         res.sendStatus(200);
     },
 
-    getAdminDashboard: function(req, res, next) {
+    getAdminDashboard: async function(req, res, next) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
             next();
             return;
         }
 
+        let reservations_count = await Reservation.countDocuments();
+        let services_count = await Service.countDocuments();
+        let employees_count = await Employee.countDocuments();
+        let faq_count = await FAQ.countDocuments();
+
+        let logs_inputvalidation_recent = await Logs_InputValidation.find().sort({timestamp: -1}).limit(3).lean();
+        await Promise.all(logs_inputvalidation_recent.map(async log => {
+            log.timestamp = new Date(log.timestamp).toLocaleString();
+            const admin_result = await Admin.findById(log.userId, '_id username').lean();
+            //log.userId = `${admin_result.username} (${admin_result._id})`;
+            log.userId = admin_result.username;
+        }));
+
         res.render('main-admin', {
             layout: 'admin',
             logged_in: req.session.logged_in,
-            active: {admin_home: true}
+            active: {admin_home: true},
+            reservations_count: reservations_count,
+            services_count: services_count,
+            employees_count: employees_count,
+            faq_count: faq_count,
+            logs_inputvalidation_recent: logs_inputvalidation_recent
+        });
+    },
+
+    getAdminLogs: async function(req, res, next) {
+        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+            res.redirect("/admin?next=" + encodeURIComponent("/admin/logs"));
+            return;
+        }
+
+        let reservations_count = await Reservation.countDocuments();
+        let services_count = await Service.countDocuments();
+        let employees_count = await Employee.countDocuments();
+        let faq_count = await FAQ.countDocuments();
+
+        let logs_inputvalidation = await Logs_InputValidation.find().sort({timestamp: -1}).lean();
+        await Promise.all(logs_inputvalidation.map(async log => {
+            log.timestamp = new Date(log.timestamp).toLocaleString();
+            const admin_result = await Admin.findById(log.userId, '_id username').lean();
+            //log.userId = `${admin_result.username} (${admin_result._id})`;
+            log.userId = admin_result.username;
+        }));
+
+        res.render('admin-logs', {
+            layout: 'admin',
+            logged_in: req.session.logged_in,
+            active: {admin_logs: true},
+            logs_inputvalidation: logs_inputvalidation
         });
     },
 
@@ -297,10 +351,14 @@ const controller = {
             res.sendStatus(400);
             return;
         } else if (!isEmailValid(email)) {
-            res.sendStatus(400).json({error: "Email address is not valid!"});
+            const error_msg = "Email address is not valid!";
+            await logInputValidation(req.session.logged_in.user.id, req.path, "employee_email", ValidationRule.InvalidFormatEmail, email, error_msg);
+            res.status(400).json({error: error_msg});
             return;
         } else if (!isContactNumValid(contact)) {
-            res.sendStatus(400).json({error: "Contact number is not valid!"});
+            const error_msg = "Contact number is not valid!";
+            await logInputValidation(req.session.logged_in.user.id, req.path, "employee_contact", ValidationRule.InvalidFormatPhone, contact, error_msg);
+            res.status(400).json({error: error_msg});
             return;
         }
 
@@ -322,8 +380,7 @@ const controller = {
 
     postEditEmployee: async function(req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
+            return res.sendStatus(403); // HTTP 403: Forbidden
         }
 
         let id = req.body.employee_id;
@@ -332,18 +389,21 @@ const controller = {
         let email = req.body.employee_email;
         let contact = req.body.employee_contact;
 
+        console.log(contact);
+
         if (fname === undefined || lname === undefined || email === undefined || contact === undefined) {
-            res.sendStatus(400); // HTTP 400: Bad Request
-            return;
+            return res.sendStatus(400); // HTTP 400: Bad Request
         } else if (fname === '' || lname === '' || email === '' || contact === '') {
-            res.sendStatus(400);
-            return;
+            return res.sendStatus(400);
         } else if (!isEmailValid(email)) {
-            res.sendStatus(400).json({error: "Email address is not valid!"});
-            return;
+            const error_msg = "Email address is not valid!";
+            await logInputValidation(req.session.logged_in.user.id, req.path, "employee_email", ValidationRule.InvalidFormatEmail, email, error_msg);
+            return res.status(400).json({error: error_msg});
         } else if (!isContactNumValid(contact)) {
-            res.sendStatus(400).json({error: "Contact number is not valid!"});
-            return;
+            const error_msg = "Contact number is not valid!";
+            console.log("controller: " + req.session.logged_in.user.id);
+            await logInputValidation(req.session.logged_in.user.id, req.path, "employee_contact", ValidationRule.InvalidFormatPhone, contact, error_msg);
+            return res.status(400).json({error: error_msg});
         }
 
         let employee = {

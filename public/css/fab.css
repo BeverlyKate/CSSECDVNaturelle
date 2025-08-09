@@ -28,6 +28,7 @@
     align-items: center;
     justify-content: center;
     transition: background-color 180ms ease-in-out, box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
 }
 
 #btn-fab > .icon-bar {
@@ -73,6 +74,7 @@
     right: 0;
     background-color: rgba(255, 255, 255, 0.5);
     animation: opacity 180ms ease-in-out, blur-in 0.3s ease-in-out forwards;
+    z-index: 999;
 }
 
 @keyframes fade-in {
@@ -153,26 +155,36 @@
 @keyframes slide-in {
     0% {
         opacity: 0;
-        transform: translateY(50px);
+        transform: translateY(100px) scaleX(0.85);
+        filter: blur(5px);
     }
     50% {
         opacity: 0.5;
-        transform: translateY(-7px);
+        transform: translateY(-7px) scaleX(1.02);
+        filter: blur(0);
     }
     100% {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scaleX(1);
+        filter: blur(0);
     }
 }
 
 @keyframes slide-out {
-    from {
+    0% {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scaleX(1);
+        filter: blur(0);
     }
-    to {
+    50% {
+        opacity: 0.5;
+        transform: translateY(-7px) scaleX(1.02);
+        filter: blur(0);
+    }
+    100% {
         opacity: 0;
-        transform: translateY(5px);
+        transform: translateY(100px) scale(0.85);
+        filter: blur(5px);
     }
 }
 

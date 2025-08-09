@@ -172,6 +172,50 @@
     color: var(--clr-triadic-1-300);
 }
 
+@media (max-width: 1400px) {
+    #salon-title {
+        font-size: 2em;
+    }
+
+    #sidenav-container .nav-link {
+        padding: calc(var(--radius) / 5) calc(var(--radius) / 2);
+        font-size: 0.85em;
+    }
+
+    #sidenav-container hr {
+        margin: 0.5rem auto;
+    }
+
+    #customer-view-btn {
+        font-size: 0.85em;
+        padding: 0.5rem;
+    }
+
+    .bottom-btn {
+        font-size: 0.75em;
+        padding: 0.35rem 0;
+    }
+}
+
+@media (max-width: 1200px) {
+    #sidenav-container {
+        padding: 1rem;
+    }
+
+    #sidenav-container .nav-link {
+        padding: calc(var(--radius) / 6) calc(var(--radius) / 3);
+        font-size: 0.75em;
+    }
+
+    #customer-view-btn {
+        font-size: 0.75em;
+    }
+
+    .bottom-btn {
+        font-size: 0.65em;
+    }
+}
+
 @media (max-width: 992px) {
     #sidenav {
         position: fixed;

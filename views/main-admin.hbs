@@ -1,13 +1,112 @@
-<link rel="stylesheet" href="/css/homepage-admin.css">
+<link rel="stylesheet" href="/css/admin-dashboard.css">
 
-<div id="dashboard-wrapper" class="bg-noise-pattern">
-    <div id="dashboard-header-container">
-        <h2 id="dashboard-header">Admin Dashboard</h2>
+<div class="admin-wrapper">
+    <div class="admin-header-wrapper">
+        <div class="admin-header-container">
+            <h2 class="admin-header"><i class="fa fa-solid fa-home"></i>Admin Dashboard</h2>
+        </div>
     </div>
-    <div id="tools-container">
-        <a href="/admin/reservations" class="tool-btn"><i class="fa fa-solid fa-sticky-note"></i>Reservations</a>
-        <a href="/admin/services" class="tool-btn"><i class="fa fa-solid fa-spa"></i>Services</a>
-        <a href="/admin/employees" class="tool-btn"><i class="fa fa-solid fa-users-cog"></i>Employees</a>
-        <a href="/admin/faq" class="tool-btn"><i class="fa fa-solid fa-question-circle"></i>FAQ</a>
+    <div id="admin-container">
+        <div id="tools-container">
+            <a href="/admin/reservations" class="tool-btn">
+                <div class="tool-btn-header-container">
+                    <div class="tool-btn-header">Reservations</div>
+                    <i class="fa fa-solid fa-sticky-note"></i>
+                </div>
+                <div class="tool-count">{{reservations_count}}</div>
+            </a>
+            <a href="/admin/services" class="tool-btn">
+                <div class="tool-btn-header-container">
+                    <div class="tool-btn-header">Services</div>
+                    <i class="fa fa-solid fa-spa"></i>
+                </div>
+                <div class="tool-count">{{services_count}}</div>
+            </a>
+            <a href="/admin/employees" class="tool-btn">
+                <div class="tool-btn-header-container">
+                    <div class="tool-btn-header">Employees</div>
+                    <i class="fa fa-solid fa-users-cog"></i>
+                </div>
+                <div class="tool-count">{{employees_count}}</div>
+            </a>
+            <a href="/admin/faq" class="tool-btn">
+                <div class="tool-btn-header-container">
+                    <div class="tool-btn-header">FAQ</div>
+                    <i class="fa fa-solid fa-question-circle"></i>
+                </div>
+                <div class="tool-count">{{faq_count}}</div>
+            </a>
+        </div>
+        <div id="last-login-container">
+            <div id="last-login-success-container">
+                <div class="last-login-icon-container">
+                    <i class="fa fa-solid fa-user-check"></i>
+                </div>
+                <div class="last-login-details-container">
+                    <div class="last-login-details-header">Last successful login</div>
+                    <div class="last-login-details-info">August 1, 2025 • 3:24 PM</div>
+                </div>
+            </div>
+            <div id="last-login-fail-container">
+                <div class="last-login-icon-container">
+                    <i class="fa fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="last-login-details-container">
+                    <div class="last-login-details-header">Last unsuccessful login</div>
+                    <div class="last-login-details-info">August 1, 2025 • 3:36 PM</div>
+                </div>
+            </div>
+        </div>
+        <div id="logs-wrapper">
+            <div id="logs-header-container">
+                <h3 id="logs-header"><i class="fa fa-solid fa-clock-rotate-left"></i>Recent Logs</h3>
+                <a href="/admin/logs" class="btn btn-view-logs" id="btn-view-logs">View more logs<i class="fa fa-solid fa-chevron-right me-0 ms-2"></i></a>
+                <a href="/admin/logs" class="btn btn-view-logs" id="btn-view-logs-mobile">View more<i class="fa fa-solid fa-chevron-right me-0 ms-2"></i></a>
+            </div>
+            <div id="logs-notice-container">
+                <div id="logs-notice">This section only shows the 3 most recent logs per category.  Some columns are hidden.  To view the full data, click the button above.</div>
+            </div>
+            <div id="logs-container">
+                <div id="logs-tabs-container">
+                    <ul class="nav nav-pills">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#logs-inputvalidation" type="button" role="tab">Input Validation failures</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#logs-authattempts" type="button" role="tab">Authentication Attempts</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#logs-accesscontrol" type="button" role="tab">Access Control failures</button>
+                        </li>
+                    </ul>
+                </div>
+                <div id="logs-list-container" class="tab-content">
+                    <div id="logs-inputvalidation" class="log-container tab-pane fade show active table-responsive" role="tabpanel">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Endpoint</th>
+                                <th>Field Name</th>
+                                <th>Validation Rule</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                {{#each logs_inputvalidation_recent}}
+                                    <tr>
+                                        <td>{{this.timestamp}}</td>
+                                        <td>{{this.userId}}</td>
+                                        <td><code>{{this.endpoint}}</code></td>
+                                        <td><code>{{this.fieldName}}</code></td>
+                                        <td><code>{{this.validationRule}}</code></td>
+                                    </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
