@@ -7,10 +7,10 @@ const Notification = require('../models/Notification');
 const InCartService = require('../models/InCartService.js');
 const bcrypt = require('bcrypt');
 const { ObjectId } = require('mongodb');
-
+const {logInputValidation, logAuthAttempt, logAccessControl, ValidationRule} = require("../utils/util-log-input-validation");
 
 const controller = {
-    getEmployeeLogin: function(req, res, next) {
+    getEmployeeLogin: async function(req, res, next) {
         if (!req.session.logged_in) {
             res.render('login-employee', {layout: 'no-sidebar'});
         } else if (req.session.logged_in.type !== "employee") {
@@ -31,6 +31,10 @@ const controller = {
                     }
                 }
             });
+
+            // add to access control logs
+            const error_msg = "You are not logged in as employee.";
+            await logAccessControl(req.session.logged_in.user.userID, req.path, ValidationRule.NotEmployee, error_msg);
         } else {
             next();
         }

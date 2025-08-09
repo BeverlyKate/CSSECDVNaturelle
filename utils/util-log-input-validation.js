@@ -1,4 +1,5 @@
 const ValidationRule = {
+    // Input validation logs
     Required: "required",
     InvalidTypeNotAString: "invalid_type_not_a_string",
     InvalidTypeNotANumber: "invalid_type_not_a_number",
@@ -21,7 +22,12 @@ const ValidationRule = {
     DateInPast: "date_in_past",
     DateInFuture: "date_in_future",
     StartDateAfterEndDate: "start_date_after_end_date",
-    ValueNotUnique: "value_not_unique"
+    ValueNotUnique: "value_not_unique",
+    // Auth attempt logs
+
+    // Access control logs
+    NotAdmin: "not_admin",
+    NotEmployee: "not_employee"
 }
 
 async function logInputValidation(userId, endpoint, fieldName, validationRule, inputValue, message) {
@@ -45,8 +51,48 @@ async function logInputValidation(userId, endpoint, fieldName, validationRule, i
     }
 }
 
+async function logAuthAttempt(userId, userType, endpoint, validationRule, message) {
+    const Logs_AuthAttempt = require('../models/Logs_AuthAttempt');
+
+    try {
+        const log = new Logs_AuthAttempt({
+            timestamp: new Date(),
+            userId: userId,
+            userType: userType,
+            endpoint: endpoint,
+            validationRule: validationRule,
+            message: message
+        });
+        console.log("util: " + log.userId);
+        await log.save();
+        console.log("Authentication attempt log saved successfully.");
+    } catch (error) {
+        console.error("Error saving authentication attempt log:", error);
+    }
+}
+
+async function logAccessControl(userId, endpoint, validationRule, message) {
+    const Logs_AccessControl = require('../models/Logs_AccessControl');
+
+    try {
+        const log = new Logs_AccessControl({
+            timestamp: new Date(),
+            userId: userId,
+            endpoint: endpoint,
+            validationRule: validationRule,
+            message: message
+        });
+        console.log("util: " + log.userId);
+        await log.save();
+        console.log("Access control log saved successfully.");
+    } catch (error) {
+        console.error("Error saving access control log:", error);
+    }
+}
+
 module.exports = {
     ValidationRule,
-    logInputValidation
-
+    logInputValidation,
+    logAuthAttempt,
+    logAccessControl
 }

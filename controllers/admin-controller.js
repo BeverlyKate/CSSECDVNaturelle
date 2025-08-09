@@ -9,7 +9,7 @@ const InCartService = require('../models/InCartService.js');
 const bcrypt = require('bcrypt');
 const Notification = require('../models/Notification');
 const Logs_InputValidation = require('../models/Logs_InputValidation');
-const {logInputValidation, ValidationRule} = require("../utils/util-log-input-validation");
+const {logInputValidation, logAuthAttempt, logAccessControl, ValidationRule} = require("../utils/util-log-input-validation");
 
 function generateRandomPassword(length) {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
@@ -33,7 +33,7 @@ function isContactNumValid(contactNum) {
 }
 
 const controller = {
-    getAdminLogin: function(req, res, next) {
+    getAdminLogin: async function(req, res, next) {
         if (!req.session.logged_in) {
             res.render('login-admin', {layout: 'no-sidebar'});
         } else if (req.session.logged_in.type !== "admin") {
@@ -54,6 +54,10 @@ const controller = {
                     }
                 }
             });
+            
+            // add to access control logs
+            const error_msg = "You are not logged in as admin.";
+            await logAccessControl(req.session.logged_in.user.userID, req.path, ValidationRule.NotAdmin, error_msg);
         } else {
             next();
         }
@@ -183,7 +187,7 @@ const controller = {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
             next();
             return;
-        }
+        } 
 
         let reservations_count = await Reservation.countDocuments();
         let services_count = await Service.countDocuments();
