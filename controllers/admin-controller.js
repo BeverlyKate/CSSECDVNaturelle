@@ -13,6 +13,7 @@ const {
   logInputValidation,
   ValidationRule,
 } = require("../utils/util-log-input-validation");
+const dateHelper = require("../utils/dateHelper.js");
 
 function generateRandomPassword(length) {
   const characters =
@@ -104,8 +105,13 @@ const controller = {
         active: { login: true },
         error: "Incorrect username or password.",
       });
+      await Admin.findByIdAndUpdate(result._id, {
+        lastFailedLogin: new Date(),
+      });
       return;
     }
+
+    await Admin.findByIdAndUpdate(result._id, { lastLogin: new Date() });
 
     req.session.logged_in = {
       state: true,
@@ -113,6 +119,8 @@ const controller = {
       user: {
         id: result._id,
         username: result.username,
+        lastLogin: result.lastLogin,
+        lastFailedLogin: result.lastFailedLogin,
       },
     };
 
@@ -122,7 +130,7 @@ const controller = {
 
   getCurrentUser: async function (req, res) {
     user = await Admin.findOne({ username: req.session.logged_in.user });
-    //console.log(user)
+    console.log(user);
     res.send(username);
   },
 
@@ -219,6 +227,8 @@ const controller = {
       type: "admin",
       user: {
         username: username,
+        lastLogin: result.lastLogin,
+        lastFailedLogin: result.lastFailedLogin,
       },
     };
 
@@ -251,6 +261,10 @@ const controller = {
         log.userId = admin_result.username;
       })
     );
+    console.log(
+      "=============================ADMINLOGIN=============================="
+    );
+    console.log(req.session.logged_in);
 
     res.render("main-admin", {
       layout: "admin",
@@ -261,6 +275,9 @@ const controller = {
       employees_count: employees_count,
       faq_count: faq_count,
       logs_inputvalidation_recent: logs_inputvalidation_recent,
+      helpers: {
+        formatDate: dateHelper.formatDate,
+      },
     });
   },
 
@@ -321,9 +338,9 @@ const controller = {
       .populate("services")
       .populate("userID", "firstName lastName")
       .exec();
-    //console.log(reservations)
+    console.log(reservations);
     /*reservations.forEach(reservation => {
-            //console.log(reservation.services);
+            console.log(reservation.services);
         })*/
     res.send(reservations);
   },
@@ -479,7 +496,7 @@ const controller = {
     let email = req.body.employee_email;
     let contact = req.body.employee_contact;
 
-    //console.log(contact);
+    console.log(contact);
 
     if (
       fname === undefined ||
@@ -503,7 +520,7 @@ const controller = {
       return res.status(400).json({ error: error_msg });
     } else if (!isContactNumValid(contact)) {
       const error_msg = "Contact number is not valid!";
-      //console.log("controller: " + req.session.logged_in.user.id);
+      console.log("controller: " + req.session.logged_in.user.id);
       await logInputValidation(
         req.session.logged_in.user.id,
         req.path,

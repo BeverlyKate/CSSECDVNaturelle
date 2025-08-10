@@ -44,7 +44,7 @@
                 </div>
                 <div class="last-login-details-container">
                     <div class="last-login-details-header">Last successful login</div>
-                    <div class="last-login-details-info">August 1, 2025 • 3:24 PM</div>
+                    <div class="last-login-details-info">{{formatDate logged_in.user.lastLogin}}</div>
                 </div>
             </div>
             <div id="last-login-fail-container">
@@ -53,7 +53,7 @@
                 </div>
                 <div class="last-login-details-container">
                     <div class="last-login-details-header">Last unsuccessful login</div>
-                    <div class="last-login-details-info">August 1, 2025 • 3:36 PM</div>
+                    <div class="last-login-details-info">{{formatDate logged_in.user.lastFailedLogin}}</div>
                 </div>
             </div>
         </div>
