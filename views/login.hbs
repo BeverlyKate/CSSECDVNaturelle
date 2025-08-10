@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="css/login.css">
+<link rel="stylesheet" href="css/modal.css">
 <script type="module" src="/js/auth.js"></script>
 
 <div id="form-wrapper">
@@ -11,9 +12,118 @@
             <input class="form-control form-control-lg" id="input-password" name="password" type="password" placeholder="Password"{{#if (isDefined logged_in)}}{{#unless (isEqual logged_in.type "customer")}} disabled{{/unless}}{{/if}}>
         </div>
         <div class="error-msg" id="login-error-msg" data-error-status="{{#if (isDefined error)}}error{{else}}normal{{/if}}">{{error}}</div>
+        {{#if showForgotPassword}}
+        <div class="forgot-pass">
+            <a href="#" id="forgot-password-link" data-email="{{attemptedEmail}}">Forgot your password?</a>
+        </div>
+        {{/if}}
         <div id="last-row">
             <a href="/register" id="form-switch-link">Create an Account</a>
             <button class="btn" id="btn-submit" type="submit"{{#if (isDefined logged_in)}}{{#unless (isEqual logged_in.type "customer")}} disabled{{/unless}}{{/if}}>Log In</button>
         </div>
     </form>
 </div>
+
+<!-- Security Question Modal -->
+<div id="security-question-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4>Security Question</h4>
+            <span class="close" id="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p id="security-question-text"></p>
+            <input type="text" id="security-answer" placeholder="Your answer" class="form-control">
+            <div id="security-error" class="error-msg" data-error-status="normal"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="submit-security-answer" class="btn btn-primary">Submit</button>
+            <button type="button" id="cancel-security" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const modal = document.getElementById('security-question-modal');
+    const closeModal = document.getElementById('close-modal');
+    const cancelSecurity = document.getElementById('cancel-security');
+    const submitAnswer = document.getElementById('submit-security-answer');
+    const securityError = document.getElementById('security-error');
+
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const email = this.getAttribute('data-email');
+            
+            try {
+                const response = await fetch(`/security-question?email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('security-question-text').textContent = data.question;
+                    modal.style.display = 'block';
+                } else {
+                    alert(data.message || 'No security question found for this account.');
+                }
+            } catch (error) {
+                alert('An error occurred while fetching the security question.');
+            }
+        });
+    }
+
+    function closeModalHandler() {
+        modal.style.display = 'none';
+        document.getElementById('security-answer').value = '';
+        securityError.setAttribute('data-error-status', 'normal');
+        securityError.textContent = '';
+    }
+
+    if (closeModal) closeModal.addEventListener('click', closeModalHandler);
+    if (cancelSecurity) cancelSecurity.addEventListener('click', closeModalHandler);
+
+    if (submitAnswer) {
+        submitAnswer.addEventListener('click', async function() {
+            const email = forgotPasswordLink?.getAttribute('data-email');
+            const answer = document.getElementById('security-answer').value;
+            
+            if (!answer.trim()) {
+                securityError.setAttribute('data-error-status', 'error');
+                securityError.textContent = 'Please enter your answer.';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/security-answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, answer })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Security answer correct! You can now reset your password.');
+                    window.location.href = `/reset-password?token=${data.resetToken}`;
+                } else {
+                    securityError.setAttribute('data-error-status', 'error');
+                    securityError.textContent = data.message || 'Incorrect answer.';
+                }
+            } catch (error) {
+                securityError.setAttribute('data-error-status', 'error');
+                securityError.textContent = 'An error occurred. Please try again.';
+            }
+        });
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeModalHandler();
+        }
+    });
+});
+</script>

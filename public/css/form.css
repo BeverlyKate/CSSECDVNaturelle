@@ -78,6 +78,22 @@ button[disabled] {
     font-size: 0.95em;
 }
 
+.forgot-pass {
+    text-align: end;
+    margin: 1rem 0;
+}
+
+.forgot-pass > a {
+    color: var(--clr-primary-600);
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.forgot-pass > a:hover {
+    text-decoration: underline;
+}
+
 @media (max-width: 992px) {
     #form-header {
         font-size: 2em;

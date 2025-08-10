@@ -51,10 +51,16 @@ const controller = {
         let result = await User.findOne({ email: email });
 
         if (result == null) {
+            // Increment failed login attempts
+            req.session.failedLoginAttempts = (req.session.failedLoginAttempts || 0) + 1;
+            req.session.lastAttemptedEmail = email;
+            
             res.render('login', {
                 layout: 'index',
                 active: { login: true },
-                error: 'Incorrect email address or password!'
+                error: 'Incorrect email address or password!',
+                showForgotPassword: req.session.failedLoginAttempts >= 1,
+                attemptedEmail: email
             });
             return;
         }
@@ -62,13 +68,23 @@ const controller = {
         let passwordCompare = await bcrypt.compare(password, result.password);
 
         if (!passwordCompare) {
+            // Increment failed login attempts
+            req.session.failedLoginAttempts = (req.session.failedLoginAttempts || 0) + 1;
+            req.session.lastAttemptedEmail = email;
+            
             res.render('login', {
                 layout: 'index',
                 active: { login: true },
-                error: 'Incorrect email address or password!'
+                error: 'Incorrect email address or password!',
+                showForgotPassword: req.session.failedLoginAttempts >= 1,
+                attemptedEmail: email
             });
             return;
         }
+
+        // Reset failed attempts on successful login
+        req.session.failedLoginAttempts = 0;
+        req.session.lastAttemptedEmail = null;
 
         req.session.logged_in = {
             state: true,
@@ -293,6 +309,58 @@ const controller = {
         res.redirect('/');
     },
 
+    getForgotPassword: function (req, res) {
+        res.render('forget-password', {
+            layout: 'index',
+            active: { login: true }
+        });
+    },
+
+    postForgotPassword: async function (req, res) {
+        const { email } = req.body;
+
+        try {
+            const user = await User.findOne({ email: email });
+            if (!user) {
+                res.render('forget-password', {
+                    layout: 'index',
+                    active: { login: true },
+                    error: 'No user found with that email address!'
+                });
+                return;
+            }
+
+            // Generate a password reset token
+            const token = crypto.randomBytes(32).toString('hex');
+            user.resetPasswordToken = token;
+            user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+
+            await user.save();
+
+            // Send email with reset link
+            const resetLink = `http://${req.headers.host}/reset-password/${token}`;
+            await sendEmail({
+                to: user.email,
+                subject: 'Password Reset',
+                html: `<p>You requested a password reset. Click the link below to reset your password:</p>
+                       <a href="${resetLink}">${resetLink}</a>`
+            });
+
+            res.render('forget-password', {
+                layout: 'index',
+                active: { login: true },
+                success: 'Password reset link sent to your email!'
+            });
+        } catch (error) {
+            console.error("Error in postForgetPassword:", error);
+            res.render('forget-password', {
+                layout: 'index',
+                active: { login: true },
+                error: 'An error occurred while processing your request.'
+            });
+        }
+    },
+
     getAddToCart: function (req, res) {
         res.render('partials/serviceform', { layout: 'index', active: { login: true } });
     },
@@ -411,6 +479,99 @@ const controller = {
 
         res.redirect('/serviceform');
     },
+
+    getSecurityQuestion: async function(req, res) {
+        const { email } = req.query;
+        
+        try {
+            const user = await User.findOne({ email: email });
+            
+            if (!user || (!user.securityQuestion1 && !user.securityQuestion2)) {
+                res.json({ 
+                    success: false, 
+                    message: 'No security questions found for this account.' 
+                });
+                return;
+            }
+
+            // Return both questions if they exist
+            const questions = [];
+            if (user.securityQuestion1) {
+                questions.push({ id: 1, question: user.securityQuestion1 });
+            }
+            if (user.securityQuestion2) {
+                questions.push({ id: 2, question: user.securityQuestion2 });
+            }
+
+            res.json({ 
+                success: true, 
+                questions: questions 
+            });
+            
+        } catch (error) {
+            console.error(error);
+            res.json({ 
+                success: false, 
+                message: 'An error occurred.' 
+            });
+        }
+    },
+
+    postSecurityAnswer: async function(req, res) {
+        const { email, questionId, answer } = req.body;
+        
+        try {
+            const user = await User.findOne({ email: email });
+            
+            if (!user) {
+                res.json({ 
+                    success: false, 
+                    message: 'User not found.' 
+                });
+                return;
+            }
+
+            let correctAnswer = '';
+            if (questionId === 1 && user.securityQuestion1) {
+                correctAnswer = user.securityAnswer1;
+            } else if (questionId === 2 && user.securityQuestion2) {
+                correctAnswer = user.securityAnswer2;
+            } else {
+                res.json({ 
+                    success: false, 
+                    message: 'Security question not found.' 
+                });
+                return;
+            }
+
+            // Simple case-insensitive comparison
+            if (answer.toLowerCase().trim() === correctAnswer.toLowerCase().trim()) {
+                // Generate reset token
+                const token = crypto.randomBytes(32).toString('hex');
+                user.resetPasswordToken = token;
+                user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+                await user.save();
+
+                res.json({ 
+                    success: true, 
+                    message: 'Security answer correct!',
+                    resetToken: token
+                });
+            } else {
+                res.json({ 
+                    success: false, 
+                    message: 'Incorrect security answer.' 
+                });
+            }
+            
+        } catch (error) {
+            console.error(error);
+            res.json({ 
+                success: false, 
+                message: 'An error occurred.' 
+            });
+        }
+    }
 }
 
 module.exports = controller;
