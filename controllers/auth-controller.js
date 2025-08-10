@@ -81,7 +81,7 @@ const controller = {
       state: true,
       type: "customer",
       user: {
-        userID: result._id,
+        id: result._id,
         firstName: result.firstName,
         lastName: result.lastName,
         contactNumber: result.contactNumber,
@@ -290,7 +290,7 @@ const controller = {
       state: true,
       type: "customer",
       user: {
-        userID: userID,
+        id: userID,
         firstName: user.firstName,
         lastName: user.lastName,
         contactNumber: user.contactNumber,
@@ -341,7 +341,7 @@ const controller = {
   },
 
   postReserve: async function (req, res) {
-    let userID = req.session.logged_in.user.userID;
+    let userID = req.session.logged_in.user.id;
 
     let time = req.body.timestamp;
     let current = req.body.status;
