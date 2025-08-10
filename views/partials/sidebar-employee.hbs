@@ -14,6 +14,27 @@
                     <div id="employee-email">{{logged_in.user.employee_email}}</div>
                 </div>
             </div>
+            <div id="report-info-container-successful">
+                <i class="fa fa-solid fa-user-check"></i>
+                <div class="col">
+                    <div id="alert-successful-text">Last successful login</div>
+                    <div class="flex-container">
+                        <div id="alert-time">{{formatDate logged_in.user.employee_lastLogin}}</div> 
+                        <a href="aa" id="alert-link">not you?</a>
+                    </div>
+                    {{!-- {{logged_in.user.employee_email}} --}}
+                </div>
+            </div>
+            <div id="report-info-container-unsucessful">
+                <i id="alert-icon"></i>
+                <div class="col">
+                    <div id="alert-unsuccessful-text">Unsucessful login</div>
+                    <div class="flex-container">
+                        <div id="alert-time">{{formatDate logged_in.user.employee_lastFailedLogin}}</div> 
+                        <a href="aa" id="alert-link">not you?</a>
+                    </div>
+                </div>
+            </div>
         </ul>
     </div>
     <div id="bottom-btn-container">
