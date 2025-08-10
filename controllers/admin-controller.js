@@ -1,60 +1,72 @@
-const Admin = require('../models/Admin');
-const Employee = require('../models/Employee')
-const ServiceCollection = require('../models/ServiceCollection.js');
-const Service = require('../models/Service.js');
-const SpecialService = require('../models/SpecialService.js');
-const FAQ = require('../models/FAQ.js');
-const Reservation = require('../models/Reservation.js');
-const InCartService = require('../models/InCartService.js');
-const bcrypt = require('bcrypt');
-const Notification = require('../models/Notification');
-const Logs_InputValidation = require('../models/Logs_InputValidation');
-const {logInputValidation, logAuthAttempt, logAccessControl, ValidationRule} = require("../utils/util-log-input-validation");
+const Admin = require("../models/Admin");
+const Employee = require("../models/Employee");
+const ServiceCollection = require("../models/ServiceCollection.js");
+const Service = require("../models/Service.js");
+const SpecialService = require("../models/SpecialService.js");
+const FAQ = require("../models/FAQ.js");
+const Reservation = require("../models/Reservation.js");
+const InCartService = require("../models/InCartService.js");
+const bcrypt = require("bcrypt");
+const Notification = require("../models/Notification");
+const Logs_InputValidation = require("../models/Logs_InputValidation");
+const {logInputValidation, logAuthAttempt, logAccessControl, ValidationRule,
+} = require("../utils/util-log-input-validation");
+const dateHelper = require("../utils/dateHelper.js");
 
 function generateRandomPassword(length) {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
-    let password = '';
-  
-    for (let i = 0; i < length; i++) {
-      password += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-  
-    return password;
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
+  let password = "";
+
+  for (let i = 0; i < length; i++) {
+    password += characters.charAt(
+      Math.floor(Math.random() * characters.length)
+    );
+  }
+
+  return password;
 }
 
 function isEmailValid(email) {
-    const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    return validEmailRegex.test(email);
+  const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+  return validEmailRegex.test(email);
 }
 
 function isContactNumValid(contactNum) {
-    const validContactNumRegex = /^(09)\d{9}$/;
-    return validContactNumRegex.test(contactNum);
+  const validContactNumRegex = /^(09)\d{9}$/;
+  return validContactNumRegex.test(contactNum);
 }
 
 const controller = {
-    getAdminLogin: async function(req, res, next) {
-        if (!req.session.logged_in) {
-            res.render('login-admin', {layout: 'no-sidebar'});
-        } else if (req.session.logged_in.type !== "admin") {
-            let pre_text = "You need to logout as a";
-            if (req.session.logged_in.type === "employee" || req.session.logged_in.type === "admin") pre_text += "n";
-            pre_text += " ";
+  getAdminLogin: async function (req, res, next) {
+    if (!req.session.logged_in) {
+      res.render("login-admin", { layout: "no-sidebar" });
+    } else if (req.session.logged_in.type !== "admin") {
+      let pre_text = "You need to logout as a";
+      if (
+        req.session.logged_in.type === "employee" ||
+        req.session.logged_in.type === "admin"
+      )
+        pre_text += "n";
+      pre_text += " ";
 
-            res.render('login-admin', {
-                layout: 'no-sidebar',
-                logged_in: req.session.logged_in,
-                snackbar: {
-                    type: "error",
-                    persistent: true,
-                    text: pre_text + req.session.logged_in.type + " before you can login as an admin.",
-                    action: {
-                        text: "LOGOUT",
-                        link: "/logout?next=%2Fadmin"
-                    }
-                }
+      res.render("login-admin", {
+        layout: "no-sidebar",
+        logged_in: req.session.logged_in,
+        snackbar: {
+          type: "error",
+          persistent: true,
+          text:
+            pre_text +
+            req.session.logged_in.type +
+            " before you can login as an admin.",
+          action: {
+            text: "LOGOUT",
+            link: "/logout?next=%2Fadmin",
+          },
+        },
             });
-            
+
             // add to access control logs
             const error_msg = "You are not logged in as admin.";
             await logAccessControl(req.session.logged_in.user.userID, req.path, ValidationRule.NotAdmin, error_msg);
@@ -63,712 +75,877 @@ const controller = {
         }
     },
 
-    postAdminLogin: async function(req, res) {
-        let username= req.body.username;
-        let password = req.body.password;
+  postAdminLogin: async function (req, res) {
+    let username = req.body.username;
+    let password = req.body.password;
 
-        if (username === undefined || password === undefined) {
-            res.render('login-admin', {
-                layout: 'no-sidebar',
-                active: {login: true},
-                error: 'Please enter your username and password.'
-            });
-            return;
+    if (username === undefined || password === undefined) {
+      res.render("login-admin", {
+        layout: "no-sidebar",
+        active: { login: true },
+        error: "Please enter your username and password.",
+      });
+      return;
+    }
+
+    let result = await Admin.findOne({ username: username });
+
+    if (result == null) {
+      res.render("login-admin", {
+        layout: "no-sidebar",
+        active: { login: true },
+        error: "Incorrect username or password.",
+      });
+      return;
+    }
+
+    let passwordCompare = await bcrypt.compare(password, result.password);
+
+    if (!passwordCompare) {
+      res.render("login-admin", {
+        layout: "no-sidebar",
+        active: { login: true },
+        error: "Incorrect username or password.",
+      });
+      await Admin.findByIdAndUpdate(result._id, {
+        lastFailedLogin: new Date(),
+      });
+      return;
+    }
+
+    await Admin.findByIdAndUpdate(result._id, { lastLogin: new Date() });
+
+    req.session.logged_in = {
+      state: true,
+      type: "admin",
+      user: {
+        id: result._id,
+        username: result.username,
+        lastLogin: result.lastLogin,
+        lastFailedLogin: result.lastFailedLogin,
+      },
+    };
+
+    if (req.query.next) res.redirect(decodeURIComponent(req.query.next));
+    else res.redirect("/admin");
+  },
+
+  getCurrentUser: async function (req, res) {
+    user = await Admin.findOne({ username: req.session.logged_in.user });
+    console.log(user);
+    res.send(username);
+  },
+
+  postAdminSettings: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(401); // HTTP 401: Unauthorized
+      return;
+    }
+
+    let username = req.body.username;
+    let old_password = req.body.old_password;
+    let new_password = req.body.new_password;
+
+    if (username === "") {
+      const error_msg = "Please enter a username.";
+      await logInputValidation(
+        req.session.logged_in.user.id,
+        req.path,
+        "username",
+        ValidationRule.Required,
+        username,
+        error_msg
+      );
+      res.status(400).send({ error: error_msg });
+      return;
+    }
+
+    if (old_password === "") {
+      const error_msg = "Please enter your current password to continue.";
+      await logInputValidation(
+        req.session.logged_in.user.id,
+        req.path,
+        "old_password",
+        ValidationRule.Required,
+        old_password,
+        error_msg
+      );
+      res.status(400).send({ error: error_msg });
+      return;
+    }
+
+    let currentPassword = await Admin.findOne(
+      { username: req.session.logged_in.user.username },
+      "password"
+    );
+
+    let passwordCompare = await bcrypt.compare(
+      old_password,
+      currentPassword.password
+    );
+    if (!passwordCompare) {
+      res.status(403).send({ error: "Current password is incorrect!" });
+      return;
+    }
+
+    if (new_password !== "") {
+      if (new_password.length < 8) {
+        const error_msg = "Password must contain at least 8 characters!";
+        await logInputValidation(
+          req.session.logged_in.user.id,
+          req.path,
+          "new_password",
+          ValidationRule.InvalidLengthMin,
+          new_password,
+          error_msg
+        );
+        res.status(403).send({ error: error_msg });
+        return;
+      }
+
+      let passwordHashed = await bcrypt.hash(new_password, 10);
+
+      await Admin.updateOne(
+        { username: req.session.logged_in.user.username },
+        {
+          username: username,
+          password: passwordHashed,
         }
+      );
 
-        let result = await Admin.findOne({username: username});
+      res.sendStatus(200);
+      return;
+    }
 
-        if (result == null) {
-            res.render('login-admin', {
-                layout: 'no-sidebar',
-                active: {login: true},
-                error: 'Incorrect username or password.'
-            });
-            return;
-        }
+    await Admin.updateOne(
+      { username: req.session.logged_in.user.username },
+      {
+        username: username,
+      }
+    );
 
-        let passwordCompare = await bcrypt.compare(password, result.password);
+    req.session.logged_in = {
+      state: true,
+      type: "admin",
+      user: {
+        username: username,
+        lastLogin: result.lastLogin,
+        lastFailedLogin: result.lastFailedLogin,
+      },
+    };
 
-        if (!passwordCompare) {
-            res.render('login-admin', {
-                layout: 'no-sidebar',
-                active: {login: true},
-                error: 'Incorrect username or password.'
-            });
-            return;
-        }
+    res.sendStatus(200);
+  },
 
-        req.session.logged_in = {
-            state: true,
-            type: "admin",
-            user: {
-                id: result._id,
-                username: result.username
-            }
-        };
+  getAdminDashboard: async function (req, res, next) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      next();
+      return;
+    }
 
-        if (req.query.next) res.redirect(decodeURIComponent(req.query.next));
-        else res.redirect('/admin');
-    },
+    let reservations_count = await Reservation.countDocuments();
+    let services_count = await Service.countDocuments();
+    let employees_count = await Employee.countDocuments();
+    let faq_count = await FAQ.countDocuments();
 
-    getCurrentUser: async function(req, res){
-        user = await Admin.findOne({username:req.session.logged_in.user})
-        console.log(user)
-        res.send(username)
-    },
+    let logs_inputvalidation_recent = await Logs_InputValidation.find()
+      .sort({ timestamp: -1 })
+      .limit(3)
+      .lean();
+    await Promise.all(
+      logs_inputvalidation_recent.map(async (log) => {
+        log.timestamp = new Date(log.timestamp).toLocaleString();
+        const admin_result = await Admin.findById(
+          log.userId,
+          "_id username"
+        ).lean();
+        //log.userId = `${admin_result.username} (${admin_result._id})`;
+        log.userId = admin_result.username;
+      })
+    );
+    console.log(
+      "=============================ADMINLOGIN=============================="
+    );
+    console.log(req.session.logged_in);
 
-    postAdminSettings: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(401); // HTTP 401: Unauthorized
-            return;
-        }
+    res.render("main-admin", {
+      layout: "admin",
+      logged_in: req.session.logged_in,
+      active: { admin_home: true },
+      reservations_count: reservations_count,
+      services_count: services_count,
+      employees_count: employees_count,
+      faq_count: faq_count,
+      logs_inputvalidation_recent: logs_inputvalidation_recent,
+      helpers: {
+        formatDate: dateHelper.formatDate,
+      },
+    });
+  },
 
-        let username = req.body.username;
-        let old_password = req.body.old_password;
-        let new_password = req.body.new_password;
+  getAdminLogs: async function (req, res, next) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.redirect("/admin?next=" + encodeURIComponent("/admin/logs"));
+      return;
+    }
 
-        if (username === "") {
-            const error_msg = "Please enter a username.";
-            await logInputValidation(req.session.logged_in.user.id, req.path, "username", ValidationRule.Required, username, error_msg);
-            res.status(400).send({error: error_msg});
-            return;
-        }
+    let reservations_count = await Reservation.countDocuments();
+    let services_count = await Service.countDocuments();
+    let employees_count = await Employee.countDocuments();
+    let faq_count = await FAQ.countDocuments();
 
-        if (old_password === "") {
-            const error_msg = "Please enter your current password to continue."
-            await logInputValidation(req.session.logged_in.user.id, req.path, "old_password", ValidationRule.Required, old_password, error_msg);
-            res.status(400).send({error: error_msg});
-            return;
-        }
+    let logs_inputvalidation = await Logs_InputValidation.find()
+      .sort({ timestamp: -1 })
+      .lean();
+    await Promise.all(
+      logs_inputvalidation.map(async (log) => {
+        log.timestamp = new Date(log.timestamp).toLocaleString();
+        const admin_result = await Admin.findById(
+          log.userId,
+          "_id username"
+        ).lean();
+        //log.userId = `${admin_result.username} (${admin_result._id})`;
+        log.userId = admin_result.username;
+      })
+    );
 
-        let currentPassword = await Admin.findOne({username: req.session.logged_in.user.username}, 'password');
+    res.render("admin-logs", {
+      layout: "admin",
+      logged_in: req.session.logged_in,
+      active: { admin_logs: true },
+      logs_inputvalidation: logs_inputvalidation,
+    });
+  },
 
-        let passwordCompare = await bcrypt.compare(old_password, currentPassword.password);
-        if (!passwordCompare) {
-            res.status(403).send({error: "Current password is incorrect!"});
-            return;
-        }
+  getAdminReservations: function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.redirect("/admin?next=" + encodeURIComponent("/admin/reservations"));
+      return;
+    }
 
-        if (new_password !== "") {
-            if (new_password.length < 8) {
-                const error_msg = "Password must contain at least 8 characters!";
-                await logInputValidation(req.session.logged_in.user.id, req.path, "new_password", ValidationRule.InvalidLengthMin, new_password, error_msg);
-                res.status(403).send({error: error_msg});
-                return;
-            }
+    res.render("admin-reservations", {
+      layout: "admin",
+      logged_in: req.session.logged_in,
+      active: { admin_reservations: true },
+    });
+  },
 
-            let passwordHashed = await bcrypt.hash(new_password, 10);
+  getAllReservations: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
 
-            await Admin.updateOne({username: req.session.logged_in.user.username}, {
-                username: username,
-                password: passwordHashed
-            });
-
-            res.sendStatus(200);
-            return;
-        }
-
-        await Admin.updateOne({username: req.session.logged_in.user.username}, {
-            username: username
-        });
-
-        req.session.logged_in = {
-            state: true,
-            type: "admin",
-            user: {
-                username: username
-            }
-        };
-
-        res.sendStatus(200);
-    },
-
-    getAdminDashboard: async function(req, res, next) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            next();
-            return;
-        } 
-
-        let reservations_count = await Reservation.countDocuments();
-        let services_count = await Service.countDocuments();
-        let employees_count = await Employee.countDocuments();
-        let faq_count = await FAQ.countDocuments();
-
-        let logs_inputvalidation_recent = await Logs_InputValidation.find().sort({timestamp: -1}).limit(3).lean();
-        await Promise.all(logs_inputvalidation_recent.map(async log => {
-            log.timestamp = new Date(log.timestamp).toLocaleString();
-            const admin_result = await Admin.findById(log.userId, '_id username').lean();
-            //log.userId = `${admin_result.username} (${admin_result._id})`;
-            log.userId = admin_result.username;
-        }));
-
-        res.render('main-admin', {
-            layout: 'admin',
-            logged_in: req.session.logged_in,
-            active: {admin_home: true},
-            reservations_count: reservations_count,
-            services_count: services_count,
-            employees_count: employees_count,
-            faq_count: faq_count,
-            logs_inputvalidation_recent: logs_inputvalidation_recent
-        });
-    },
-
-    getAdminLogs: async function(req, res, next) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.redirect("/admin?next=" + encodeURIComponent("/admin/logs"));
-            return;
-        }
-
-        let reservations_count = await Reservation.countDocuments();
-        let services_count = await Service.countDocuments();
-        let employees_count = await Employee.countDocuments();
-        let faq_count = await FAQ.countDocuments();
-
-        let logs_inputvalidation = await Logs_InputValidation.find().sort({timestamp: -1}).lean();
-        await Promise.all(logs_inputvalidation.map(async log => {
-            log.timestamp = new Date(log.timestamp).toLocaleString();
-            const admin_result = await Admin.findById(log.userId, '_id username').lean();
-            //log.userId = `${admin_result.username} (${admin_result._id})`;
-            log.userId = admin_result.username;
-        }));
-
-        res.render('admin-logs', {
-            layout: 'admin',
-            logged_in: req.session.logged_in,
-            active: {admin_logs: true},
-            logs_inputvalidation: logs_inputvalidation
-        });
-    },
-
-    getAdminReservations: function (req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.redirect("/admin?next=" + encodeURIComponent("/admin/reservations"));
-            return;
-        }
-
-        res.render('admin-reservations', {
-            layout: 'admin',
-            logged_in: req.session.logged_in,
-            active: {admin_reservations: true}
-        });
-    },
-
-    getAllReservations: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-
-        let reservations = await Reservation.find({}, '').populate('services').populate('userID', 'firstName lastName').exec();
-        console.log(reservations)
-        /*reservations.forEach(reservation => {
+    let reservations = await Reservation.find({}, "")
+      .populate("services")
+      .populate("userID", "firstName lastName")
+      .exec();
+    console.log(reservations);
+    /*reservations.forEach(reservation => {
             console.log(reservation.services);
         })*/
-        res.send(reservations);
-    },
+    res.send(reservations);
+  },
 
-    postUpdateReservationStatus: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.status(403); // HTTP 403: Forbidden
-            return;
+  postUpdateReservationStatus: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.status(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    reservation = await Reservation.findOne({ _id: req.body.reservation_id });
+    userID = reservation.userID;
+    await Reservation.updateOne(
+      { _id: req.body.reservation_id },
+      { status: req.body.reservation_status }
+    );
+    curr_date = new String(new Date());
+    notif_title = "";
+    notif_body = "";
+
+    if (req.body.reservation_status == "Pending") {
+      notif_type = "Admin Set Pending";
+      notif_title = "Reservation has been set to Pending";
+      notif_body = "Your reservation was set to Pending by our admin.";
+    } else if (req.body.reservation_status == "Approved") {
+      notif_type = "Admin Set Approved";
+      notif_title = "Your Reservation has been Approved";
+      notif_body =
+        "Good news! Your reservation has been approved by our admin.";
+    } else if (req.body.reservation_status == "Cancelled") {
+      notif_type = "Admin Set Cancelled";
+      notif_title = "Your Reservation has been Cancelled";
+      notif_body =
+        "Sorry, dear customer. Your reservation has been cancelled by our admin.";
+    }
+
+    await Notification.create({
+      receiver: userID,
+      type: notif_type,
+      timestamp: curr_date,
+      title: notif_title,
+      body: notif_body,
+      reservationID: req.body.reservation_id,
+      reason: req.body.status_change_reason,
+      isRead: false,
+    });
+    res.sendStatus(200);
+  },
+
+  getServicesOfReservation: async function (req, res) {
+    res.send(
+      await Reservation.findOne({ _id: req.query.reservation_id }, "services")
+        .populate("services")
+        .exec()
+    );
+  },
+
+  getAdminEmployees: function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.redirect("/admin?next=" + encodeURIComponent("/admin/employees"));
+      return;
+    }
+
+    res.render("admin-employees", {
+      layout: "admin",
+      logged_in: req.session.logged_in,
+      active: { admin_employees: true },
+    });
+  },
+
+  getAllEmployees: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let employees = await Employee.find({}, "");
+    res.send(employees);
+  },
+
+  postAddEmployee: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let fname = req.body.employee_fname;
+    let lname = req.body.employee_lname;
+    let email = req.body.employee_email;
+    let contact = req.body.employee_contact;
+
+    if (
+      fname === undefined ||
+      lname === undefined ||
+      email === undefined ||
+      contact === undefined
+    ) {
+      res.sendStatus(400); // HTTP 400: Bad Request
+      return;
+    } else if (fname === "" || lname === "" || email === "" || contact === "") {
+      res.sendStatus(400);
+      return;
+    } else if (!isEmailValid(email)) {
+      const error_msg = "Email address is not valid!";
+      await logInputValidation(
+        req.session.logged_in.user.id,
+        req.path,
+        "employee_email",
+        ValidationRule.InvalidFormatEmail,
+        email,
+        error_msg
+      );
+      res.status(400).json({ error: error_msg });
+      return;
+    } else if (!isContactNumValid(contact)) {
+      const error_msg = "Contact number is not valid!";
+      await logInputValidation(
+        req.session.logged_in.user.id,
+        req.path,
+        "employee_contact",
+        ValidationRule.InvalidFormatPhone,
+        contact,
+        error_msg
+      );
+      res.status(400).json({ error: error_msg });
+      return;
+    }
+
+    let generatedPassword = generateRandomPassword(20);
+
+    let employee = {
+      firstName: fname,
+      lastName: lname,
+      email: email,
+      contactNumber: contact,
+      password: generatedPassword,
+      changedPassword: false,
+    };
+
+    await Employee.create(employee);
+
+    res.status(201).json({ password: generatedPassword }); // HTTP 201: Created
+  },
+
+  postEditEmployee: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      return res.sendStatus(403); // HTTP 403: Forbidden
+    }
+
+    let id = req.body.employee_id;
+    let fname = req.body.employee_fname;
+    let lname = req.body.employee_lname;
+    let email = req.body.employee_email;
+    let contact = req.body.employee_contact;
+
+    console.log(contact);
+
+    if (
+      fname === undefined ||
+      lname === undefined ||
+      email === undefined ||
+      contact === undefined
+    ) {
+      return res.sendStatus(400); // HTTP 400: Bad Request
+    } else if (fname === "" || lname === "" || email === "" || contact === "") {
+      return res.sendStatus(400);
+    } else if (!isEmailValid(email)) {
+      const error_msg = "Email address is not valid!";
+      await logInputValidation(
+        req.session.logged_in.user.id,
+        req.path,
+        "employee_email",
+        ValidationRule.InvalidFormatEmail,
+        email,
+        error_msg
+      );
+      return res.status(400).json({ error: error_msg });
+    } else if (!isContactNumValid(contact)) {
+      const error_msg = "Contact number is not valid!";
+      console.log("controller: " + req.session.logged_in.user.id);
+      await logInputValidation(
+        req.session.logged_in.user.id,
+        req.path,
+        "employee_contact",
+        ValidationRule.InvalidFormatPhone,
+        contact,
+        error_msg
+      );
+      return res.status(400).json({ error: error_msg });
+    }
+
+    let employee = {
+      firstName: fname,
+      lastName: lname,
+      email: email,
+      contactNumber: contact,
+    };
+
+    await Employee.updateOne({ _id: id }, employee);
+
+    res.sendStatus(200); // HTTP 200: OK
+  },
+
+  postDeleteEmployee: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let id = req.body.employee_id;
+    let fname = req.body.employee_fname;
+    let lname = req.body.employee_lname;
+    let email = req.body.employee_email;
+    let contact = req.body.employee_contact;
+
+    if (
+      fname === undefined ||
+      lname === undefined ||
+      email === undefined ||
+      contact === undefined
+    ) {
+      res.sendStatus(400); // HTTP 400: Bad Request
+      return;
+    } else if (fname === "" || lname === "" || email === "" || contact === "") {
+      res.sendStatus(400);
+      return;
+    } else if (!isEmailValid(email)) {
+      res.sendStatus(400).json({ error: "Email address is not valid!" });
+      return;
+    } else if (!isContactNumValid(contact)) {
+      res.sendStatus(400).json({ error: "Contact number is not valid!" });
+      return;
+    }
+
+    let employee = {
+      firstName: fname,
+      lastName: lname,
+      email: email,
+      contactNumber: contact,
+    };
+
+    await Employee.deleteOne({ _id: id }, employee);
+
+    res.sendStatus(200); // HTTP 200: OK
+  },
+
+  getAdminServices: async function (req, res, next) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.redirect("/admin?next=" + encodeURIComponent("/admin/services"));
+      return;
+    }
+
+    let serviceCollections = await ServiceCollection.find({})
+      .populate("services", "specialServices")
+      .lean()
+      .exec();
+
+    let serviceCollectionsWithTags = serviceCollections.map((coll) => {
+      optionChoices1Tags = [];
+      optionChoices2Tags = [];
+
+      if (coll.optionChoices1.length > 3) {
+        for (let i = 0; i < 3; i++) {
+          optionChoices1Tags[i] = coll.optionChoices1[i];
         }
-
-        reservation = await Reservation.findOne({_id: req.body.reservation_id})
-        userID = reservation.userID
-        await Reservation.updateOne({_id: req.body.reservation_id}, {status: req.body.reservation_status});
-        curr_date = new String(new Date())
-        notif_title = ""
-        notif_body = ""
-
-        if (req.body.reservation_status == "Pending"){
-            notif_type = "Admin Set Pending"
-            notif_title = "Reservation has been set to Pending"
-            notif_body = "Your reservation was set to Pending by our admin."
+      } else {
+        for (let i = 0; i < coll.optionChoices1.length; i++) {
+          optionChoices1Tags[i] = coll.optionChoices1[i];
         }
-        else if (req.body.reservation_status == "Approved"){
-            notif_type = "Admin Set Approved"
-            notif_title = "Your Reservation has been Approved"
-            notif_body = "Good news! Your reservation has been approved by our admin."
+      }
+
+      if (coll.optionChoices2.length > 3) {
+        for (let i = 0; i < 3; i++) {
+          optionChoices2Tags[i] = coll.optionChoices2[i];
         }
-        else if (req.body.reservation_status == "Cancelled"){
-            notif_type = "Admin Set Cancelled"
-            notif_title = "Your Reservation has been Cancelled"
-            notif_body = "Sorry, dear customer. Your reservation has been cancelled by our admin."
+      } else {
+        for (let i = 0; i < coll.optionChoices2.length; i++) {
+          optionChoices2Tags[i] = coll.optionChoices2[i];
         }
+      }
 
-        await Notification.create({
-            receiver: userID,
-            type: notif_type,
-            timestamp: curr_date,
-            title: notif_title,
-            body: notif_body,
-            reservationID: req.body.reservation_id,
-            reason: req.body.status_change_reason,
-            isRead: false
-        })
-        res.sendStatus(200);
-    },
+      return {
+        serviceConcern: coll.serviceConcern,
+        serviceTitle: coll.serviceTitle,
+        services: coll.services,
+        optionChoices1: coll.optionChoices1,
+        optionChoices2: coll.optionChoices2,
+        specialServices: coll.specialServices,
+        optionChoices1Tags: optionChoices1Tags,
+        optionChoices2Tags: optionChoices2Tags,
+      };
+    });
 
-    getServicesOfReservation: async function(req, res) {
-        res.send(await Reservation.findOne({_id: req.query.reservation_id}, 'services').populate("services").exec());
-    },
-  
-    getAdminEmployees: function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.redirect("/admin?next=" + encodeURIComponent("/admin/employees"));
-            return;
+    res.render("services-admin", {
+      layout: "admin",
+      logged_in: req.session.logged_in,
+      active: { admin_services: true },
+      service_collections: serviceCollectionsWithTags,
+    });
+  },
+
+  getFindServiceCollection: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let serviceCollection = await ServiceCollection.findOne({
+      _id: req.query.id,
+    })
+      .populate("services")
+      .populate("specialServices");
+
+    res.send(serviceCollection);
+  },
+
+  getServiceCollections: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let serviceCollections = await ServiceCollection.find({})
+      .populate("services", "specialServices")
+      .lean()
+      .exec();
+
+    let serviceCollectionsWithTags = serviceCollections.map((coll) => {
+      optionChoices1Tags = [];
+      optionChoices2Tags = [];
+
+      if (coll.optionChoices1.length > 3) {
+        for (let i = 0; i < 3; i++) {
+          optionChoices1Tags[i] = coll.optionChoices1[i];
         }
-
-        res.render('admin-employees', {
-            layout: 'admin',
-            logged_in: req.session.logged_in,
-            active: {admin_employees: true}
-        });
-    },
-
-    getAllEmployees: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
+      } else {
+        for (let i = 0; i < coll.optionChoices1.length; i++) {
+          optionChoices1Tags[i] = coll.optionChoices1[i];
         }
+      }
 
-        let employees = await Employee.find({}, '');
-        res.send(employees);
-    },
-
-    postAddEmployee: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
+      if (coll.optionChoices2.length > 3) {
+        for (let i = 0; i < 3; i++) {
+          optionChoices2Tags[i] = coll.optionChoices2[i];
         }
-
-        let fname = req.body.employee_fname;
-        let lname = req.body.employee_lname;
-        let email = req.body.employee_email;
-        let contact = req.body.employee_contact;
-
-        if (fname === undefined || lname === undefined || email === undefined || contact === undefined) {
-            res.sendStatus(400); // HTTP 400: Bad Request
-            return;
-        } else if (fname === '' || lname === '' || email === '' || contact === '') {
-            res.sendStatus(400);
-            return;
-        } else if (!isEmailValid(email)) {
-            const error_msg = "Email address is not valid!";
-            await logInputValidation(req.session.logged_in.user.id, req.path, "employee_email", ValidationRule.InvalidFormatEmail, email, error_msg);
-            res.status(400).json({error: error_msg});
-            return;
-        } else if (!isContactNumValid(contact)) {
-            const error_msg = "Contact number is not valid!";
-            await logInputValidation(req.session.logged_in.user.id, req.path, "employee_contact", ValidationRule.InvalidFormatPhone, contact, error_msg);
-            res.status(400).json({error: error_msg});
-            return;
+      } else {
+        for (let i = 0; i < coll.optionChoices2.length; i++) {
+          optionChoices2Tags[i] = coll.optionChoices2[i];
         }
-
-        let generatedPassword = generateRandomPassword(20)
-
-        let employee = {
-            firstName: fname,
-            lastName: lname,
-            email: email,
-            contactNumber: contact,
-            password: generatedPassword,
-            changedPassword: false
-        };
-
-        await Employee.create(employee);
-
-        res.status(201).json({password: generatedPassword}); // HTTP 201: Created
-    },
-
-    postEditEmployee: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            return res.sendStatus(403); // HTTP 403: Forbidden
-        }
-
-        let id = req.body.employee_id;
-        let fname = req.body.employee_fname;
-        let lname = req.body.employee_lname;
-        let email = req.body.employee_email;
-        let contact = req.body.employee_contact;
-
-        console.log(contact);
-
-        if (fname === undefined || lname === undefined || email === undefined || contact === undefined) {
-            return res.sendStatus(400); // HTTP 400: Bad Request
-        } else if (fname === '' || lname === '' || email === '' || contact === '') {
-            return res.sendStatus(400);
-        } else if (!isEmailValid(email)) {
-            const error_msg = "Email address is not valid!";
-            await logInputValidation(req.session.logged_in.user.id, req.path, "employee_email", ValidationRule.InvalidFormatEmail, email, error_msg);
-            return res.status(400).json({error: error_msg});
-        } else if (!isContactNumValid(contact)) {
-            const error_msg = "Contact number is not valid!";
-            console.log("controller: " + req.session.logged_in.user.id);
-            await logInputValidation(req.session.logged_in.user.id, req.path, "employee_contact", ValidationRule.InvalidFormatPhone, contact, error_msg);
-            return res.status(400).json({error: error_msg});
-        }
-
-        let employee = {
-            firstName: fname,
-            lastName: lname,
-            email: email,
-            contactNumber: contact
-        };
-
-        await Employee.updateOne({_id: id}, employee);
-
-        res.sendStatus(200); // HTTP 200: OK
-    },
-
-    postDeleteEmployee: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-
-        let id = req.body.employee_id;
-        let fname = req.body.employee_fname;
-        let lname = req.body.employee_lname;
-        let email = req.body.employee_email;
-        let contact = req.body.employee_contact;
-
-        if (fname === undefined || lname === undefined || email === undefined || contact === undefined) {
-            res.sendStatus(400); // HTTP 400: Bad Request
-            return;
-        } else if (fname === '' || lname === '' || email === '' || contact === '') {
-            res.sendStatus(400);
-            return;
-        } else if (!isEmailValid(email)) {
-            res.sendStatus(400).json({error: "Email address is not valid!"});
-            return;
-        } else if (!isContactNumValid(contact)) {
-            res.sendStatus(400).json({error: "Contact number is not valid!"});
-            return;
-        }
-
-        let employee = {
-            firstName: fname,
-            lastName: lname,
-            email: email,
-            contactNumber: contact
-        };
-
-        await Employee.deleteOne({_id: id}, employee);
-
-        res.sendStatus(200); // HTTP 200: OK
-    },
-
-    getAdminServices: async function(req, res, next) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.redirect("/admin?next=" + encodeURIComponent("/admin/services"));
-            return;
-        }
-
-        let serviceCollections = await ServiceCollection.find({
-        }).populate('services', 'specialServices').lean().exec()
-
-        let serviceCollectionsWithTags = serviceCollections.map(coll=>{
-            optionChoices1Tags = []
-            optionChoices2Tags = []
-
-            if (coll.optionChoices1.length > 3){
-                for (let i = 0; i < 3; i++){
-                    optionChoices1Tags[i] = coll.optionChoices1[i]
-                }
-            } else {
-                for (let i = 0; i < coll.optionChoices1.length; i++){
-                    optionChoices1Tags[i] = coll.optionChoices1[i]
-                }
-            }
-
-            if (coll.optionChoices2.length > 3){
-                for (let i = 0; i < 3; i++){
-                    optionChoices2Tags[i] = coll.optionChoices2[i]
-                }
-            } else {
-                for (let i = 0; i < coll.optionChoices2.length; i++){
-                    optionChoices2Tags[i] = coll.optionChoices2[i]
-                }
-            }
-
-            return {
-                serviceConcern: coll.serviceConcern,
-                serviceTitle: coll.serviceTitle,
-                services: coll.services,
-                optionChoices1: coll.optionChoices1,
-                optionChoices2: coll.optionChoices2,
-                specialServices: coll.specialServices,
-                optionChoices1Tags: optionChoices1Tags,
-                optionChoices2Tags: optionChoices2Tags
-            }
-        })
-
-        
-        res.render('services-admin', {
-            layout: 'admin',
-            logged_in: req.session.logged_in,
-            active: {admin_services: true},
-            service_collections: serviceCollectionsWithTags
-        });
-    },
-
-    getFindServiceCollection: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-
-        let serviceCollection = await ServiceCollection.findOne({_id: req.query.id})
-        .populate('services').populate('specialServices')
-
-        res.send(serviceCollection)
-    },
-
-    getServiceCollections: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-
-        let serviceCollections = await ServiceCollection.find({
-        }).populate('services', 'specialServices').lean().exec()
-
-        let serviceCollectionsWithTags = serviceCollections.map(coll=>{
-            optionChoices1Tags = []
-            optionChoices2Tags = []
-
-            if (coll.optionChoices1.length > 3){
-                for (let i = 0; i < 3; i++){
-                    optionChoices1Tags[i] = coll.optionChoices1[i]
-                }
-            } else {
-                for (let i = 0; i < coll.optionChoices1.length; i++){
-                    optionChoices1Tags[i] = coll.optionChoices1[i]
-                }
-            }
-
-            if (coll.optionChoices2.length > 3){
-                for (let i = 0; i < 3; i++){
-                    optionChoices2Tags[i] = coll.optionChoices2[i]
-                }
-            } else {
-                for (let i = 0; i < coll.optionChoices2.length; i++){
-                    optionChoices2Tags[i] = coll.optionChoices2[i]
-                }
-            }
-
-            return {
-                _id: coll._id,
-                serviceConcern: coll.serviceConcern,
-                serviceTitle: coll.serviceTitle,
-                services: coll.services,
-                optionChoices1: coll.optionChoices1,
-                optionChoices2: coll.optionChoices2,
-                specialServices: coll.specialServices,
-                optionChoices1Tags: optionChoices1Tags,
-                optionChoices2Tags: optionChoices2Tags
-            }
-        })
-        res.send(serviceCollectionsWithTags)
-    },
-
-    postAddServiceCollection: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-        // check if service title is unique
-        let uniquecheck = await ServiceCollection.findOne({serviceTitle:req.body.serviceTitle}, 'serviceTitle')
-    
-        if (uniquecheck != null && uniquecheck.serviceTitle === req.body.serviceTitle) {
-            res.json({hasError: true, error: "Service Title already exists!"})
-            return;
-        }
-
-        // extract services and insert to DB
-
-        if (Array.isArray(req.body.services) && req.body.services.length !== 0) {
-            await Service.insertMany(req.body.services)
-        }
-        
-        if (Array.isArray(req.body.specialServices) && req.body.specialServices.length !== 0) {
-            await SpecialService.insertMany(req.body.specialServices)
-        }
-
-        let services = await Service.find({'serviceTitle': req.body.serviceTitle})
-        let serviceIds = await services.map(service => service._id)
-        
-        let standaloneServices = await SpecialService.find({'serviceTitle': req.body.serviceTitle})
-        let standaloneServiceIds = await standaloneServices.map(service => service._id)
-
-        let newServiceCollection = {
-            serviceConcern: req.body.serviceConcern,
-            serviceTitle: req.body.serviceTitle,
-            optionChoices1: req.body.optionChoices1,
-            optionChoices2: req.body.optionChoices2,
-            services: serviceIds,
-            specialServices: standaloneServiceIds
-        }
-
-        await ServiceCollection.create(newServiceCollection);
-
-        res.sendStatus(200); // HTTP 200: OK
-    },
-
-    postEditServiceCollection: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-        
-        let id = req.body.id
-        
-        // check if service title is unique
-        let uniquecheck = await ServiceCollection.findOne({serviceTitle:req.body.serviceTitle}, 'serviceTitle')
-        
-        if (uniquecheck != null && uniquecheck.serviceTitle === req.body.serviceTitle && uniquecheck._id != id) {
-            res.json({hasError: true, error: "Service Title already exists!"})
-            return;
-        }
-
-        let service_collection_to_be_deleted = await ServiceCollection.findOne({_id:id})
-
-        // delete existing info
-
-        await Service.deleteMany({serviceTitle: service_collection_to_be_deleted.serviceTitle})
-        await SpecialService.deleteMany({serviceTitle: service_collection_to_be_deleted.serviceTitle})
-
-        // extract services and insert to DB
-
-        if (Array.isArray(req.body.services) && req.body.services.length !== 0) {
-            await Service.insertMany(req.body.services)
-        }
-        
-        if (Array.isArray(req.body.specialServices) && req.body.specialServices.length !== 0) {
-            await SpecialService.insertMany(req.body.specialServices)
-        }
-
-        let services = await Service.find({'serviceTitle': req.body.serviceTitle})
-        let serviceIds = await services.map(service => service._id)
-        
-        let standaloneServices = await SpecialService.find({'serviceTitle': req.body.serviceTitle})
-        let standaloneServiceIds = await standaloneServices.map(service => service._id)
-
-        let newServiceCollection = {}
-
-        newServiceCollection = {
-            serviceConcern: req.body.serviceConcern,
-            serviceTitle: req.body.serviceTitle,
-            optionChoices1: req.body.optionChoices1,
-            optionChoices2: req.body.optionChoices2,
-            services: serviceIds,
-            specialServices: standaloneServiceIds
-        }
-        
-        await ServiceCollection.replaceOne({_id: id}, newServiceCollection);
-        
-        res.sendStatus(200); // HTTP 200: OK
-    },
-
-    postDeleteServiceCollection: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-        
-        let deleteServices = await Service.deleteMany({serviceTitle: req.body.serviceTitle})
-        let deleteSpecialServices = await SpecialService.deleteMany({serviceTitle: req.body.serviceTitle})
-        let deleteServiceCollection = await ServiceCollection.deleteOne({serviceTitle: req.body.serviceTitle})
-
-        if (deleteServices.deletedCount > 0 || deleteSpecialServices.deletedCount > 0 || deleteServiceCollection.deletedCount > 0){
-            res.sendStatus(200); // HTTP 200: OK
-        }
-        else {
-            res.json({hasError: true, error: "Nothing to delete."});
-        }
-    },
-
-    getFAQ: function (req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-
-        res.render('faq-admin', {
-            layout: 'admin',
-            logged_in: req.session.logged_in,
-            active: {admin_FAQ: true},
-        });
-    },
-
-    getAllFAQs: async function (req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-
-        let faqs = await FAQ.find({}, '');
-        res.send(faqs);
-    },
-
-    getFindFAQ: async function (req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-
-        let faq = await FAQ.findOne({_id: req.query.id});
-        res.send(faq);
-    },
-    
-    postAddFAQ: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-
-        let newFAQ = {
-            question: req.body.question,
-            answer: req.body.answer
-        }
-
-        await FAQ.create(newFAQ);
-
-        res.sendStatus(200); // HTTP 200: OK
-    },
-
-    postEditFAQ: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-
-        let newFAQ = {
-            question: req.body.question,
-            answer: req.body.answer
-        }
-
-        await FAQ.updateOne({_id: req.body.id}, newFAQ);
-
-        res.sendStatus(200); // HTTP 200: OK
-    },
-
-    postDeleteFAQ: async function(req, res) {
-        if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(403); // HTTP 403: Forbidden
-            return;
-        }
-
-        let result = await FAQ.deleteOne({_id: req.body.id});
-
-        if(result.deletedCount > 0){
-            res.sendStatus(200); // HTTP 200: OK
-        } else {
-            res.json({hasError: true, error: "Nothing to delete."});
-        }
-    } 
-}
+      }
+
+      return {
+        _id: coll._id,
+        serviceConcern: coll.serviceConcern,
+        serviceTitle: coll.serviceTitle,
+        services: coll.services,
+        optionChoices1: coll.optionChoices1,
+        optionChoices2: coll.optionChoices2,
+        specialServices: coll.specialServices,
+        optionChoices1Tags: optionChoices1Tags,
+        optionChoices2Tags: optionChoices2Tags,
+      };
+    });
+    res.send(serviceCollectionsWithTags);
+  },
+
+  postAddServiceCollection: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+    // check if service title is unique
+    let uniquecheck = await ServiceCollection.findOne(
+      { serviceTitle: req.body.serviceTitle },
+      "serviceTitle"
+    );
+
+    if (
+      uniquecheck != null &&
+      uniquecheck.serviceTitle === req.body.serviceTitle
+    ) {
+      res.json({ hasError: true, error: "Service Title already exists!" });
+      return;
+    }
+
+    // extract services and insert to DB
+
+    if (Array.isArray(req.body.services) && req.body.services.length !== 0) {
+      await Service.insertMany(req.body.services);
+    }
+
+    if (
+      Array.isArray(req.body.specialServices) &&
+      req.body.specialServices.length !== 0
+    ) {
+      await SpecialService.insertMany(req.body.specialServices);
+    }
+
+    let services = await Service.find({ serviceTitle: req.body.serviceTitle });
+    let serviceIds = await services.map((service) => service._id);
+
+    let standaloneServices = await SpecialService.find({
+      serviceTitle: req.body.serviceTitle,
+    });
+    let standaloneServiceIds = await standaloneServices.map(
+      (service) => service._id
+    );
+
+    let newServiceCollection = {
+      serviceConcern: req.body.serviceConcern,
+      serviceTitle: req.body.serviceTitle,
+      optionChoices1: req.body.optionChoices1,
+      optionChoices2: req.body.optionChoices2,
+      services: serviceIds,
+      specialServices: standaloneServiceIds,
+    };
+
+    await ServiceCollection.create(newServiceCollection);
+
+    res.sendStatus(200); // HTTP 200: OK
+  },
+
+  postEditServiceCollection: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let id = req.body.id;
+
+    // check if service title is unique
+    let uniquecheck = await ServiceCollection.findOne(
+      { serviceTitle: req.body.serviceTitle },
+      "serviceTitle"
+    );
+
+    if (
+      uniquecheck != null &&
+      uniquecheck.serviceTitle === req.body.serviceTitle &&
+      uniquecheck._id != id
+    ) {
+      res.json({ hasError: true, error: "Service Title already exists!" });
+      return;
+    }
+
+    let service_collection_to_be_deleted = await ServiceCollection.findOne({
+      _id: id,
+    });
+
+    // delete existing info
+
+    await Service.deleteMany({
+      serviceTitle: service_collection_to_be_deleted.serviceTitle,
+    });
+    await SpecialService.deleteMany({
+      serviceTitle: service_collection_to_be_deleted.serviceTitle,
+    });
+
+    // extract services and insert to DB
+
+    if (Array.isArray(req.body.services) && req.body.services.length !== 0) {
+      await Service.insertMany(req.body.services);
+    }
+
+    if (
+      Array.isArray(req.body.specialServices) &&
+      req.body.specialServices.length !== 0
+    ) {
+      await SpecialService.insertMany(req.body.specialServices);
+    }
+
+    let services = await Service.find({ serviceTitle: req.body.serviceTitle });
+    let serviceIds = await services.map((service) => service._id);
+
+    let standaloneServices = await SpecialService.find({
+      serviceTitle: req.body.serviceTitle,
+    });
+    let standaloneServiceIds = await standaloneServices.map(
+      (service) => service._id
+    );
+
+    let newServiceCollection = {};
+
+    newServiceCollection = {
+      serviceConcern: req.body.serviceConcern,
+      serviceTitle: req.body.serviceTitle,
+      optionChoices1: req.body.optionChoices1,
+      optionChoices2: req.body.optionChoices2,
+      services: serviceIds,
+      specialServices: standaloneServiceIds,
+    };
+
+    await ServiceCollection.replaceOne({ _id: id }, newServiceCollection);
+
+    res.sendStatus(200); // HTTP 200: OK
+  },
+
+  postDeleteServiceCollection: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let deleteServices = await Service.deleteMany({
+      serviceTitle: req.body.serviceTitle,
+    });
+    let deleteSpecialServices = await SpecialService.deleteMany({
+      serviceTitle: req.body.serviceTitle,
+    });
+    let deleteServiceCollection = await ServiceCollection.deleteOne({
+      serviceTitle: req.body.serviceTitle,
+    });
+
+    if (
+      deleteServices.deletedCount > 0 ||
+      deleteSpecialServices.deletedCount > 0 ||
+      deleteServiceCollection.deletedCount > 0
+    ) {
+      res.sendStatus(200); // HTTP 200: OK
+    } else {
+      res.json({ hasError: true, error: "Nothing to delete." });
+    }
+  },
+
+  getFAQ: function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    res.render("faq-admin", {
+      layout: "admin",
+      logged_in: req.session.logged_in,
+      active: { admin_FAQ: true },
+    });
+  },
+
+  getAllFAQs: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let faqs = await FAQ.find({}, "");
+    res.send(faqs);
+  },
+
+  getFindFAQ: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let faq = await FAQ.findOne({ _id: req.query.id });
+    res.send(faq);
+  },
+
+  postAddFAQ: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let newFAQ = {
+      question: req.body.question,
+      answer: req.body.answer,
+    };
+
+    await FAQ.create(newFAQ);
+
+    res.sendStatus(200); // HTTP 200: OK
+  },
+
+  postEditFAQ: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let newFAQ = {
+      question: req.body.question,
+      answer: req.body.answer,
+    };
+
+    await FAQ.updateOne({ _id: req.body.id }, newFAQ);
+
+    res.sendStatus(200); // HTTP 200: OK
+  },
+
+  postDeleteFAQ: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+      res.sendStatus(403); // HTTP 403: Forbidden
+      return;
+    }
+
+    let result = await FAQ.deleteOne({ _id: req.body.id });
+
+    if (result.deletedCount > 0) {
+      res.sendStatus(200); // HTTP 200: OK
+    } else {
+      res.json({ hasError: true, error: "Nothing to delete." });
+    }
+  },
+};
 
 module.exports = controller;
