@@ -5,9 +5,13 @@ const Logs_AuthAttemptSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
+    user: {
+        type: String,
         required: false
+    },
+    status: {
+        type: String,
+        required: true
     },
     userType: {
         type: String,
@@ -17,11 +21,7 @@ const Logs_AuthAttemptSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    validationRule: {
-        type: String,
-        required: true
-    },
-    message: {
+    attemptType: {
         type: String,
         required: true
     }
