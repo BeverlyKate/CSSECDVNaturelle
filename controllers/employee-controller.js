@@ -9,7 +9,8 @@ const bcrypt = require('bcrypt');
 const { ObjectId } = require('mongodb');
 const { formatDate } = require("../utils/dateHelper.js");
 const dateHelper = require("../utils/dateHelper.js");
-const {logInputValidation, logAuthAttempt, logAccessControl, ValidationRule} = require("../utils/util-log-input-validation");
+const {logInputValidation, logAccessControl, ValidationRule} = require("../utils/util-log-input-validation");
+const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 
 const controller = {
   getEmployeeLogin: async function (req, res, next) {
@@ -65,6 +66,7 @@ const controller = {
     let result = await Employee.findOne({ email: email });
 
     if (result == null) {
+      await logAuthAttempt(email, Status.Fail, UserType.Employee, req.path, AttemptType.LoginAttempt);
       res.render("login-employee", {
         layout: "employee-no-sidebar",
         active: { login: true },
@@ -76,6 +78,7 @@ const controller = {
     if (result.changedPassword) {
       let passwordCompare = await bcrypt.compare(password, result.password);
       if (!passwordCompare) {
+        await logAuthAttempt(email, Status.Fail, UserType.Employee, req.path, AttemptType.LoginAttempt);
         res.render("login-employee", {
           layout: "employee-no-sidebar",
           active: { login: true },
@@ -88,6 +91,7 @@ const controller = {
       }
     } else {
       if (result.password != password) {
+        await logAuthAttempt(email, Status.Fail, UserType.Employee, req.path, AttemptType.LoginAttempt);
         res.render("login-employee", {
           layout: "employee-no-sidebar",
           active: { login: true },
@@ -99,6 +103,8 @@ const controller = {
         return;
       }
     }
+
+    await logAuthAttempt(email, Status.Success, UserType.Employee, req.path, AttemptType.LoginAttempt);
 
     await Employee.findByIdAndUpdate(result._id, { lastLogin: new Date() });
 
@@ -412,15 +418,16 @@ const controller = {
     );
 
     if (!matched) {
+      await logAuthAttempt(email, Status.Fail, UserType.Employee, req.path, AttemptType.PasswordVerification);
       res.status(403).send({ error: "Current password is incorrect!" });
       return;
     }
 
+    await logAuthAttempt(email, Status.Success, UserType.Employee, req.path, AttemptType.PasswordVerification);
+
     if (new_password !== "") {
       if (new_password.length < 8) {
-        res
-          .status(403)
-          .send({ error: "Password must contain at least 8 characters!" });
+        res.status(403).send({ error: "Password must contain at least 8 characters!" });
         return;
       }
 

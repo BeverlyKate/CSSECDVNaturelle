@@ -7,6 +7,7 @@ const FAQ = require("../models/FAQ.js");
 const Reservation = require("../models/Reservation.js");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 
 const controller = {
   getLogout: function (req, res) {
@@ -362,9 +363,7 @@ const controller = {
     }
 
     if (old_password === "") {
-      res
-        .status(400)
-        .send({ error: "Please enter your current password to continue." });
+      res.status(400).send({ error: "Please enter your current password to continue." });
       return;
     }
 
@@ -391,15 +390,16 @@ const controller = {
       currentPassword.password
     );
     if (!passwordCompare) {
+      await logAuthAttempt(email, Status.Fail, UserType.Customer, req.path, AttemptType.PasswordVerification);
       res.status(403).send({ error: "Current password is incorrect!" });
       return;
     }
 
+    await logAuthAttempt(email, Status.Success, UserType.Customer, req.path, AttemptType.PasswordVerification);
+
     if (new_password !== "") {
       if (new_password.length < 8) {
-        res
-          .status(403)
-          .send({ error: "Password must contain at least 8 characters!" });
+        res.status(403).send({ error: "Password must contain at least 8 characters!" });
         return;
       }
 

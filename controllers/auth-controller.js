@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const InCartService = require("../models/InCartService");
 const Reservation = require("../models/Reservation");
 const Notification = require("../models/Notification");
+const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 
 let generatedId = [];
 
@@ -58,6 +59,7 @@ const controller = {
     let result = await User.findOne({ email: email });
 
     if (result == null) {
+      await logAuthAttempt(email, Status.Fail, UserType.Customer, req.path, AttemptType.LoginAttempt);
       res.render("login", {
         layout: "index",
         active: { login: true },
@@ -69,6 +71,7 @@ const controller = {
     let passwordCompare = await bcrypt.compare(password, result.password);
 
     if (!passwordCompare) {
+      await logAuthAttempt(email, Status.Fail, UserType.Customer, req.path, AttemptType.LoginAttempt);
       res.render("login", {
         layout: "index",
         active: { login: true },
@@ -76,6 +79,8 @@ const controller = {
       });
       return;
     }
+
+    await logAuthAttempt(email, Status.Success, UserType.Customer, req.path, AttemptType.LoginAttempt);
 
     req.session.logged_in = {
       state: true,

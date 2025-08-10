@@ -9,8 +9,8 @@ const InCartService = require("../models/InCartService.js");
 const bcrypt = require("bcrypt");
 const Notification = require("../models/Notification");
 const Logs_InputValidation = require("../models/Logs_InputValidation");
-const {logInputValidation, logAuthAttempt, logAccessControl, ValidationRule,
-} = require("../utils/util-log-input-validation");
+const {logInputValidation, logAccessControl, ValidationRule} = require("../utils/util-log-input-validation");
+const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 const dateHelper = require("../utils/dateHelper.js");
 
 function generateRandomPassword(length) {
@@ -91,6 +91,7 @@ const controller = {
     let result = await Admin.findOne({ username: username });
 
     if (result == null) {
+      await logAuthAttempt(username, Status.Fail, UserType.Admin, req.path, AttemptType.LoginAttempt);
       res.render("login-admin", {
         layout: "no-sidebar",
         active: { login: true },
@@ -102,6 +103,7 @@ const controller = {
     let passwordCompare = await bcrypt.compare(password, result.password);
 
     if (!passwordCompare) {
+      await logAuthAttempt(username, Status.Fail, UserType.Admin, req.path, AttemptType.LoginAttempt);
       res.render("login-admin", {
         layout: "no-sidebar",
         active: { login: true },
@@ -112,6 +114,8 @@ const controller = {
       });
       return;
     }
+
+    await logAuthAttempt(username, Status.Success, UserType.Admin, req.path, AttemptType.LoginAttempt);
 
     await Admin.findByIdAndUpdate(result._id, { lastLogin: new Date() });
 
@@ -184,9 +188,12 @@ const controller = {
       currentPassword.password
     );
     if (!passwordCompare) {
+      await logAuthAttempt(req.session.logged_in.user.username, Status.Fail, UserType.Admin, req.path, AttemptType.PasswordVerification);
       res.status(403).send({ error: "Current password is incorrect!" });
       return;
     }
+
+    await logAuthAttempt(req.session.logged_in.user.username, Status.Success, UserType.Admin, req.path, AttemptType.PasswordVerification);
 
     if (new_password !== "") {
       if (new_password.length < 8) {

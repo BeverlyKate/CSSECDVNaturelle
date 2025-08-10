@@ -11,7 +11,7 @@ const Status = {
 
 const AttemptType = {
     LoginAttempt: "login_attempt",
-    PasswordChangeVerification: "password_change_verification"
+    PasswordVerification: "password_change_verification"
 };
 
 async function logAuthAttempt(user, status, userType, endpoint, attemptType) {
@@ -33,3 +33,5 @@ async function logAuthAttempt(user, status, userType, endpoint, attemptType) {
         console.error("Error saving authentication attempt log:", error);
     }
 }
+
+module.exports = {logAuthAttempt, UserType, Status, AttemptType}
