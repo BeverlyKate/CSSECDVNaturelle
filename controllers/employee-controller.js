@@ -7,6 +7,8 @@ const Notification = require("../models/Notification");
 const InCartService = require("../models/InCartService.js");
 const bcrypt = require("bcrypt");
 const { ObjectId } = require("mongodb");
+const { formatDate } = require("../utils/dateHelper.js");
+const dateHelper = require("../utils/dateHelper.js");
 
 const controller = {
   getEmployeeLogin: function (req, res, next) {
@@ -229,6 +231,9 @@ const controller = {
       layout: "employee",
       logged_in: req.session.logged_in,
       active: { employee_home: true },
+      helpers: {
+        formatDate: dateHelper.formatDate,
+      },
     });
   },
 
@@ -266,7 +271,7 @@ const controller = {
       ////console.log(foundMatch);
       return foundMatch;
     });
-    ////console.log(filteredReservations);
+    //console.log(filteredReservations);
     res.send(filteredReservations);
   },
 
