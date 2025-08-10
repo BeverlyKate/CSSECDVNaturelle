@@ -33,11 +33,19 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         required: false
     },
-    securityQuestion: {
+    securityQuestion1: {
         type: String,
         required: false
     },
-    securityAnswer: {
+    securityQuestion2: {
+        type: String,
+        required: false
+    },
+    securityAnswer1: {
+        type: String,
+        required: false
+    },
+    securityAnswer2: {
         type: String,
         required: false
     }
