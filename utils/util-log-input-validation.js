@@ -23,7 +23,6 @@ const ValidationRule = {
     DateInFuture: "date_in_future",
     StartDateAfterEndDate: "start_date_after_end_date",
     ValueNotUnique: "value_not_unique",
-    // Auth attempt logs
 
     // Access control logs
     NotAdmin: "not_admin",
@@ -48,26 +47,6 @@ async function logInputValidation(userId, endpoint, fieldName, validationRule, i
         console.log("Input validation log saved successfully.");
     } catch (error) {
         console.error("Error saving input validation log:", error);
-    }
-}
-
-async function logAuthAttempt(userId, userType, endpoint, validationRule, message) {
-    const Logs_AuthAttempt = require('../models/Logs_AuthAttempt');
-
-    try {
-        const log = new Logs_AuthAttempt({
-            timestamp: new Date(),
-            userId: userId,
-            userType: userType,
-            endpoint: endpoint,
-            validationRule: validationRule,
-            message: message
-        });
-        console.log("util: " + log.userId);
-        await log.save();
-        console.log("Authentication attempt log saved successfully.");
-    } catch (error) {
-        console.error("Error saving authentication attempt log:", error);
     }
 }
 
