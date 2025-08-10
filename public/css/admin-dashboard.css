@@ -208,6 +208,42 @@
     font-size: 0.85em;
 }
 
+.table td .badge {
+    border-radius: var(--radius);
+    padding: 0.25rem 0.5rem;
+    vertical-align: middle;
+    display: inline;
+}
+
+.badge-authattempt-status-success {
+    background-color: var(--clr-complementary-800);
+    color: #FFF;
+}
+
+.badge-authattempt-status-fail {
+    background-color: var(--clr-triadic-1-500);
+    color: #FFF;
+}
+
+.badge-authattempt-usertype-customer {
+    background-color: #F1F1F1;
+    color: #777;
+}
+
+.badge-authattempt-usertype-admin {
+    background-color: var(--clr-primary-50);
+    color: var(--salon-purple);
+}
+
+.badge-authattempt-usertype-employee {
+    background-color: var(--clr-triadic-1-50);
+    color: var(--clr-triadic-1-500);
+}
+
+.table td .badge .fa {
+    vertical-align: middle;
+}
+
 @media (max-width: 1400px) {
     .tool-btn {
         padding: 1.25rem;

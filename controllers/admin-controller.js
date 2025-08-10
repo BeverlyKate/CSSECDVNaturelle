@@ -9,6 +9,7 @@ const InCartService = require("../models/InCartService.js");
 const bcrypt = require("bcrypt");
 const Notification = require("../models/Notification");
 const Logs_InputValidation = require("../models/Logs_InputValidation");
+const Logs_AuthAttempt = require("../models/Logs_AuthAttempt");
 const {logInputValidation, logAccessControl, ValidationRule} = require("../utils/util-log-input-validation");
 const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 const dateHelper = require("../utils/dateHelper.js");
@@ -255,10 +256,7 @@ const controller = {
     let employees_count = await Employee.countDocuments();
     let faq_count = await FAQ.countDocuments();
 
-    let logs_inputvalidation_recent = await Logs_InputValidation.find()
-      .sort({ timestamp: -1 })
-      .limit(3)
-      .lean();
+    let logs_inputvalidation_recent = await Logs_InputValidation.find().sort({ timestamp: -1 }).limit(3).lean();
     await Promise.all(
       logs_inputvalidation_recent.map(async (log) => {
         log.timestamp = new Date(log.timestamp).toLocaleString();
@@ -270,6 +268,14 @@ const controller = {
         log.userId = admin_result.username;
       })
     );
+
+    let logs_authattempts_recent = await Logs_AuthAttempt.find().sort({ timestamp: -1 }).limit(3).lean();
+    await Promise.all(
+        logs_authattempts_recent.map(async (log) => {
+          log.timestamp = new Date(log.timestamp).toLocaleString();
+        })
+    );
+
     console.log(
       "=============================ADMINLOGIN=============================="
     );
@@ -284,6 +290,7 @@ const controller = {
       employees_count: employees_count,
       faq_count: faq_count,
       logs_inputvalidation_recent: logs_inputvalidation_recent,
+      logs_authattempts_recent: logs_authattempts_recent,
       helpers: {
         formatDate: dateHelper.formatDate,
       },
@@ -301,9 +308,7 @@ const controller = {
     let employees_count = await Employee.countDocuments();
     let faq_count = await FAQ.countDocuments();
 
-    let logs_inputvalidation = await Logs_InputValidation.find()
-      .sort({ timestamp: -1 })
-      .lean();
+    let logs_inputvalidation = await Logs_InputValidation.find().sort({ timestamp: -1 }).lean();
     await Promise.all(
       logs_inputvalidation.map(async (log) => {
         log.timestamp = new Date(log.timestamp).toLocaleString();
@@ -316,11 +321,19 @@ const controller = {
       })
     );
 
+    let logs_authattempts = await Logs_AuthAttempt.find().sort({ timestamp: -1 }).lean();
+    await Promise.all(
+        logs_authattempts.map(async (log) => {
+          log.timestamp = new Date(log.timestamp).toLocaleString();
+        })
+    );
+
     res.render("admin-logs", {
       layout: "admin",
       logged_in: req.session.logged_in,
       active: { admin_logs: true },
       logs_inputvalidation: logs_inputvalidation,
+      logs_authattempts: logs_authattempts
     });
   },
 
