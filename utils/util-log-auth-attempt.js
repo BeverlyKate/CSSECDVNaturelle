@@ -11,7 +11,7 @@ const Status = {
 
 const AttemptType = {
     LoginAttempt: "login_attempt",
-    PasswordVerification: "password_change_verification"
+    PasswordVerification: "password_verification"
 };
 
 async function logAuthAttempt(user, status, userType, endpoint, attemptType) {
