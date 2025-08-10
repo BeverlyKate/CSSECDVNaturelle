@@ -68,7 +68,7 @@ const controller = {
             return;
         }
 
-        let userID = req.session.logged_in.user.userID;
+        let userID = req.session.logged_in.user.id;
 
         let reservation_info = await Reservation.find({ currentUserID: userID }).populate('services').lean().exec();
 
@@ -100,7 +100,7 @@ const controller = {
             return;
         }
 
-        let userID = req.session.logged_in.user.userID;
+        let userID = req.session.logged_in.user.id;
         console.log(userID)
         let reservation_info = await Reservation.find({ userID: userID }).populate('services').lean().exec();
         console.log(reservation_info)
@@ -213,7 +213,7 @@ const controller = {
             return;
         }
 
-        notifications = await (await Notification.find({receiver: req.session.logged_in.user.userID})).reverse()
+        notifications = await (await Notification.find({receiver: req.session.logged_in.user.id})).reverse()
         res.send(notifications)
     },
 
@@ -250,7 +250,7 @@ const controller = {
         let reservation_id = req.body.reservation_id
 
         await Reservation.updateOne({_id: reservation_id}, {status: "Cancelled"});
-        let userID = req.session.logged_in.user.userID;
+        let userID = req.session.logged_in.user.id;
         curr_date = new String(new Date())
         await Notification.create({
             receiver: userID,
