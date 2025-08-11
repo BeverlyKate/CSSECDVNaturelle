@@ -5,6 +5,10 @@
 <script src="/js/snackbar.js" type="module"></script>
 <script src="/js/customer-settings.js" type="module"></script>
 
+<script>
+// No additional JavaScript needed for basic form functionality
+</script>
+
 <div id="settings-wrapper" class="row g-0 bg-noise-pattern">
     <div class="col-5" id="settings-header-container">
         <h2 id="settings-header">Profile<br />Settings</h2>
@@ -12,7 +16,7 @@
     <div class="col-7" id="settings-container">
         <div id="settings-form-container">
             <form method="POST" action="/settings" id="form-customer-settings">
-                <input type="hidden" id="input-settings-customer-id" name="customer_id" value="{{logged_in.user.userID}}">
+                <input type="hidden" id="input-settings-customer-id" name="customer_id" value="{{logged_in.user.id}}">
                 <div class="row mb-3">
                     <div class="col">
                         <label for="input-settings-customer-fname" class="form-label">First Name</label>
@@ -31,7 +35,17 @@
                     <label for="input-settings-customer-contact" class="form-label">Contact Number</label>
                     <input type="text" id="input-settings-customer-contact" name="customer_contact" class="form-control" value="{{logged_in.user.contactNumber}}">
                 </div>
-                <div class="row mb-3">
+                
+                <!-- Password Change Section -->
+                <div class="mb-4" id="password-change-section">
+                    <h5 class="section-title">Password</h5>
+                    <p class="section-description">To change your password, you'll need to verify your identity through security questions.</p>
+                    <button type="button" class="btn btn-outline-primary" id="change-password-btn">
+                        <i class="fa fa-key"></i> Change Password
+                    </button>
+                </div>
+                
+                <div class="row mb-3" style="display: none;">
                     <div class="col">
                         <label for="input-settings-customer-current-password" class="form-label">Current Password</label>
                         <input type="password" id="input-settings-customer-old-password" name="old_password" class="form-control">
@@ -44,9 +58,66 @@
             </form>
             <div class="error-msg" id="form-customer-settings-error" data-error-status="normal"></div>
             <div id="settings-footer">
-                <div id="form-password-notice">You need to enter your current password to make any changes.</div>
+                <div id="form-password-notice">Update your profile information and save changes.</div>
                 <button type="submit" class="btn" id="customer-save-settings-btn" form="form-customer-settings"><i class="fa fa-check"></i>Save</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Questions Modal for Password Change -->
+<div id="security-question-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4>Verify Identity</h4>
+            <span class="close" id="close-security-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>Please answer your security questions to change your password:</p>
+            <div id="security-questions-container">
+                <!-- Security questions will be loaded here -->
+            </div>
+            <div id="security-error" class="error-msg" data-error-status="normal"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="submit-security-answers" class="btn btn-primary">Verify</button>
+            <button type="button" id="cancel-security" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- New Password Modal -->
+<div id="new-password-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4>Set New Password</h4>
+            <span class="close" id="close-password-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>Enter your new password:</p>
+            <div class="mb-3">
+                <label for="new-password-input" class="form-label">New Password</label>
+                <input type="password" id="new-password-input" class="form-control" placeholder="Enter new password">
+            </div>
+            <div class="mb-3">
+                <label for="confirm-password-input" class="form-label">Confirm Password</label>
+                <input type="password" id="confirm-password-input" class="form-control" placeholder="Confirm new password">
+            </div>
+            <div id="password-requirements">
+                <p>Password must meet the following requirements:</p>
+                <ul>
+                    <li id="length-req">At least 8 characters long</li>
+                    <li id="uppercase-req">Contains at least one uppercase letter</li>
+                    <li id="lowercase-req">Contains at least one lowercase letter</li>
+                    <li id="number-req">Contains at least one number</li>
+                    <li id="special-req">Contains at least one special character (!@#$%^&*)</li>
+                </ul>
+            </div>
+            <div id="password-error" class="error-msg" data-error-status="normal"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="submit-new-password" class="btn btn-primary">Change Password</button>
+            <button type="button" id="cancel-password" class="btn btn-secondary">Cancel</button>
         </div>
     </div>
 </div>

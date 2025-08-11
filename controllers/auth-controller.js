@@ -486,10 +486,10 @@ const controller = {
     const { email, answer1, answer2 } = req.body;
     
     // Debug: Log what we received
-    console.log('Received body:', req.body);
-    console.log('Email received:', email);
-    console.log('Answer1:', answer1);
-    console.log('Answer2:', answer2);
+    // console.log('Received body:', req.body);
+    // console.log('Email received:', email);
+    // console.log('Answer1:', answer1);
+    // console.log('Answer2:', answer2);
     
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email is required.' });
@@ -697,6 +697,120 @@ const controller = {
         layout: 'index',
         token: token,
         error: 'An error occurred while resetting your password. Please try again.'
+      });
+    }
+  },
+
+  updateSecurityQuestions: async function (req, res) {
+    try {
+      if (!req.session.logged_in || req.session.logged_in.type !== 'customer') {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Please log in to update security questions.' 
+        });
+      }
+
+      const { securityQuestion1, securityAnswer1, securityQuestion2, securityAnswer2 } = req.body;
+
+      if (!securityQuestion1 || !securityAnswer1 || !securityQuestion2 || !securityAnswer2) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'All security question fields are required.' 
+        });
+      }
+
+      // Hash the security answers
+      const hashedAnswer1 = await bcrypt.hash(securityAnswer1.toLowerCase().trim(), 10);
+      const hashedAnswer2 = await bcrypt.hash(securityAnswer2.toLowerCase().trim(), 10);
+
+      // Update the user's security questions
+      await User.updateOne(
+        { _id: req.session.logged_in.id },
+        {
+          securityQuestion1: securityQuestion1,
+          securityAnswer1: hashedAnswer1,
+          securityQuestion2: securityQuestion2,
+          securityAnswer2: hashedAnswer2
+        }
+      );
+
+      res.json({ 
+        success: true, 
+        message: 'Security questions updated successfully!' 
+      });
+
+    } catch (error) {
+      console.error('Error updating security questions:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'An error occurred while updating security questions.' 
+      });
+    }
+  },
+
+  checkSecurityQuestions: async function (req, res) {
+    try {
+      if (!req.session.logged_in || req.session.logged_in.type !== 'customer') {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Please log in to check security questions.' 
+        });
+      }
+
+      const user = await User.findById(req.session.logged_in.id);
+      const hasSecurityQuestions = user && user.securityQuestion1 && user.securityQuestion2;
+
+      res.json({ 
+        success: true, 
+        hasSecurityQuestions: hasSecurityQuestions 
+      });
+
+    } catch (error) {
+      console.error('Error checking security questions:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'An error occurred while checking security questions.' 
+      });
+    }
+  },
+
+  changePasswordSettings: async function (req, res) {
+    try {
+      if (!req.session.logged_in || req.session.logged_in.type !== 'customer') {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Please log in to change password.' 
+        });
+      }
+
+      const { newPassword } = req.body;
+
+      if (!newPassword) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'New password is required.' 
+        });
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update the user's password
+      await User.updateOne(
+        { _id: req.session.logged_in.id },
+        { password: hashedPassword }
+      );
+
+      res.json({ 
+        success: true, 
+        message: 'Password changed successfully!' 
+      });
+
+    } catch (error) {
+      console.error('Error changing password:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'An error occurred while changing password.' 
       });
     }
   },

@@ -317,15 +317,19 @@ const controller = {
     res.send(formattedReservation);
   },
 
-  getSettings: function (req, res) {
+  getSettings: async function (req, res) {
     if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
       res.redirect("/login?next=" + encodeURIComponent("/settings"));
       return;
     }
 
+    // Fetch user's current security questions
+    const user = await User.findById(req.session.logged_in.user.id, 'securityQuestion1 securityQuestion2');
+
     res.render("customer-settings", {
       layout: "index",
       logged_in: req.session.logged_in,
+      user: user
     });
   },
 
@@ -340,8 +344,6 @@ const controller = {
     let lname = req.body.lname;
     let email = req.body.email;
     let contact = req.body.contact;
-    let old_password = req.body.old_password;
-    let new_password = req.body.new_password;
 
     if (fname === "") {
       const error_msg = "Please enter your first name.";
@@ -371,13 +373,6 @@ const controller = {
       return;
     }
 
-    if (old_password === "") {
-      const error_msg = "Please enter your current password to continue.";
-      await logInputValidation(email, req.path, "old_password", ValidationRule.Required, old_password, error_msg);
-      res.status(400).send({ error: error_msg });
-      return;
-    }
-
     const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     let isEmailValid = validEmailRegex.test(email);
 
@@ -398,66 +393,15 @@ const controller = {
       return;
     }
 
-    let currentPassword = await User.findOne({ _id: customer_id }, "password");
+    // Update user profile (no password change here)
+    let updateData = {
+      firstName: fname,
+      lastName: lname,
+      email: email,
+      contactNumber: contact,
+    };
 
-    let passwordCompare = await bcrypt.compare(
-      old_password,
-      currentPassword.password
-    );
-    if (!passwordCompare) {
-      await logAuthAttempt(email, Status.Fail, UserType.Customer, req.path, AttemptType.PasswordVerification);
-      res.status(403).send({ error: "Current password is incorrect!" });
-      return;
-    }
-
-    await logAuthAttempt(email, Status.Success, UserType.Customer, req.path, AttemptType.PasswordVerification);
-
-    if (new_password !== "") {
-      if (new_password.length < 8) {
-        const error_msg = "Password must contain at least 8 characters!";
-        await logInputValidation(email, req.path, "new_password", ValidationRule.InvalidLengthMin, new_password, error_msg);
-        res.status(403).send({ error: error_msg });
-        return;
-      }
-
-      let passwordHashed = await bcrypt.hash(new_password, 10);
-
-      await User.updateOne(
-        { _id: customer_id },
-        {
-          firstName: fname,
-          lastName: lname,
-          email: email,
-          contactNumber: contact,
-          password: passwordHashed,
-        }
-      );
-
-      req.session.logged_in = {
-        state: true,
-        type: "customer",
-        user: {
-          userID: customer_id,
-          firstName: fname,
-          lastName: lname,
-          contactNumber: contact,
-          email: email,
-        },
-      };
-
-      res.sendStatus(200);
-      return;
-    }
-
-    await User.updateOne(
-      { _id: customer_id },
-      {
-        firstName: fname,
-        lastName: lname,
-        email: email,
-        contactNumber: contact,
-      }
-    );
+    await User.updateOne({ _id: customer_id }, updateData);
 
     req.session.logged_in = {
       state: true,

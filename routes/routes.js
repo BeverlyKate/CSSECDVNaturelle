@@ -26,6 +26,10 @@ app.post("/security-answers", auth_controller.postSecurityAnswers);
 app.get('/reset-password', auth_controller.getResetPassword);
 app.post('/reset-password', auth_controller.postResetPassword);
 
+app.post('/update-security-questions', auth_controller.updateSecurityQuestions);
+app.get('/check-security-questions', auth_controller.checkSecurityQuestions);
+app.post('/change-password-settings', auth_controller.changePasswordSettings);
+
 app.get("/settings", controller.getSettings);
 app.post("/settings", controller.postSettings);
 
