@@ -32,7 +32,14 @@ const EmployeeSchema = new mongoose.Schema({
   lastFailedLogin: {
     type: Date,
     default: null,
+  }, numAttempts: {
+    type: Number,
+    default: 0,
   },
+  timeoutEnd: {
+    type: Date,
+    default: null,
+  }
 });
 
 EmployeeSchema.methods.markLoginSuccess = async function () {
