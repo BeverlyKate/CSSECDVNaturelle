@@ -10,7 +10,14 @@ let generatedId = [];
 const controller = {
   getLogin: function (req, res) {
     if (!req.session.logged_in) {
-      res.render("login", { layout: "index", active: { login: true } });
+      let renderData = { layout: "index", active: { login: true } };
+      
+      // Check if user was redirected after password reset
+      if (req.query.reset === 'success') {
+        renderData.success = 'Password has been reset successfully! You can now log in with your new password.';
+      }
+      
+      res.render("login", renderData);
     } else if (req.session.logged_in.type !== "customer") {
       let pre_text = "You need to logout as a";
       if (
@@ -95,8 +102,12 @@ const controller = {
 
     //console.log(result);
 
-    if (req.query.next) res.redirect(decodeURIComponent(req.query.next));
-    else res.redirect("/");
+    // Don't redirect to reset password page after successful login
+    if (req.query.next && !req.query.next.includes('reset-password')) {
+      res.redirect(decodeURIComponent(req.query.next));
+    } else {
+      res.redirect("/");
+    }
   },
 
   getRegister: function (req, res) {
@@ -419,6 +430,255 @@ const controller = {
     generatedId = [];
 
     res.redirect("/serviceform");
+  },
+
+  getSecurityQuestions: async function (req, res) {
+    const email = req.query.email;
+    
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required.' });
+    }
+
+    try {
+      const user = await User.findOne({ email: email }, 'securityQuestion1 securityQuestion2');
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'No account found with this email address.' });
+      }
+
+      // Check if user has any security questions
+      if (!user.securityQuestion1 && !user.securityQuestion2) {
+        return res.status(404).json({ success: false, message: 'No security questions found for this account.' });
+      }
+
+      res.json({ 
+        success: true, 
+        question1: user.securityQuestion1 || null,
+        question2: user.securityQuestion2 || null
+      });
+    } catch (error) {
+      console.error('Error fetching security questions:', error);
+      res.status(500).json({ success: false, message: 'An error occurred while fetching the security questions.' });
+    }
+  },
+
+  postSecurityAnswers: async function (req, res) {
+    const { email, answer1, answer2 } = req.body;
+    
+    // Debug: Log what we received
+    console.log('Received body:', req.body);
+    console.log('Email received:', email);
+    console.log('Answer1:', answer1);
+    console.log('Answer2:', answer2);
+    
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required.' });
+    }
+
+    if (!answer1 && !answer2) {
+      return res.status(400).json({ success: false, message: 'At least one security answer is required.' });
+    }
+
+    try {
+      const user = await User.findOne({ email: email }, 'securityQuestion1 securityQuestion2 securityAnswer1 securityAnswer2');
+      
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'No account found with this email address.' });
+      }
+
+      // Check security answers (using bcrypt comparison)
+      let isCorrect = false;
+      
+      // If answer1 is provided and user has securityAnswer1, check it
+      if (answer1 && user.securityAnswer1) {
+        const answer1Match = await bcrypt.compare(answer1, user.securityAnswer1);
+        if (answer1Match) {
+          isCorrect = true;
+        }
+      }
+      
+      // If answer2 is provided and user has securityAnswer2, check it
+      if (answer2 && user.securityAnswer2) {
+        const answer2Match = await bcrypt.compare(answer2, user.securityAnswer2);
+        if (answer2Match) {
+          isCorrect = true;
+        }
+      }
+
+      // If user provided answers for questions they don't have, check if answers match existing ones
+      if (!isCorrect) {
+        if (answer1 && user.securityAnswer2) {
+          const crossMatch1 = await bcrypt.compare(answer1, user.securityAnswer2);
+          if (crossMatch1) {
+            isCorrect = true;
+          }
+        }
+        if (answer2 && user.securityAnswer1) {
+          const crossMatch2 = await bcrypt.compare(answer2, user.securityAnswer1);
+          if (crossMatch2) {
+            isCorrect = true;
+          }
+        }
+      }
+
+      if (!isCorrect) {
+        return res.status(400).json({ success: false, message: 'Incorrect security answers.' });
+      }
+
+      // Generate a reset token
+      const resetToken = require('crypto').randomBytes(32).toString('hex');
+      const resetExpires = new Date(Date.now() + 3600000); // 1 hour from now
+
+      // Update user with reset token
+      await User.updateOne(
+        { email: email },
+        { 
+          resetPasswordToken: resetToken,
+          resetPasswordExpires: resetExpires 
+        }
+      );
+
+      res.json({ success: true, resetToken: resetToken });
+    } catch (error) {
+      console.error('Error verifying security answers:', error);
+      res.status(500).json({ success: false, message: 'An error occurred while verifying the answers.' });
+    }
+  },
+
+  getResetPassword: async function (req, res) {
+    const token = req.query.token;
+    
+    if (!token) {
+      return res.render('login', {
+        layout: 'index',
+        active: { login: true },
+        error: 'Invalid reset link. Please try the forgot password process again.'
+      });
+    }
+
+    try {
+      // Find user with this reset token and check if it's still valid
+      const user = await User.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: Date.now() }
+      });
+      
+      if (!user) {
+        return res.render('login', {
+          layout: 'index',
+          active: { login: true },
+          error: 'Reset link has expired or is invalid. Please try the forgot password process again.'
+        });
+      }
+
+      // Render the reset password form
+      res.render('reset-password', {
+        layout: 'index',
+        token: token
+      });
+    } catch (error) {
+      console.error('Error validating reset token:', error);
+      res.render('login', {
+        layout: 'index',
+        active: { login: true },
+        error: 'An error occurred. Please try again.'
+      });
+    }
+  },
+
+  postResetPassword: async function (req, res) {
+    const { token, newPassword, confirmPassword } = req.body;
+    
+    // Validate input
+    if (!token || !newPassword || !confirmPassword) {
+      return res.render('reset-password', {
+        layout: 'index',
+        token: token,
+        error: 'All fields are required.'
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.render('reset-password', {
+        layout: 'index',
+        token: token,
+        error: 'Passwords do not match.'
+      });
+    }
+
+    // Validate password strength
+    if (newPassword.length < 8) {
+      return res.render('reset-password', {
+        layout: 'index',
+        token: token,
+        error: 'Password must be at least 8 characters long.'
+      });
+    }
+
+    if (!/[A-Z]/.test(newPassword)) {
+      return res.render('reset-password', {
+        layout: 'index',
+        token: token,
+        error: 'Password must contain at least one uppercase letter.'
+      });
+    }
+
+    if (!/[a-z]/.test(newPassword)) {
+      return res.render('reset-password', {
+        layout: 'index',
+        token: token,
+        error: 'Password must contain at least one lowercase letter.'
+      });
+    }
+
+    if (!/[0-9]/.test(newPassword)) {
+      return res.render('reset-password', {
+        layout: 'index',
+        token: token,
+        error: 'Password must contain at least one number.'
+      });
+    }
+
+    try {
+      // Find user with valid reset token
+      const user = await User.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: Date.now() }
+      });
+      
+      if (!user) {
+        return res.render('reset-password', {
+          layout: 'index',
+          token: token,
+          error: 'Reset link has expired or is invalid. Please try the forgot password process again.'
+        });
+      }
+
+      // Hash the new password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update user password and clear reset token
+      await User.updateOne(
+        { _id: user._id },
+        {
+          password: hashedPassword,
+          resetPasswordToken: undefined,
+          resetPasswordExpires: undefined
+        }
+      );
+
+      // Redirect to login with success message
+      res.redirect('/login?reset=success');
+
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      res.render('reset-password', {
+        layout: 'index',
+        token: token,
+        error: 'An error occurred while resetting your password. Please try again.'
+      });
+    }
   },
 };
 

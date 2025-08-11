@@ -44,6 +44,7 @@ app.set("view engine", "hbs");
 app.engine("hbs", hbs.engine);
 
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Add JSON parsing middleware
 
 //Serves static files (we need it to import a css file)
 app.use(express.static(__dirname + "/public/"));

@@ -20,11 +20,11 @@ app.get("/logout", controller.getLogout);
 app.get("/register", auth_controller.getRegister);
 app.post("/register", auth_controller.postRegister);
 
-// app.get("/security-question", auth_controller.getSecurityQuestion);
-// app.post("/security-answer", auth_controller.postSecurityAnswer);
+app.get("/security-questions", auth_controller.getSecurityQuestions);
+app.post("/security-answers", auth_controller.postSecurityAnswers);
 
-// app.get('/reset-password', auth_controller.getResetPassword);
-// app.post('/reset-password', auth_controller.postResetPassword);
+app.get('/reset-password', auth_controller.getResetPassword);
+app.post('/reset-password', auth_controller.postResetPassword);
 
 app.get("/settings", controller.getSettings);
 app.post("/settings", controller.postSettings);
