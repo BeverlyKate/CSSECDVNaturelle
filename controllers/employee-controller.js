@@ -228,11 +228,11 @@ const controller = {
         let passwordHashed = await bcrypt.hash(password, saltRounds);
 
         await Employee.updateOne(
-            {_id: req.session.first_time.user.employee_id},
+            {_id: req.session.first_time.user.id},
             {password: passwordHashed, changedPassword: true}
         );
         let result = await Employee.findOne({
-            _id: req.session.first_time.user.employee_id,
+            _id: req.session.first_time.user.id,
         });
         let employee_name = result.firstName + " " + result.lastName;
 
