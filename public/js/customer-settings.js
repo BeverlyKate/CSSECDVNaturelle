@@ -100,21 +100,36 @@ document.querySelector("#form-customer-settings").addEventListener("submit", fun
 });
 
 // Password Change Modal Functionality
-document.getElementById('change-password-btn')?.addEventListener('click', function() {
+const changePasswordBtn = document.getElementById('change-password-btn');
+// console.log('Change password button found:', changePasswordBtn);
+
+changePasswordBtn?.addEventListener('click', function() {
+    // console.log('Change password button clicked');
+    
     // Check if user has security questions set up
+    // console.log('Making request to /check-security-questions');
     fetch('/check-security-questions')
-    .then(response => response.json())
+    .then(response => {
+        // console.log('Response received:', response.status, response.statusText);
+        // console.log('Response headers:', response.headers);
+        return response.json();
+    })
     .then(data => {
+        // console.log('Response data:', data);
+        // console.log('Has security questions:', data.hasSecurityQuestions);
+        
         if (data.hasSecurityQuestions) {
             // Load security questions and show modal
             loadSecurityQuestions();
         } else {
+            // console.log('User does not have security questions');
             // Show error that security questions are required
             showError('You need to set up security questions before you can change your password. Please contact support for assistance.', error_container);
         }
     })
     .catch(error => {
-        console.error('Error checking security questions:', error);
+        // console.error('Error checking security questions:', error);
+        // console.error('Error stack:', error.stack);
         showError('An error occurred. Please try again.', error_container);
     });
 });
@@ -122,20 +137,33 @@ document.getElementById('change-password-btn')?.addEventListener('click', functi
 function loadSecurityQuestions() {
     // Get the logged-in user's email from the form
     const userEmail = document.getElementById('input-settings-customer-email').value;
+    // console.log('User email from form:', userEmail);
     
-    fetch(`/security-questions?email=${encodeURIComponent(userEmail)}`)
-    .then(response => response.json())
+    const requestUrl = `/security-questions?email=${encodeURIComponent(userEmail)}`;
+    // console.log('Making request to:', requestUrl);
+    
+    fetch(requestUrl)
+    .then(response => {
+        // console.log('Security questions response:', response.status, response.statusText);
+        return response.json();
+    })
     .then(data => {
+        // console.log('Security questions data:', data);
+        
         if (data.success) {
             const questions = [data.question1, data.question2].filter(q => q); // Filter out null questions
+            // console.log('📝 Filtered questions:', questions);
             displaySecurityQuestions(questions);
             document.getElementById('security-question-modal').style.display = 'block';
+            // console.log('Security question modal displayed');
         } else {
+            // console.log('Failed to load security questions:', data.message);
             showError('Unable to load security questions. Please try again.', error_container);
         }
     })
     .catch(error => {
-        console.error('Error loading security questions:', error);
+        // console.error('Error loading security questions:', error);
+        // console.error('Error stack:', error.stack);
         showError('An error occurred while loading security questions.', error_container);
     });
 }
@@ -157,12 +185,11 @@ function displaySecurityQuestions(questions) {
 
 // Security Questions Modal Event Listeners
 document.getElementById('submit-security-answers')?.addEventListener('click', function() {
-    const answers = [];
-    document.querySelectorAll('.security-answer').forEach(input => {
-        answers.push(input.value.trim());
-    });
+    const securityAnswerInputs = document.querySelectorAll('.security-answer');
+    const answer1 = securityAnswerInputs[0]?.value.trim() || '';
+    const answer2 = securityAnswerInputs[1]?.value.trim() || '';
     
-    if (answers.some(answer => answer === '')) {
+    if (answer1 === '' || answer2 === '') {
         const errorElement = document.getElementById('security-error');
         errorElement.textContent = 'Please answer all security questions.';
         errorElement.setAttribute('data-error-status', 'error');
@@ -170,10 +197,14 @@ document.getElementById('submit-security-answers')?.addEventListener('click', fu
     }
     
     // Verify security answers
-    fetch('/verify-security-answers', {
+    fetch('security-answers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers: answers })
+        body: JSON.stringify({ 
+            email: document.getElementById('input-settings-customer-email').value,
+            answer1: answer1,
+            answer2: answer2 
+        })
     })
     .then(response => response.json())
     .then(data => {
@@ -205,8 +236,7 @@ function setupPasswordValidation() {
             length: password.length >= 8,
             uppercase: /[A-Z]/.test(password),
             lowercase: /[a-z]/.test(password),
-            number: /\d/.test(password),
-            special: /[!@#$%^&*]/.test(password)
+            number: /\d/.test(password)
         };
         
         Object.keys(requirements).forEach(req => {
@@ -247,7 +277,7 @@ document.getElementById('submit-new-password')?.addEventListener('click', functi
     }
     
     if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || 
-        !/\d/.test(newPassword) || !/[!@#$%^&*]/.test(newPassword)) {
+        !/\d/.test(newPassword)) {
         errorElement.textContent = 'Password does not meet requirements.';
         errorElement.setAttribute('data-error-status', 'error');
         return;

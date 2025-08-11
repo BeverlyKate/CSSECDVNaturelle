@@ -757,8 +757,11 @@ const controller = {
         });
       }
 
-      const user = await User.findById(req.session.logged_in.id);
+      const user = await User.findById(req.session.logged_in.user.id);
+      // console.log('User found:', user);
       const hasSecurityQuestions = user && user.securityQuestion1 && user.securityQuestion2;
+
+      // console.log('User security questions:', hasSecurityQuestions);
 
       res.json({ 
         success: true, 
