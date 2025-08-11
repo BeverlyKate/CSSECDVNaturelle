@@ -9,6 +9,7 @@ const Notification = require("../models/Notification");
 const User = require("../models/User");
 const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 const {logInputValidation, ValidationRule} = require("../utils/util-log-input-validation");
+const {logAccessControl} = require("../utils/util-log-access-control");
 
 const controller = {
   getLogout: function (req, res) {
@@ -50,11 +51,11 @@ const controller = {
     });
   },
 
-  getReservation: function (req, res) {
-    if (
-      !req.session.logged_in ||
-      (req.session.logged_in && req.session.logged_in.type !== "customer")
-    ) {
+  getReservation: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
+      if (req.session.logged_in && req.session.logged_in.type !== "customer") {
+        await logAccessControl(req.session.logged_in.user.id, req.session.logged_in.type, req.path);
+      }
       res.redirect("/login?next=" + encodeURIComponent("/reservation"));
       return;
     }
@@ -67,10 +68,10 @@ const controller = {
   },
 
   getReserveInfo: async function (req, res) {
-    if (
-      !req.session.logged_in ||
-      (req.session.logged_in && req.session.logged_in.type !== "customer")
-    ) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
+      if (req.session.logged_in && req.session.logged_in.type !== "customer") {
+        await logAccessControl(req.session.logged_in.user.id, req.session.logged_in.type, req.path);
+      }
       res.redirect("/login?next=" + encodeURIComponent("/reservation"));
       return;
     }
@@ -103,10 +104,10 @@ const controller = {
   },
 
   getUserReservations: async function (req, res) {
-    if (
-      !req.session.logged_in ||
-      (req.session.logged_in && req.session.logged_in.type !== "customer")
-    ) {
+    if (!req.session.logged_in ||  req.session.logged_in.type !== "customer") {
+      if (req.session.logged_in && req.session.logged_in.type !== "customer") {
+        await logAccessControl(req.session.logged_in.user.id, req.session.logged_in.type, req.path);
+      }
       res.redirect("/login?next=" + encodeURIComponent("/reservation"));
       return;
     }
@@ -227,11 +228,8 @@ const controller = {
   },
 
   getNotifications: async function (req, res) {
-    if (
-      !req.session.logged_in ||
-      (req.session.logged_in && req.session.logged_in.type !== "customer")
-    ) {
-      res.redirect("/login?next=" + encodeURIComponent("/reservation"));
+    if (!req.session.logged_in ||  req.session.logged_in.type !== "customer") {
+      res.sendStatus(403);
       return;
     }
 
@@ -317,8 +315,11 @@ const controller = {
     res.send(formattedReservation);
   },
 
-  getSettings: function (req, res) {
+  getSettings: async function (req, res) {
     if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
+      if (req.session.logged_in && req.session.logged_in.type !== "customer") {
+        await logAccessControl(req.session.logged_in.user.id, req.session.logged_in.type, req.path);
+      }
       res.redirect("/login?next=" + encodeURIComponent("/settings"));
       return;
     }
