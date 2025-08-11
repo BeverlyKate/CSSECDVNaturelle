@@ -45,11 +45,7 @@ app.get("/reserveinfo/get-user-reservations", controller.getUserReservations);
 app.post("/reserveinfo/cancel", controller.postCancelReservation);
 app.get("/reserveinfo/find-reservation", controller.getFindReservation);
 
-app.get(
-  "/admin",
-  admin_controller.getAdminLogin,
-  admin_controller.getAdminDashboard
-);
+app.get("/admin", admin_controller.getAdminLogin, admin_controller.getAdminDashboard);
 app.post("/admin", admin_controller.postAdminLogin);
 app.get("/admin/getuser", admin_controller.getCurrentUser);
 
@@ -59,14 +55,8 @@ app.post("/admin/settings", admin_controller.postAdminSettings);
 
 app.get("/admin/reservations", admin_controller.getAdminReservations);
 app.get("/admin/reservations/get", admin_controller.getAllReservations);
-app.post(
-  "/admin/reservations/update-status",
-  admin_controller.postUpdateReservationStatus
-);
-app.get(
-  "/admin/reservations/get-services",
-  admin_controller.getServicesOfReservation
-);
+app.post("/admin/reservations/update-status", admin_controller.postUpdateReservationStatus);
+app.get("/admin/reservations/get-services", admin_controller.getServicesOfReservation);
 
 app.get("/admin/employees", admin_controller.getAdminEmployees);
 app.get("/admin/employees/get", admin_controller.getAllEmployees);
@@ -75,57 +65,20 @@ app.post("/admin/employees/edit", admin_controller.postEditEmployee);
 app.post("/admin/employees/delete", admin_controller.postDeleteEmployee);
 
 app.get("/admin/services", admin_controller.getAdminServices);
-app.get(
-  "/admin/services/find-service-collection",
-  admin_controller.getFindServiceCollection
-);
-app.get(
-  "/admin/services/get-service-collections",
-  admin_controller.getServiceCollections
-);
-app.post(
-  "/admin/services/add-service-collection",
-  admin_controller.postAddServiceCollection
-);
-app.post(
-  "/admin/services/edit-service-collection",
-  admin_controller.postEditServiceCollection
-);
-app.post(
-  "/admin/services/delete-service-collection",
-  admin_controller.postDeleteServiceCollection
-);
+app.get("/admin/services/find-service-collection", admin_controller.getFindServiceCollection);
+app.get("/admin/services/get-service-collections", admin_controller.getServiceCollections);
+app.post("/admin/services/add-service-collection", admin_controller.postAddServiceCollection);
+app.post("/admin/services/edit-service-collection", admin_controller.postEditServiceCollection);
+app.post("/admin/services/delete-service-collection", admin_controller.postDeleteServiceCollection);
 
-app.get(
-  "/employee",
-  employee_controller.getEmployeeLogin,
-  employee_controller.getEmployeeDashboard
-);
+app.get("/employee", employee_controller.getEmployeeLogin, employee_controller.getEmployeeDashboard);
 app.post("/employee", employee_controller.postEmployeeLogin);
-app.get(
-  "/employee/first-time-login",
-  employee_controller.getEmployeeFirstTimeLogin
-);
-app.post(
-  "/employee/first-time-login",
-  employee_controller.postEmployeeFirstTimeLogin
-);
-app.get(
-  "/employee/request-temp-password",
-  employee_controller.getRequestTempPassword
-);
-app.get(
-  "/employee/get-reservations",
-  employee_controller.getEmployeeReservations
-);
-app.get(
-  "/employee/get-services",
-  employee_controller.getEmployeeServicesOfReservation
-);
-app.post(
-  "/employee/update-service-status",
-  employee_controller.postUpdateServiceStatus
-);
+app.get("/employee/first-time-login", employee_controller.getEmployeeFirstTimeLogin);
+app.post("/employee/first-time-login", employee_controller.postEmployeeFirstTimeLogin);
+app.get("/employee/request-temp-password", employee_controller.getRequestTempPassword);
+app.get("/employee/get-reservations", employee_controller.getEmployeeReservations);
+app.get("/employee/get-services", employee_controller.getEmployeeServicesOfReservation);
+app.post("/employee/update-service-status", employee_controller.postUpdateServiceStatus);
 app.post("/employee/settings", employee_controller.postEmployeeSettings);
 
 app.get("/admin/faq", admin_controller.getFAQ);
