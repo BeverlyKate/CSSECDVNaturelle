@@ -1,5 +1,6 @@
 const Admin = require("../models/Admin");
 const Employee = require("../models/Employee");
+const User = require("../models/User");
 const ServiceCollection = require("../models/ServiceCollection.js");
 const Service = require("../models/Service.js");
 const SpecialService = require("../models/SpecialService.js");
@@ -10,6 +11,7 @@ const bcrypt = require("bcrypt");
 const Notification = require("../models/Notification");
 const Logs_InputValidation = require("../models/Logs_InputValidation");
 const Logs_AuthAttempt = require("../models/Logs_AuthAttempt");
+const Logs_AccessControl = require("../models/Logs_AccessControl");
 const {logInputValidation, ValidationRule} = require("../utils/util-log-input-validation");
 const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 const {logAccessControl} = require("../utils/util-log-access-control");
@@ -263,6 +265,20 @@ const controller = {
             })
         );
 
+        let logs_accesscontrol_recent = await Logs_AccessControl.find().sort({timestamp: -1}).limit(3).lean();
+        await Promise.all(
+            logs_accesscontrol_recent.map(async (log) => {
+                log.timestamp = new Date(log.timestamp).toLocaleString();
+                if (log.userType === "customer" || log.userType === "employee") {
+                    const result = await (log.userType === "customer" ? User : (log.userType === "employee" ? Employee : User)).findById(log.userId, "_id firstName lastName").lean();
+                    log.userId = result.firstName + " " + result.lastName;
+                } else if (log.userType === "admin") {
+                    const result = await Admin.findById(log.userId, "_id username").lean();
+                    log.userId = result.username;
+                }
+            })
+        );
+
         //console.log("=============================ADMINLOGIN==============================");
         //console.log(req.session.logged_in);
 
@@ -276,6 +292,7 @@ const controller = {
             faq_count: faq_count,
             logs_inputvalidation_recent: logs_inputvalidation_recent,
             logs_authattempts_recent: logs_authattempts_recent,
+            logs_accesscontrol_recent: logs_accesscontrol_recent,
             helpers: {
                 formatDate: dateHelper.formatDate,
             },
@@ -313,12 +330,27 @@ const controller = {
             })
         );
 
+        let logs_accesscontrol = await Logs_AccessControl.find().sort({timestamp: -1}).lean();
+        await Promise.all(
+            logs_accesscontrol.map(async (log) => {
+                log.timestamp = new Date(log.timestamp).toLocaleString();
+                if (log.userType === "customer" || log.userType === "employee") {
+                    const result = await (log.userType === "customer" ? User : (log.userType === "employee" ? Employee : User)).findById(log.userId, "_id firstName lastName").lean();
+                    log.userId = result.firstName + " " + result.lastName;
+                } else if (log.userType === "admin") {
+                    const result = await Admin.findById(log.userId, "_id username").lean();
+                    log.userId = result.username;
+                }
+            })
+        );
+
         res.render("admin-logs", {
             layout: "admin",
             logged_in: req.session.logged_in,
             active: {admin_logs: true},
             logs_inputvalidation: logs_inputvalidation,
-            logs_authattempts: logs_authattempts
+            logs_authattempts: logs_authattempts,
+            logs_accesscontrol: logs_accesscontrol
         });
     },
 

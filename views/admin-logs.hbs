@@ -94,6 +94,38 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="logs-accesscontrol" class="log-container tab-pane fade table-responsive" role="tabpanel">
+                    <table class="table" id="tbl-logs-accesscontrol">
+                        <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>User Type</th>
+                            <th>Endpoint</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#each logs_accesscontrol}}
+                            <tr>
+                                <td>{{this.timestamp}}</td>
+                                <td>{{this.userId}}</td>
+                                <td>
+                                    {{#ifEquals this.userType "customer"}}
+                                        <span class="badge badge-authattempt-usertype-customer">Customer</span>
+                                    {{/ifEquals}}
+                                    {{#ifEquals this.userType "admin"}}
+                                        <span class="badge badge-authattempt-usertype-admin">Admin</span>
+                                    {{/ifEquals}}
+                                    {{#ifEquals this.userType "employee"}}
+                                        <span class="badge badge-authattempt-usertype-employee">Employee</span>
+                                    {{/ifEquals}}
+                                </td>
+                                <td><code>{{this.endpoint}}</code></td>
+                            </tr>
+                        {{/each}}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
