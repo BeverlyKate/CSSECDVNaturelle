@@ -5,6 +5,7 @@ const InCartService = require("../models/InCartService");
 const Reservation = require("../models/Reservation");
 const Notification = require("../models/Notification");
 const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
+const {logInputValidation, ValidationRule} = require("../utils/util-log-input-validation");
 
 let generatedId = [];
 
@@ -147,10 +148,12 @@ const controller = {
 
     // Check if 'firstName' is empty
     if (firstName === "") {
+      const error_msg = "Please enter your first name!";
+      await logInputValidation(email, req.path, "first_name", ValidationRule.Required, firstName, error_msg);
       res.render("register", {
         layout: "index",
         active: { login: true },
-        error: "Please enter your first name!",
+        error: error_msg,
         form: {
           firstName: firstName,
           lastName: lastName,
@@ -163,10 +166,12 @@ const controller = {
 
     // Check if 'lastName' is empty
     if (lastName === "") {
+      const error_msg = "Please enter your last name!";
+      await logInputValidation(email, req.path, "last_name", ValidationRule.Required, lastName, error_msg);
       res.render("register", {
         layout: "index",
         active: { login: true },
-        error: "Please enter your last name!",
+        error: error_msg,
         form: {
           firstName: firstName,
           lastName: lastName,
@@ -179,10 +184,12 @@ const controller = {
 
     // Check if 'contactNumber' is empty
     if (contactNumber === "") {
+      const error_msg = "Please enter your contact number!";
+      await logInputValidation(email, req.path, "contact_number", ValidationRule.Required, contactNumber, error_msg);
       res.render("register", {
         layout: "index",
         active: { login: true },
-        error: "Please enter your contact number!",
+        error: error_msg,
         form: {
           firstName: firstName,
           lastName: lastName,
@@ -195,10 +202,12 @@ const controller = {
 
     // Check if 'password' is empty
     if (password === "") {
+      const error_msg = "Please enter your password!";
+      await logInputValidation(email, req.path, "password", ValidationRule.Required, password, error_msg);
       res.render("register", {
         layout: "index",
         active: { login: true },
-        error: "Please enter your password!",
+        error: error_msg,
         form: {
           firstName: firstName,
           lastName: lastName,
@@ -212,10 +221,12 @@ const controller = {
     // Check if 'email' is valid
     const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     if (!validEmailRegex.test(email)) {
+      const error_msg = "Please enter a valid email address!";
+      await logInputValidation(email, req.path, "email", ValidationRule.InvalidFormatEmail, email, error_msg);
       res.render("register", {
         layout: "index",
         active: { login: true },
-        error: "Please enter a valid email address!",
+        error: error_msg,
         form: {
           firstName: firstName,
           lastName: lastName,
@@ -229,10 +240,12 @@ const controller = {
     // Check if 'contactNumber' is valid
     const validContactNumRegex = /^(09)\d{9}/;
     if (!validContactNumRegex.test(contactNumber)) {
+      const error_msg = "Please follow the contact number format: 09XXXXXXXXX";
+      await logInputValidation(email, req.path, "contact_number", ValidationRule.InvalidFormatPhone, contactNumber, error_msg);
       res.render("register", {
         layout: "index",
         active: { login: true },
-        error: "Please follow the contact number format: 09XXXXXXXXX",
+        error: error_msg,
         form: {
           firstName: firstName,
           lastName: lastName,
@@ -245,10 +258,12 @@ const controller = {
 
     // Check if 'password' contains at least 8 characters
     if (password.length < 8) {
+      const error_msg = "Password must contain at least 8 characters!";
+      await logInputValidation(email, req.path, "password", ValidationRule.InvalidLengthMin, password, error_msg);
       res.render("register", {
         layout: "index",
         active: { login: true },
-        error: "Password must contain at least 8 characters!",
+        error: error_msg,
         form: {
           firstName: firstName,
           lastName: lastName,
