@@ -9,6 +9,7 @@ const bcrypt = require('bcrypt');
 const {ObjectId} = require('mongodb');
 const {formatDate} = require("../utils/dateHelper.js");
 const dateHelper = require("../utils/dateHelper.js");
+const accountTimeout= require("../utils/accountTimeout.js");
 const {logInputValidation, ValidationRule} = require("../utils/util-log-input-validation");
 const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 const {logAccessControl} = require("../utils/util-log-access-control");
@@ -42,10 +43,6 @@ const controller = {
                     },
                 },
             });
-
-            // add to access control logs
-            const error_msg = "You are not logged in as employee.";
-            // await logAccessControl(req.session.logged_in.user.userID, req.path, ValidationRule.NotEmployee, error_msg);
         } else {
             next();
         }
@@ -54,6 +51,8 @@ const controller = {
     postEmployeeLogin: async function (req, res) {
         let email = req.body.email;
         let password = req.body.password;
+        let message;
+        let currentTime= new Date();
 
         if (email === undefined || password === undefined) {
             res.render("login-employee", {
@@ -78,39 +77,69 @@ const controller = {
 
         if (result.changedPassword) {
             let passwordCompare = await bcrypt.compare(password, result.password);
-            if (!passwordCompare) {
-                await logAuthAttempt(email, Status.Fail, UserType.Employee, req.path, AttemptType.LoginAttempt);
-                res.render("login-employee", {
-                    layout: "employee-no-sidebar",
-                    active: {login: true},
-                    error: "Incorrect email or password.",
-                });
-                await Employee.findByIdAndUpdate(result._id, {
-                    lastFailedLogin: new Date(),
-                });
-                return;
+            if(currentTime>result.timeoutEnd){
+                if (!passwordCompare) {
+                    await logAuthAttempt(email, Status.Fail, UserType.Employee, req.path, AttemptType.LoginAttempt);
+                    accountTimeout.handleFailedAttempt(result);
+                    message= accountTimeout.timeOutMessage(result);
+            
+                    console.log(message);
+                    console.log("numAttempts: "+result.numAttempts +" timeoutEnd: "+result.timeoutEnd);
+                    
+                    res.render("login-employee", {
+                        layout: "employee-no-sidebar",
+                        active: {login: true},
+                        error: message,
+                    });
+                    await Employee.findByIdAndUpdate(result._id, {lastFailedLogin: new Date(),});
+                    return;
+                }
             }
         } else {
-            if (result.password != password) {
-                await logAuthAttempt(email, Status.Fail, UserType.Employee, req.path, AttemptType.LoginAttempt);
-                res.render("login-employee", {
-                    layout: "employee-no-sidebar",
-                    active: {login: true},
-                    error: "Incorrect email or password.",
-                });
-                await Employee.findByIdAndUpdate(result._id, {
-                    lastFailedLogin: new Date(),
-                });
-                return;
+            if(currentTime>result.timeoutEnd){
+                if (result.password != password) {
+                    await logAuthAttempt(email, Status.Fail, UserType.Employee, req.path, AttemptType.LoginAttempt);
+                    accountTimeout.handleFailedAttempt(result);
+                    message= accountTimeout.timeOutMessage(result);
+            
+                    console.log(message);
+                    console.log("numAttempts: "+result.numAttempts +" timeoutEnd: "+result.timeoutEnd);
+                    
+                    res.render("login-employee", {
+                        layout: "employee-no-sidebar",
+                        active: {login: true},
+                        error: message,
+                    });
+                    await Employee.findByIdAndUpdate(result._id, {lastFailedLogin: new Date(),});
+                    return;
+                }
             }
+            
         }
 
-        await logAuthAttempt(email, Status.Success, UserType.Employee, req.path, AttemptType.LoginAttempt);
+        if(currentTime > result.timeoutEnd){
+            await logAuthAttempt(email, Status.Success, UserType.Employee, req.path, AttemptType.LoginAttempt);
+            await Employee.findByIdAndUpdate(result._id, {lastLogin: new Date()});
+            accountTimeout.resetAttempts(result);
+        }else{
+            message= accountTimeout.timeOutMessage(result);
 
-        await Employee.findByIdAndUpdate(result._id, {lastLogin: new Date()});
-
+            console.log(message);
+            console.log("numAttempts: "+result.numAttempts +" timeoutEnd: "+result.timeoutEnd);
+            console.log(currentTime);
+            console.log(result.timeOutMessage);
+            console.log(currentTime>result.timeoutEnd);
+            
+            res.render("login-employee", {
+                layout: "employee-no-sidebar",
+                active: {login: true},
+                error: message,
+            });
+            return;
+        }
+        
         let employee_name = result.firstName + " " + result.lastName;
-
+        
         if (!result.changedPassword) {
             req.session.first_time = {
                 user: {

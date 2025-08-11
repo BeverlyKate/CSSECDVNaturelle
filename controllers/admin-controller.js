@@ -71,7 +71,6 @@ const controller = {
         }
     },
 
-<<<<<<< HEAD
   postAdminLogin: async function (req, res) {
     let username = req.body.username;
     let password = req.body.password;
@@ -85,20 +84,6 @@ const controller = {
       });
       return;
     }
-=======
-    postAdminLogin: async function (req, res) {
-        let username = req.body.username;
-        let password = req.body.password;
-
-        if (username === undefined || password === undefined) {
-            res.render("login-admin", {
-                layout: "no-sidebar",
-                active: {login: true},
-                error: "Please enter your username and password.",
-            });
-            return;
-        }
->>>>>>> develop
 
         let result = await Admin.findOne({username: username});
 
@@ -112,7 +97,6 @@ const controller = {
             return;
         }
 
-<<<<<<< HEAD
     let passwordCompare = await bcrypt.compare(password, result.password);
     currentTime= new Date();
 
@@ -167,41 +151,6 @@ const controller = {
     if (req.query.next) res.redirect(decodeURIComponent(req.query.next));
     else res.redirect("/admin");
   },
-=======
-        let passwordCompare = await bcrypt.compare(password, result.password);
-
-        if (!passwordCompare) {
-            await logAuthAttempt(username, Status.Fail, UserType.Admin, req.path, AttemptType.LoginAttempt);
-            res.render("login-admin", {
-                layout: "no-sidebar",
-                active: {login: true},
-                error: "Incorrect username or password.",
-            });
-            await Admin.findByIdAndUpdate(result._id, {
-                lastFailedLogin: new Date(),
-            });
-            return;
-        }
-
-        await logAuthAttempt(username, Status.Success, UserType.Admin, req.path, AttemptType.LoginAttempt);
-
-        await Admin.findByIdAndUpdate(result._id, {lastLogin: new Date()});
-
-        req.session.logged_in = {
-            state: true,
-            type: "admin",
-            user: {
-                id: result._id,
-                username: result.username,
-                lastLogin: result.lastLogin,
-                lastFailedLogin: result.lastFailedLogin,
-            },
-        };
-
-        if (req.query.next) res.redirect(decodeURIComponent(req.query.next));
-        else res.redirect("/admin");
-    },
->>>>>>> develop
 
     getCurrentUser: async function (req, res) {
         user = await Admin.findOne({username: req.session.logged_in.user});
