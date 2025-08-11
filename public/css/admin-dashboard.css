@@ -215,27 +215,27 @@
     display: inline;
 }
 
-.badge-authattempt-status-success {
+.badge-status-success {
     background-color: var(--clr-complementary-800);
     color: #FFF;
 }
 
-.badge-authattempt-status-fail {
+.badge-status-fail {
     background-color: var(--clr-triadic-1-500);
     color: #FFF;
 }
 
-.badge-authattempt-usertype-customer {
+.badge-usertype-customer {
     background-color: #F1F1F1;
     color: #777;
 }
 
-.badge-authattempt-usertype-admin {
+.badge-usertype-admin {
     background-color: var(--clr-primary-50);
     color: var(--salon-purple);
 }
 
-.badge-authattempt-usertype-employee {
+.badge-usertype-employee {
     background-color: var(--clr-triadic-1-50);
     color: var(--clr-triadic-1-500);
 }
