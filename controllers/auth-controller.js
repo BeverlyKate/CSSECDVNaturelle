@@ -79,40 +79,41 @@ const controller = {
     }
 
     let passwordCompare = await bcrypt.compare(password, result.password);
+    
+    var currentDate= new Date();
+      if(currentDate > result.timeoutEnd){
+        if (!passwordCompare) {
+          await logAuthAttempt(
+            email,
+            Status.Fail,
+            UserType.Customer,
+            req.path,
+            AttemptType.LoginAttempt
+          );
+          await Notification.create({
+            receiver: result._id,
+            type: "Failed Authorization Attempt",
+            timestamp: new Date(),
+            title: "Failed login",
+            body:"There was a failed login at " +dateHelper.formatDate(new Date()) +".",
+            isRead: false,
+          });
+          
+          accountTimeout.handleFailedAttempt(result);
+          var message= accountTimeout.timeOutMessage(result);
 
-    if (!passwordCompare) {
-      await logAuthAttempt(
-        email,
-        Status.Fail,
-        UserType.Customer,
-        req.path,
-        AttemptType.LoginAttempt
-      );
-      await Notification.create({
-        receiver: result._id,
-        type: "Failed Authorization Attempt",
-        timestamp: new Date(),
-        title: "Failed login",
-        body:"There was a failed login at " +dateHelper.formatDate(new Date()) +".",
-        isRead: false,
-      });
-      
-      accountTimeout.handleFailedAttempt(result);
-      var message= accountTimeout.timeOutMessage(result);
+          console.log(message);
+          console.log("numAttempts: "+result.numAttempts +" timeoutEnd: "+result.timeoutEnd);
 
-      console.log(message);
-      console.log("numAttempts: "+result.numAttempts +" timeoutEnd: "+result.timeoutEnd);
-
-      res.render("login", {
-        layout: "index",
-        active: { login: true },
-        error: message,
-      });
-      return;
+          res.render("login", {
+            layout: "index",
+            active: { login: true },
+            error: message,
+          });
+          return;
+        }
     }
     //if time < timeoutEnd
-    var currentDate= new Date();
-
     if(currentDate > result.timeoutEnd){
       console.log(result);
       console.log(currentDate > result.timeoutEnd);
