@@ -9,15 +9,11 @@ const Logs_AccessControlSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: false
     },
+    userType: {
+        type: String,
+        required: false
+    },
     endpoint: {
-        type: String,
-        required: true
-    },
-    validationRule: {
-        type: String,
-        required: true
-    },
-    message: {
         type: String,
         required: true
     }

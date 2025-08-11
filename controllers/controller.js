@@ -9,6 +9,7 @@ const Notification = require("../models/Notification");
 const User = require("../models/User");
 const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 const {logInputValidation, ValidationRule} = require("../utils/util-log-input-validation");
+const {logAccessControl} = require("../utils/util-log-access-control");
 
 const controller = {
   getLogout: function (req, res) {
@@ -50,11 +51,11 @@ const controller = {
     });
   },
 
-  getReservation: function (req, res) {
-    if (
-      !req.session.logged_in ||
-      (req.session.logged_in && req.session.logged_in.type !== "customer")
-    ) {
+  getReservation: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
+      if (req.session.logged_in && req.session.logged_in.type !== "customer") {
+        await logAccessControl(req.session.logged_in.user.id, req.session.logged_in.type, req.path);
+      }
       res.redirect("/login?next=" + encodeURIComponent("/reservation"));
       return;
     }
@@ -67,10 +68,10 @@ const controller = {
   },
 
   getReserveInfo: async function (req, res) {
-    if (
-      !req.session.logged_in ||
-      (req.session.logged_in && req.session.logged_in.type !== "customer")
-    ) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
+      if (req.session.logged_in && req.session.logged_in.type !== "customer") {
+        await logAccessControl(req.session.logged_in.user.id, req.session.logged_in.type, req.path);
+      }
       res.redirect("/login?next=" + encodeURIComponent("/reservation"));
       return;
     }
@@ -103,21 +104,21 @@ const controller = {
   },
 
   getUserReservations: async function (req, res) {
-    if (
-      !req.session.logged_in ||
-      (req.session.logged_in && req.session.logged_in.type !== "customer")
-    ) {
+    if (!req.session.logged_in ||  req.session.logged_in.type !== "customer") {
+      if (req.session.logged_in && req.session.logged_in.type !== "customer") {
+        await logAccessControl(req.session.logged_in.user.id, req.session.logged_in.type, req.path);
+      }
       res.redirect("/login?next=" + encodeURIComponent("/reservation"));
       return;
     }
 
     let userID = req.session.logged_in.user.id;
-    //console.log(userID)
+    ////console.log(userID)
     let reservation_info = await Reservation.find({ userID: userID })
       .populate("services")
       .lean()
       .exec();
-    //console.log(reservation_info)
+    ////console.log(reservation_info)
     let reservationsWithFormattedDate = reservation_info
       .map((coll) => {
         formattedDate = new Date(coll.timestamp).toUTCString();
@@ -216,7 +217,7 @@ const controller = {
   getFAQ: async function (req, res) {
     let faqs = await FAQ.find({}, "").lean();
 
-    //console.log(faqs)
+    ////console.log(faqs)
 
     res.render("faq", {
       layout: "index",
@@ -227,11 +228,8 @@ const controller = {
   },
 
   getNotifications: async function (req, res) {
-    if (
-      !req.session.logged_in ||
-      (req.session.logged_in && req.session.logged_in.type !== "customer")
-    ) {
-      res.redirect("/login?next=" + encodeURIComponent("/reservation"));
+    if (!req.session.logged_in ||  req.session.logged_in.type !== "customer") {
+      res.sendStatus(403);
       return;
     }
 
@@ -275,7 +273,7 @@ const controller = {
     }
 
     res.send(data);
-    //console.log(data)
+    ////console.log(data)
   },
 
   postCancelReservation: async function (req, res) {
@@ -319,6 +317,9 @@ const controller = {
 
   getSettings: async function (req, res) {
     if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
+      if (req.session.logged_in && req.session.logged_in.type !== "customer") {
+        await logAccessControl(req.session.logged_in.user.id, req.session.logged_in.type, req.path);
+      }
       res.redirect("/login?next=" + encodeURIComponent("/settings"));
       return;
     }
@@ -346,30 +347,27 @@ const controller = {
     let contact = req.body.contact;
 
     if (fname === "") {
-      const error_msg = "Please enter your first name.";
-      await logInputValidation(email, req.path, "fname", ValidationRule.Required, fname, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter your first name." });
       return;
     }
 
     if (lname === "") {
-      const error_msg = "Please enter your last name.";
-      await logInputValidation(email, req.path, "lname", ValidationRule.Required, lname, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter your last name." });
       return;
     }
 
     if (email === "") {
-      const error_msg = "Please enter your email address.";
-      await logInputValidation(email, req.path, "email", ValidationRule.Required, email, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter your email address." });
       return;
     }
 
     if (contact === "") {
-      const error_msg = "Please enter your contact number.";
-      await logInputValidation(email, req.path, "contact", ValidationRule.Required, contact, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter your contact number." });
+      return;
+    }
+
+    if (old_password === "") {
+      res.status(400).send({ error: "Please enter your current password to continue." });
       return;
     }
 
@@ -377,9 +375,7 @@ const controller = {
     let isEmailValid = validEmailRegex.test(email);
 
     if (!isEmailValid) {
-      const error_msg = "Please enter a valid email address.";
-      await logInputValidation(email, req.path, "email", ValidationRule.InvalidFormatEmail, email, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter a valid email address." });
       return;
     }
 
@@ -387,9 +383,7 @@ const controller = {
     let isContactNumValid = validContactNumRegex.test(contact);
 
     if (!isContactNumValid) {
-      const error_msg = "Please enter a valid contact number.";
-      await logInputValidation(email, req.path, "contact", ValidationRule.InvalidFormatPhone, contact, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter a valid contact number." });
       return;
     }
 
@@ -401,7 +395,62 @@ const controller = {
       contactNumber: contact,
     };
 
-    await User.updateOne({ _id: customer_id }, updateData);
+    let passwordCompare = await bcrypt.compare(
+      old_password,
+      currentPassword.password
+    );
+    if (!passwordCompare) {
+      await logAuthAttempt(email, Status.Fail, UserType.Customer, req.path, AttemptType.PasswordVerification);
+      res.status(403).send({ error: "Current password is incorrect!" });
+      return;
+    }
+
+    await logAuthAttempt(email, Status.Success, UserType.Customer, req.path, AttemptType.PasswordVerification);
+
+    if (new_password !== "") {
+      if (new_password.length < 8) {
+        res.status(403).send({ error: "Password must contain at least 8 characters!" });
+        return;
+      }
+
+      let passwordHashed = await bcrypt.hash(new_password, 10);
+
+      await User.updateOne(
+        { _id: customer_id },
+        {
+          firstName: fname,
+          lastName: lname,
+          email: email,
+          contactNumber: contact,
+          password: passwordHashed,
+        }
+      );
+
+      req.session.logged_in = {
+        state: true,
+        type: "customer",
+        user: {
+          userID: customer_id,
+          firstName: fname,
+          lastName: lname,
+          contactNumber: contact,
+          email: email,
+        },
+      };
+
+      res.sendStatus(200);
+      return;
+    }
+
+    await User.updateOne(
+      { _id: customer_id },
+      {
+        firstName: fname,
+        lastName: lname,
+        email: email,
+        contactNumber: contact,
+      }
+    );
 
     req.session.logged_in = {
       state: true,
@@ -411,7 +460,7 @@ const controller = {
         firstName: fname,
         lastName: lname,
         contactNumber: contact,
-        email: email,
+        email: email
       },
     };
 

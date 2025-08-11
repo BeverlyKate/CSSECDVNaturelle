@@ -16,7 +16,14 @@ const AdminSchema = new mongoose.Schema({
   lastFailedLogin: {
     type: Date,
     default: null,
+  }, numAttempts: {
+    type: Number,
+    default: 0,
   },
+  timeoutEnd: {
+    type: Date,
+    default: null,
+  }
 });
 
 // for MongoDB collection "users"

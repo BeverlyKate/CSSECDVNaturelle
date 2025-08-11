@@ -48,7 +48,15 @@ const UserSchema = new mongoose.Schema({
     securityAnswer2: {
         type: String,
         required: false
-    }
+    }, 
+    numAttempts: {
+    type: Number,
+    default: 0,
+    },
+    timeoutEnd: {
+    type: Date,
+    default: null,
+  },
 })
 
 // for MongoDB collection "users"

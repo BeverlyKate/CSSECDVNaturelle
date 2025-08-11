@@ -38,7 +38,7 @@ function doesAddServiceCollHaveEmptyField() {
     return $(this).val() === "";
   });
 
-  //console.log(doesTabularHaveEmpty.length, doesStandaloneHaveEmpty.length)
+  ////console.log(doesTabularHaveEmpty.length, doesStandaloneHaveEmpty.length)
   return doesTabularHaveEmpty.length > 0 || doesStandaloneHaveEmpty.length > 0;
 }
 
@@ -59,7 +59,7 @@ function doesEditServiceCollHaveEmptyField() {
     return $(this).val() === "";
   });
 
-  //console.log(doesTabularHaveEmpty.length, doesStandaloneHaveEmpty.length)
+  ////console.log(doesTabularHaveEmpty.length, doesStandaloneHaveEmpty.length)
   return doesTabularHaveEmpty.length > 0 || doesStandaloneHaveEmpty.length > 0;
 }
 
@@ -134,7 +134,7 @@ $(document).ready(function () {
           price: Number(price).toFixed(2),
         };
 
-        //console.log(tabular_service_obj)
+        ////console.log(tabular_service_obj)
         tabular_services_arr.push(tabular_service_obj);
       });
 

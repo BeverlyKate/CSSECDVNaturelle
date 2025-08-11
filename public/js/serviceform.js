@@ -70,7 +70,7 @@ $(document).ready(function () {
 
       cart_arr.push(cart_obj);
 
-      //console.log(cart_arr);
+      ////console.log(cart_arr);
 
       $.post(
         "/serviceform",
@@ -83,10 +83,10 @@ $(document).ready(function () {
         function (data, status) {
           if (status === "success") {
             // Handle success, if needed
-            ////console.log("AJAX request succeeded", data);
+            //////console.log("AJAX request succeeded", data);
           } else {
             // Handle failure, if needed
-            //console.log("AJAX request failed", data);
+            ////console.log("AJAX request failed", data);
           }
         }
       );

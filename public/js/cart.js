@@ -176,9 +176,9 @@ document.addEventListener("DOMContentLoaded", function () {
       let status = "Pending";
 
       /*
-            //console.log(timestamp);
-            //console.log(cart_arr);
-            //console.log(status);
+            ////console.log(timestamp);
+            ////console.log(cart_arr);
+            ////console.log(status);
             */
 
       $.post(
@@ -191,12 +191,12 @@ document.addEventListener("DOMContentLoaded", function () {
         function (data, status) {
           if (status === "success") {
             // Handle success, if needed
-            //console.log("AJAX request succeeded", data);
+            ////console.log("AJAX request succeeded", data);
 
             clearCart();
           } else {
             // Handle failure, if needed
-            //console.log("AJAX request failed", data);
+            ////console.log("AJAX request failed", data);
           }
         }
       );

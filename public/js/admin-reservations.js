@@ -456,7 +456,7 @@ $(document).ready(function(){
 
 function showReservations() {
     $.get('/admin/reservations/get', {}, (data, status, xhr) => {
-       //console.log(data)
+       ////console.log(data)
     });
 }
 */

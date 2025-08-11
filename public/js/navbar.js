@@ -33,7 +33,7 @@ $(document).ready(function () {
 
     $.get("/get-notifications", {}, (data, status, xhr) => {
       data.forEach((nt) => {
-        //console.log(data)
+        ////console.log(data)
         let notif_details_container = new Element(
           "li.dropdown-item.notif-details-container",
           {
@@ -88,6 +88,14 @@ $(document).ready(function () {
         } else if (nt.type == "Customer Set Cancelled") {
           notif_preview_body = new Element("div.notif-preview-body", {
             text: "You Cancelled a Reservation",
+          }).getElement();
+        } else if (nt.type == "Failed Authorization Attempt") {
+          notif_preview_body = new Element("div.notif-preview-body", {
+            text: "Failed login attempt",
+          }).getElement();
+        } else if (nt.type == "Authorization Attempt") {
+          notif_preview_body = new Element("div.notif-preview-body", {
+            text: "Successful login attempt",
           }).getElement();
         }
 
@@ -265,7 +273,7 @@ function checkUnreadNotifs() {
       }
     });
 
-    //console.log(count)
+    ////console.log(count)
 
     let read_indicator = document.getElementById("read-indicator-on-btn");
 

@@ -4,8 +4,10 @@ const bcrypt = require("bcrypt");
 const InCartService = require("../models/InCartService");
 const Reservation = require("../models/Reservation");
 const Notification = require("../models/Notification");
-const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
-const {logInputValidation, ValidationRule} = require("../utils/util-log-input-validation");
+const dateHelper = require("../utils/dateHelper");
+
+const {logAuthAttempt,Status,UserType,AttemptType,} = require("../utils/util-log-auth-attempt");
+const {logInputValidation,ValidationRule,} = require("../utils/util-log-input-validation");
 
 let generatedId = [];
 
@@ -67,7 +69,13 @@ const controller = {
     let result = await User.findOne({ email: email });
 
     if (result == null) {
-      await logAuthAttempt(email, Status.Fail, UserType.Customer, req.path, AttemptType.LoginAttempt);
+      await logAuthAttempt(
+        email,
+        Status.Fail,
+        UserType.Customer,
+        req.path,
+        AttemptType.LoginAttempt
+      );
       res.render("login", {
         layout: "index",
         active: { login: true },
@@ -81,7 +89,24 @@ const controller = {
     let passwordCompare = await bcrypt.compare(password, result.password);
 
     if (!passwordCompare) {
-      await logAuthAttempt(email, Status.Fail, UserType.Customer, req.path, AttemptType.LoginAttempt);
+      await logAuthAttempt(
+        email,
+        Status.Fail,
+        UserType.Customer,
+        req.path,
+        AttemptType.LoginAttempt
+      );
+      await Notification.create({
+        receiver: result._id,
+        type: "Failed Authorization Attempt",
+        timestamp: new Date(),
+        title: "Failed login",
+        body:
+          "There was a failed login at " +
+          dateHelper.formatDate(new Date()) +
+          ".",
+        isRead: false,
+      });
       res.render("login", {
         layout: "index",
         active: { login: true },
@@ -92,7 +117,25 @@ const controller = {
       return;
     }
 
-    await logAuthAttempt(email, Status.Success, UserType.Customer, req.path, AttemptType.LoginAttempt);
+    await logAuthAttempt(
+      email,
+      Status.Success,
+      UserType.Customer,
+      req.path,
+      AttemptType.LoginAttempt
+    );
+    // //console.log(result);
+    await Notification.create({
+      receiver: result._id,
+      type: "Authorization Attempt",
+      timestamp: new Date(),
+      title: "Successful login",
+      body:
+        "There was a successful login at " +
+        dateHelper.formatDate(new Date()) +
+        ".",
+      isRead: false,
+    });
 
     req.session.logged_in = {
       state: true,
@@ -106,7 +149,7 @@ const controller = {
       },
     };
 
-    //console.log(result);
+    // //console.log(result);
 
     // Don't redirect to reset password page after successful login
     if (req.query.next && !req.query.next.includes('reset-password')) {
@@ -164,7 +207,14 @@ const controller = {
     // Check if 'firstName' is empty
     if (firstName === "") {
       const error_msg = "Please enter your first name!";
-      await logInputValidation(email, req.path, "first_name", ValidationRule.Required, firstName, error_msg);
+      await logInputValidation(
+        email,
+        req.path,
+        "first_name",
+        ValidationRule.Required,
+        firstName,
+        error_msg
+      );
       res.render("register", {
         layout: "index",
         active: { login: true },
@@ -182,7 +232,14 @@ const controller = {
     // Check if 'lastName' is empty
     if (lastName === "") {
       const error_msg = "Please enter your last name!";
-      await logInputValidation(email, req.path, "last_name", ValidationRule.Required, lastName, error_msg);
+      await logInputValidation(
+        email,
+        req.path,
+        "last_name",
+        ValidationRule.Required,
+        lastName,
+        error_msg
+      );
       res.render("register", {
         layout: "index",
         active: { login: true },
@@ -200,7 +257,14 @@ const controller = {
     // Check if 'contactNumber' is empty
     if (contactNumber === "") {
       const error_msg = "Please enter your contact number!";
-      await logInputValidation(email, req.path, "contact_number", ValidationRule.Required, contactNumber, error_msg);
+      await logInputValidation(
+        email,
+        req.path,
+        "contact_number",
+        ValidationRule.Required,
+        contactNumber,
+        error_msg
+      );
       res.render("register", {
         layout: "index",
         active: { login: true },
@@ -218,7 +282,14 @@ const controller = {
     // Check if 'password' is empty
     if (password === "") {
       const error_msg = "Please enter your password!";
-      await logInputValidation(email, req.path, "password", ValidationRule.Required, password, error_msg);
+      await logInputValidation(
+        email,
+        req.path,
+        "password",
+        ValidationRule.Required,
+        password,
+        error_msg
+      );
       res.render("register", {
         layout: "index",
         active: { login: true },
@@ -237,7 +308,14 @@ const controller = {
     const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     if (!validEmailRegex.test(email)) {
       const error_msg = "Please enter a valid email address!";
-      await logInputValidation(email, req.path, "email", ValidationRule.InvalidFormatEmail, email, error_msg);
+      await logInputValidation(
+        email,
+        req.path,
+        "email",
+        ValidationRule.InvalidFormatEmail,
+        email,
+        error_msg
+      );
       res.render("register", {
         layout: "index",
         active: { login: true },
@@ -256,7 +334,14 @@ const controller = {
     const validContactNumRegex = /^(09)\d{9}/;
     if (!validContactNumRegex.test(contactNumber)) {
       const error_msg = "Please follow the contact number format: 09XXXXXXXXX";
-      await logInputValidation(email, req.path, "contact_number", ValidationRule.InvalidFormatPhone, contactNumber, error_msg);
+      await logInputValidation(
+        email,
+        req.path,
+        "contact_number",
+        ValidationRule.InvalidFormatPhone,
+        contactNumber,
+        error_msg
+      );
       res.render("register", {
         layout: "index",
         active: { login: true },
@@ -274,7 +359,14 @@ const controller = {
     // Check if 'password' contains at least 8 characters
     if (password.length < 8) {
       const error_msg = "Password must contain at least 8 characters!";
-      await logInputValidation(email, req.path, "password", ValidationRule.InvalidLengthMin, password, error_msg);
+      await logInputValidation(
+        email,
+        req.path,
+        "password",
+        ValidationRule.InvalidLengthMin,
+        password,
+        error_msg
+      );
       res.render("register", {
         layout: "index",
         active: { login: true },
@@ -333,7 +425,7 @@ const controller = {
       },
     };
 
-    //console.log(user);
+    ////console.log(user);
 
     res.redirect("/");
   },
@@ -359,20 +451,20 @@ const controller = {
       status: "Pending",
     };
 
-    // //console.log("Cart Object:", cart);
+    // ////console.log("Cart Object:", cart);
 
     try {
       const createdCart = await InCartService.create(cart);
       generatedId.push(createdCart._id);
 
-      //console.log("Cart added to MongoDB successfully! Cart ID:", generatedId);
+      ////console.log("Cart added to MongoDB successfully! Cart ID:", generatedId);
     } catch (error) {
       console.error("Error adding cart to MongoDB:", error);
     }
 
     res.redirect("/serviceform");
 
-    // //console.log(generatedId);
+    // ////console.log(generatedId);
   },
 
   postReserve: async function (req, res) {
@@ -389,7 +481,7 @@ const controller = {
         status: current,
       };
 
-      //console.log("Reservation Details:", reservation);
+      ////console.log("Reservation Details:", reservation);
 
       createdReservation = await Reservation.create(reservation);
 
@@ -398,9 +490,9 @@ const controller = {
         .lean()
         .exec();
 
-      // //console.log(populated);
+      // ////console.log(populated);
 
-      //console.log("Reservation added to MongoDB successfully!");
+      ////console.log("Reservation added to MongoDB successfully!");
       curr_date = new String(new Date());
       await Notification.create({
         receiver: userID,
@@ -412,7 +504,7 @@ const controller = {
         isRead: false,
       });
 
-      //console.log(createdReservation);
+      ////console.log(createdReservation);
 
       generatedId = [];
     } catch (error) {
@@ -428,7 +520,7 @@ const controller = {
     });
 
     // Log the carts to be deleted
-    //console.log("Carts to be deleted:", cartsToDelete);
+    ////console.log("Carts to be deleted:", cartsToDelete);
 
     // Delete all carts that match the IDs in the generatedId array
     // await InCartService.deleteOne({ _id: { $in: generatedId } });
@@ -442,7 +534,7 @@ const controller = {
     let cartsToDelete = await InCartService.find({ _id: { $in: generatedId } });
 
     // Log the carts to be deleted
-    //console.log("Carts to be deleted:", cartsToDelete);
+    ////console.log("Carts to be deleted:", cartsToDelete);
 
     // Delete all carts that match the IDs in the generatedId array
     await InCartService.deleteMany({ _id: { $in: generatedId } });
