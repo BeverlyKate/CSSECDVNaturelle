@@ -36,6 +36,9 @@ const hbs = exp_hbs.create({
     isNonEmpty(array) {
       return Array.isArray(array) && array.length !== 0;
     },
+    ifEquals(arg1, arg2, options) {
+      return arg1 === arg2 ? options.fn(this) : options.inverse(this);
+    }
   },
 });
 

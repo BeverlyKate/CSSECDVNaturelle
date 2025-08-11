@@ -105,6 +105,49 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="logs-authattempts" class="log-container tab-pane fade table-responsive" role="tabpanel">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Status</th>
+                                <th>User Type</th>
+                                <th>Endpoint</th>
+                                <th>Attempt Type</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#each logs_authattempts_recent}}
+                                <tr>
+                                    <td>{{this.timestamp}}</td>
+                                    <td>{{this.user}}</td>
+                                    <td>
+                                        {{#ifEquals this.status "success"}}
+                                            <span class="badge badge-authattempt-status-success"><i class="fa fa-solid fa-check"></i>Success</span>
+                                        {{/ifEquals}}
+                                        {{#ifEquals this.status "fail"}}
+                                            <span class="badge badge-authattempt-status-fail"><i class="fa fa-solid fa-xmark"></i>Fail</span>
+                                        {{/ifEquals}}
+                                    </td>
+                                    <td>
+                                        {{#ifEquals this.userType "customer"}}
+                                            <span class="badge badge-authattempt-usertype-customer">Customer</span>
+                                        {{/ifEquals}}
+                                        {{#ifEquals this.userType "admin"}}
+                                            <span class="badge badge-authattempt-usertype-admin">Admin</span>
+                                        {{/ifEquals}}
+                                        {{#ifEquals this.userType "employee"}}
+                                            <span class="badge badge-authattempt-usertype-employee">Employee</span>
+                                        {{/ifEquals}}
+                                    </td>
+                                    <td><code>{{this.endpoint}}</code></td>
+                                    <td><code>{{this.attemptType}}</code></td>
+                                </tr>
+                            {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

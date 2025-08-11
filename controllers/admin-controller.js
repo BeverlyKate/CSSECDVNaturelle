@@ -9,10 +9,9 @@ const InCartService = require("../models/InCartService.js");
 const bcrypt = require("bcrypt");
 const Notification = require("../models/Notification");
 const Logs_InputValidation = require("../models/Logs_InputValidation");
-const {
-  logInputValidation,
-  ValidationRule,
-} = require("../utils/util-log-input-validation");
+const Logs_AuthAttempt = require("../models/Logs_AuthAttempt");
+const {logInputValidation, logAccessControl, ValidationRule} = require("../utils/util-log-input-validation");
+const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 const dateHelper = require("../utils/dateHelper.js");
 
 function generateRandomPassword(length) {
@@ -40,7 +39,7 @@ function isContactNumValid(contactNum) {
 }
 
 const controller = {
-  getAdminLogin: function (req, res, next) {
+  getAdminLogin: async function (req, res, next) {
     if (!req.session.logged_in) {
       res.render("login-admin", { layout: "no-sidebar" });
     } else if (req.session.logged_in.type !== "admin") {
@@ -67,11 +66,15 @@ const controller = {
             link: "/logout?next=%2Fadmin",
           },
         },
-      });
-    } else {
-      next();
-    }
-  },
+            });
+
+            // add to access control logs
+            const error_msg = "You are not logged in as admin.";
+            await logAccessControl(req.session.logged_in.user.userID, req.path, ValidationRule.NotAdmin, error_msg);
+        } else {
+            next();
+        }
+    },
 
   postAdminLogin: async function (req, res) {
     let username = req.body.username;
@@ -89,6 +92,7 @@ const controller = {
     let result = await Admin.findOne({ username: username });
 
     if (result == null) {
+      await logAuthAttempt(username, Status.Fail, UserType.Admin, req.path, AttemptType.LoginAttempt);
       res.render("login-admin", {
         layout: "no-sidebar",
         active: { login: true },
@@ -100,6 +104,7 @@ const controller = {
     let passwordCompare = await bcrypt.compare(password, result.password);
 
     if (!passwordCompare) {
+      await logAuthAttempt(username, Status.Fail, UserType.Admin, req.path, AttemptType.LoginAttempt);
       res.render("login-admin", {
         layout: "no-sidebar",
         active: { login: true },
@@ -110,6 +115,8 @@ const controller = {
       });
       return;
     }
+
+    await logAuthAttempt(username, Status.Success, UserType.Admin, req.path, AttemptType.LoginAttempt);
 
     await Admin.findByIdAndUpdate(result._id, { lastLogin: new Date() });
 
@@ -182,9 +189,12 @@ const controller = {
       currentPassword.password
     );
     if (!passwordCompare) {
+      await logAuthAttempt(req.session.logged_in.user.username, Status.Fail, UserType.Admin, req.path, AttemptType.PasswordVerification);
       res.status(403).send({ error: "Current password is incorrect!" });
       return;
     }
+
+    await logAuthAttempt(req.session.logged_in.user.username, Status.Success, UserType.Admin, req.path, AttemptType.PasswordVerification);
 
     if (new_password !== "") {
       if (new_password.length < 8) {
@@ -246,10 +256,7 @@ const controller = {
     let employees_count = await Employee.countDocuments();
     let faq_count = await FAQ.countDocuments();
 
-    let logs_inputvalidation_recent = await Logs_InputValidation.find()
-      .sort({ timestamp: -1 })
-      .limit(3)
-      .lean();
+    let logs_inputvalidation_recent = await Logs_InputValidation.find().sort({ timestamp: -1 }).limit(3).lean();
     await Promise.all(
       logs_inputvalidation_recent.map(async (log) => {
         log.timestamp = new Date(log.timestamp).toLocaleString();
@@ -261,6 +268,14 @@ const controller = {
         log.userId = admin_result.username;
       })
     );
+
+    let logs_authattempts_recent = await Logs_AuthAttempt.find().sort({ timestamp: -1 }).limit(3).lean();
+    await Promise.all(
+        logs_authattempts_recent.map(async (log) => {
+          log.timestamp = new Date(log.timestamp).toLocaleString();
+        })
+    );
+
     console.log(
       "=============================ADMINLOGIN=============================="
     );
@@ -275,6 +290,7 @@ const controller = {
       employees_count: employees_count,
       faq_count: faq_count,
       logs_inputvalidation_recent: logs_inputvalidation_recent,
+      logs_authattempts_recent: logs_authattempts_recent,
       helpers: {
         formatDate: dateHelper.formatDate,
       },
@@ -292,9 +308,7 @@ const controller = {
     let employees_count = await Employee.countDocuments();
     let faq_count = await FAQ.countDocuments();
 
-    let logs_inputvalidation = await Logs_InputValidation.find()
-      .sort({ timestamp: -1 })
-      .lean();
+    let logs_inputvalidation = await Logs_InputValidation.find().sort({ timestamp: -1 }).lean();
     await Promise.all(
       logs_inputvalidation.map(async (log) => {
         log.timestamp = new Date(log.timestamp).toLocaleString();
@@ -307,11 +321,19 @@ const controller = {
       })
     );
 
+    let logs_authattempts = await Logs_AuthAttempt.find().sort({ timestamp: -1 }).lean();
+    await Promise.all(
+        logs_authattempts.map(async (log) => {
+          log.timestamp = new Date(log.timestamp).toLocaleString();
+        })
+    );
+
     res.render("admin-logs", {
       layout: "admin",
       logged_in: req.session.logged_in,
       active: { admin_logs: true },
       logs_inputvalidation: logs_inputvalidation,
+      logs_authattempts: logs_authattempts
     });
   },
 
