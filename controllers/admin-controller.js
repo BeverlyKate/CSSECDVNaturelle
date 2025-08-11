@@ -13,7 +13,7 @@ const Logs_AuthAttempt = require("../models/Logs_AuthAttempt");
 const {logInputValidation, logAccessControl, ValidationRule} = require("../utils/util-log-input-validation");
 const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 const dateHelper = require("../utils/dateHelper.js");
-
+const accountTimeout = require("../utils/accountTimeout.js")
 function generateRandomPassword(length) {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
@@ -79,7 +79,8 @@ const controller = {
   postAdminLogin: async function (req, res) {
     let username = req.body.username;
     let password = req.body.password;
-
+    var message;
+    var currentTime;
     if (username === undefined || password === undefined) {
       res.render("login-admin", {
         layout: "no-sidebar",
@@ -102,34 +103,55 @@ const controller = {
     }
 
     let passwordCompare = await bcrypt.compare(password, result.password);
+    currentTime= new Date();
 
-    if (!passwordCompare) {
-      await logAuthAttempt(username, Status.Fail, UserType.Admin, req.path, AttemptType.LoginAttempt);
+    if(currentTime>result.timeoutEnd){
+      if (!passwordCompare) {
+        await logAuthAttempt(username, Status.Fail, UserType.Admin, req.path, AttemptType.LoginAttempt);
+        accountTimeout.handleFailedAttempt(result);
+        message= accountTimeout.timeOutMessage(result);
+
+        console.log(message);
+        console.log("numAttempts: "+result.numAttempts +" timeoutEnd: "+result.timeoutEnd);
+
+        res.render("login-admin", {
+          layout: "no-sidebar",
+          active: { login: true },
+          error: message,
+        });
+        await Admin.findByIdAndUpdate(result._id, {
+          lastFailedLogin: new Date(),
+        });
+        return;
+      }
+   }
+    currentTime= new Date();
+    if(currentTime>result.timeoutEnd){
+      console.log(result);
+      console.log(currentTime > result.timeoutEnd);
+      await logAuthAttempt(username, Status.Success, UserType.Admin, req.path, AttemptType.LoginAttempt);
+
+      await Admin.findByIdAndUpdate(result._id, { lastLogin: new Date() });
+      accountTimeout.resetAttempts(result);
+      req.session.logged_in = {
+        state: true,
+        type: "admin",
+        user: {
+          id: result._id,
+          username: result.username,
+          lastLogin: result.lastLogin,
+          lastFailedLogin: result.lastFailedLogin,
+        },
+      };
+    }else{
+      message= accountTimeout.timeOutMessage(result);
       res.render("login-admin", {
         layout: "no-sidebar",
         active: { login: true },
-        error: "Incorrect username or password.",
-      });
-      await Admin.findByIdAndUpdate(result._id, {
-        lastFailedLogin: new Date(),
+        error: message,
       });
       return;
     }
-
-    await logAuthAttempt(username, Status.Success, UserType.Admin, req.path, AttemptType.LoginAttempt);
-
-    await Admin.findByIdAndUpdate(result._id, { lastLogin: new Date() });
-
-    req.session.logged_in = {
-      state: true,
-      type: "admin",
-      user: {
-        id: result._id,
-        username: result.username,
-        lastLogin: result.lastLogin,
-        lastFailedLogin: result.lastFailedLogin,
-      },
-    };
 
     if (req.query.next) res.redirect(decodeURIComponent(req.query.next));
     else res.redirect("/admin");
