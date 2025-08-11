@@ -8,6 +8,7 @@ const Reservation = require("../models/Reservation.js");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
+const {logInputValidation, ValidationRule} = require("../utils/util-log-input-validation");
 
 const controller = {
   getLogout: function (req, res) {
@@ -343,27 +344,37 @@ const controller = {
     let new_password = req.body.new_password;
 
     if (fname === "") {
-      res.status(400).send({ error: "Please enter your first name." });
+      const error_msg = "Please enter your first name.";
+      await logInputValidation(email, req.path, "fname", ValidationRule.Required, fname, error_msg);
+      res.status(400).send({ error: error_msg });
       return;
     }
 
     if (lname === "") {
-      res.status(400).send({ error: "Please enter your last name." });
+      const error_msg = "Please enter your last name.";
+      await logInputValidation(email, req.path, "lname", ValidationRule.Required, lname, error_msg);
+      res.status(400).send({ error: error_msg });
       return;
     }
 
     if (email === "") {
-      res.status(400).send({ error: "Please enter your email address." });
+      const error_msg = "Please enter your email address.";
+      await logInputValidation(email, req.path, "email", ValidationRule.Required, email, error_msg);
+      res.status(400).send({ error: error_msg });
       return;
     }
 
     if (contact === "") {
-      res.status(400).send({ error: "Please enter your contact number." });
+      const error_msg = "Please enter your contact number.";
+      await logInputValidation(email, req.path, "contact", ValidationRule.Required, contact, error_msg);
+      res.status(400).send({ error: error_msg });
       return;
     }
 
     if (old_password === "") {
-      res.status(400).send({ error: "Please enter your current password to continue." });
+      const error_msg = "Please enter your current password to continue.";
+      await logInputValidation(email, req.path, "old_password", ValidationRule.Required, old_password, error_msg);
+      res.status(400).send({ error: error_msg });
       return;
     }
 
@@ -371,7 +382,9 @@ const controller = {
     let isEmailValid = validEmailRegex.test(email);
 
     if (!isEmailValid) {
-      res.status(400).send({ error: "Please enter a valid email address." });
+      const error_msg = "Please enter a valid email address.";
+      await logInputValidation(email, req.path, "email", ValidationRule.InvalidFormatEmail, email, error_msg);
+      res.status(400).send({ error: error_msg });
       return;
     }
 
@@ -379,7 +392,9 @@ const controller = {
     let isContactNumValid = validContactNumRegex.test(contact);
 
     if (!isContactNumValid) {
-      res.status(400).send({ error: "Please enter a valid contact number." });
+      const error_msg = "Please enter a valid contact number.";
+      await logInputValidation(email, req.path, "contact", ValidationRule.InvalidFormatPhone, contact, error_msg);
+      res.status(400).send({ error: error_msg });
       return;
     }
 
@@ -399,7 +414,9 @@ const controller = {
 
     if (new_password !== "") {
       if (new_password.length < 8) {
-        res.status(403).send({ error: "Password must contain at least 8 characters!" });
+        const error_msg = "Password must contain at least 8 characters!";
+        await logInputValidation(email, req.path, "new_password", ValidationRule.InvalidLengthMin, new_password, error_msg);
+        res.status(403).send({ error: error_msg });
         return;
       }
 
