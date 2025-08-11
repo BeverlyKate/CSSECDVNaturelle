@@ -24,7 +24,7 @@ async function handleFailedAttempt (userDoc){
 }
 
 function timeOutMessage(userDoc){
-    if(userDoc.timeoutEnd != null){
+    if(userDoc.timeoutEnd != null && userDoc.numAttempts%2 == 1){
         return "Too many incorrect attempts. Your account is temporarily locked. Please try again later.";
     }if(userDoc.numAttempts>9){
         return "Contact the IT department it@naturelle.com to reset your account."; 
