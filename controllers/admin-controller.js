@@ -276,9 +276,7 @@ const controller = {
         })
     );
 
-    //console.log(
-      "=============================ADMINLOGIN=============================="
-    );
+    //console.log("=============================ADMINLOGIN==============================");
     //console.log(req.session.logged_in);
 
     res.render("main-admin", {

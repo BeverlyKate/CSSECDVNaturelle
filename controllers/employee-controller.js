@@ -234,9 +234,7 @@ const controller = {
       return;
     }
 
-    //console.log(
-      "=============================DASHBOARD=============================="
-    );
+    //console.log("=============================DASHBOARD==============================");
     //console.log(req.session.logged_in);
     res.render("employee-reservations", {
       layout: "employee",
