@@ -4,7 +4,14 @@ const bcrypt = require("bcrypt");
 const InCartService = require("../models/InCartService");
 const Reservation = require("../models/Reservation");
 const Notification = require("../models/Notification");
-const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
+const dateHelper = require("../utils/dateHelper");
+
+const {
+  logAuthAttempt,
+  Status,
+  UserType,
+  AttemptType,
+} = require("../utils/util-log-auth-attempt");
 
 let generatedId = [];
 
@@ -59,7 +66,13 @@ const controller = {
     let result = await User.findOne({ email: email });
 
     if (result == null) {
-      await logAuthAttempt(email, Status.Fail, UserType.Customer, req.path, AttemptType.LoginAttempt);
+      await logAuthAttempt(
+        email,
+        Status.Fail,
+        UserType.Customer,
+        req.path,
+        AttemptType.LoginAttempt
+      );
       res.render("login", {
         layout: "index",
         active: { login: true },
@@ -71,7 +84,24 @@ const controller = {
     let passwordCompare = await bcrypt.compare(password, result.password);
 
     if (!passwordCompare) {
-      await logAuthAttempt(email, Status.Fail, UserType.Customer, req.path, AttemptType.LoginAttempt);
+      await logAuthAttempt(
+        email,
+        Status.Fail,
+        UserType.Customer,
+        req.path,
+        AttemptType.LoginAttempt
+      );
+      await Notification.create({
+        receiver: result._id,
+        type: "Failed Authorization Attempt",
+        timestamp: new Date(),
+        title: "Failed login",
+        body:
+          "There was a failed login at " +
+          dateHelper.formatDate(new Date()) +
+          ".",
+        isRead: false,
+      });
       res.render("login", {
         layout: "index",
         active: { login: true },
@@ -80,7 +110,25 @@ const controller = {
       return;
     }
 
-    await logAuthAttempt(email, Status.Success, UserType.Customer, req.path, AttemptType.LoginAttempt);
+    await logAuthAttempt(
+      email,
+      Status.Success,
+      UserType.Customer,
+      req.path,
+      AttemptType.LoginAttempt
+    );
+    // console.log(result);
+    await Notification.create({
+      receiver: result._id,
+      type: "Authorization Attempt",
+      timestamp: new Date(),
+      title: "Successful login",
+      body:
+        "There was a successful login at " +
+        dateHelper.formatDate(new Date()) +
+        ".",
+      isRead: false,
+    });
 
     req.session.logged_in = {
       state: true,
@@ -94,7 +142,7 @@ const controller = {
       },
     };
 
-    //console.log(result);
+    console.log(result);
 
     if (req.query.next) res.redirect(decodeURIComponent(req.query.next));
     else res.redirect("/");

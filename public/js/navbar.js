@@ -89,6 +89,14 @@ $(document).ready(function () {
           notif_preview_body = new Element("div.notif-preview-body", {
             text: "You Cancelled a Reservation",
           }).getElement();
+        } else if (nt.type == "Failed Authorization Attempt") {
+          notif_preview_body = new Element("div.notif-preview-body", {
+            text: "Failed login attempt",
+          }).getElement();
+        } else if (nt.type == "Authorization Attempt") {
+          notif_preview_body = new Element("div.notif-preview-body", {
+            text: "Successful login attempt",
+          }).getElement();
         }
 
         let time_lapsed = dayjs(nt.timestamp).fromNow();
