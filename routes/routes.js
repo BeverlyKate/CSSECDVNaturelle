@@ -42,6 +42,7 @@ app.post("/cart-delete-one", auth_controller.postDeleteOneCart);
 app.post("/reserve", auth_controller.postReserve);
 
 app.get("/reservation", controller.getReservation);
+app.post("/reserve-check", controller.postCheckReservationAvailability);
 
 app.get("/faq", controller.getFAQ);
 

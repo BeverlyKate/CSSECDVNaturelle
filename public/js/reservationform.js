@@ -72,10 +72,43 @@ $(document).ready(function(){
             showError("You can only reserve a date that is within two weeks from now.", error_container);
         } else {
             e.preventDefault();
-            disableForms(false, service_forms);
-            showSuccess("The desired schedule is available", error_container);
 
-            setCartDateTime(format_date.toLocaleDateString(), $("#input-time option:selected").text())
+            let btn_check_availability = document.querySelector("#btn-check-availability");
+            btn_check_availability.disabled = true;
+
+            let btn_check_availability_icon = btn_check_availability.querySelector("i");
+            btn_check_availability_icon.className = "";
+            btn_check_availability_icon.classList.add("spinner-border", "me-2");
+
+            $.post("/reserve-check", {
+                date: date_value,
+                time: time_value
+            }, (data, status, xhr) => {
+                if (status === "success" && xhr.status === 200) {
+                    btn_check_availability.disabled = false;
+                    btn_check_availability_icon.className = "";
+                    btn_check_availability_icon.classList.add("fa", "fa-check");
+
+                    disableForms(false, service_forms);
+                    showSuccess("The desired schedule is available", error_container);
+
+                    setCartDateTime(format_date.toLocaleDateString(), $("#input-time option:selected").text())
+                } else {
+                    disableForms(true, service_forms);
+                    showError(data.error, error_container);
+                }
+            }).fail((xhr, status, error) => {
+                btn_check_availability.disabled = false;
+                btn_check_availability_icon.className = "";
+                btn_check_availability_icon.classList.add("fa", "fa-check");
+
+                if (xhr.status === 400) {
+                    disableForms(true, service_forms);
+                    showError(xhr.responseJSON.error, error_container);
+                }
+            });
         }
+
+
     });
 });

@@ -67,6 +67,80 @@ const controller = {
     });
   },
 
+  postCheckReservationAvailability: async function (req, res) {
+    if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
+      res.sendStatus(401); // HTTP 401: Unauthorized
+      return;
+    }
+
+    const date = req.body.date;
+    const time = req.body.time;
+
+    if (date === "") {
+      const error_msg = "Please enter a date.";
+      await logInputValidation(req.session.logged_in.user.id, req.path, "input-date", ValidationRule.Required, date, error_msg);
+      res.status(400).send({ error: error_msg });
+      return;
+    }
+    if (time === "") {
+      const error_msg = "Please enter a time.";
+      await logInputValidation(req.session.logged_in.user.id, req.path, "input-time", ValidationRule.Required, time, error_msg);
+      res.status(400).send({error: error_msg});
+      return;
+    }
+
+    const current_date = new Date();
+    const format_date = new Date(date);
+
+    if (format_date < current_date) {
+      const error_msg = "Please pick a valid schedule.";
+      await logInputValidation(req.session.logged_in.user.id, req.path, "input-date", ValidationRule.DateInPast, date, error_msg)
+      res.status(400).send({ error: error_msg });
+      return;
+    }
+
+    const time_diff = format_date.getTime() - current_date.getTime();
+    const day_diff = (time_diff / (1000 * 3600 * 24));
+
+    if (day_diff < 1 && format_date.getDate() === current_date.getDate()) {
+      const error_msg = "Same day reservations are not accomodated.";
+      await logInputValidation(req.session.logged_in.user.id, req.path, "input-date", ValidationRule.DateSameDay, date, error_msg)
+      res.status(400).send({ error: error_msg });
+      return;
+    }
+
+    const reservation_limit = new Date()
+    reservation_limit.setDate(current_date.getDate() + 14);
+
+    if (format_date > reservation_limit) {
+      const error_msg = "You can only reserve a date that is within two weeks from now.";
+      await logInputValidation(req.session.logged_in.user.id, req.path, "input-date", ValidationRule.DateLessThanTwoWeeks, date, error_msg)
+      res.status(400).send({ error: error_msg });
+      return;
+    }
+
+    const time_hr = time.split(":")[0];
+    const time_min = time.split(":")[1];
+
+    if (time_hr < 10 || (time_hr >= 17 && time_min > 30)) {
+      let error_msg;
+
+      if (time_hr < 10) {
+        error_msg = "Time selected is before opening hours.";
+        await logInputValidation(req.session.logged_in.user.id, req.path, "input-time", ValidationRule.InvalidValueMin, error_msg);
+      }
+      if (time_hr >= 17 && time_min > 30) {
+        error_msg = "Time selected is after closing hours.";
+        await logInputValidation(req.session.logged_in.user.id, req.path, "input-time", ValidationRule.InvalidValueMax, error_msg);
+      }
+
+      res.status(400).send({ error: error_msg });
+      return;
+    }
+
+    res.sendStatus(200); // HTTP 200: OK
+  },
+
   getReserveInfo: async function (req, res) {
     if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
       if (req.session.logged_in && req.session.logged_in.type !== "customer") {

@@ -22,6 +22,10 @@ const ValidationRule = {
   DateInFuture: "date_in_future",
   StartDateAfterEndDate: "start_date_after_end_date",
   ValueNotUnique: "value_not_unique",
+
+  // Reservation input validation
+  DateSameDay: "date_same_day",
+  DateLessThanTwoWeeks: "date_less_than_two_weeks",
 };
 
 async function logInputValidation(

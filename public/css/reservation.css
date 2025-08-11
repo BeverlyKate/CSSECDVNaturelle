@@ -49,7 +49,7 @@
     overflow: auto;
 }
 
-#btn-submit {
+#btn-check-availability {
     background-color: var(--salon-purple);
     border-radius: var(--radius);
     color: white;
@@ -58,11 +58,11 @@
     transition: background-color 180ms ease-in-out;
 }
 
-#btn-submit:hover {
+#btn-check-availability:hover {
     background-color: var(--clr-primary-200);
 }
 
-#btn-submit:active, #btn-submit:focus {
+#btn-check-availability:active, #btn-check-availability:focus {
     background-color: var(--clr-primary-600);
 }
 
