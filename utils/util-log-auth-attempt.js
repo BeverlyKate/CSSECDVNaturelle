@@ -26,9 +26,9 @@ async function logAuthAttempt(user, status, userType, endpoint, attemptType) {
             endpoint: endpoint,
             attemptType: attemptType
         });
-        console.log("util: " + log.userId);
+        //console.log("util: " + log.userId);
         await log.save();
-        console.log("Authentication attempt log saved successfully.");
+        //console.log("Authentication attempt log saved successfully.");
     } catch (error) {
         console.error("Error saving authentication attempt log:", error);
     }

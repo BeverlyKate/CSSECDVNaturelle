@@ -112,12 +112,12 @@ const controller = {
     }
 
     let userID = req.session.logged_in.user.id;
-    //console.log(userID)
+    ////console.log(userID)
     let reservation_info = await Reservation.find({ userID: userID })
       .populate("services")
       .lean()
       .exec();
-    //console.log(reservation_info)
+    ////console.log(reservation_info)
     let reservationsWithFormattedDate = reservation_info
       .map((coll) => {
         formattedDate = new Date(coll.timestamp).toUTCString();
@@ -216,7 +216,7 @@ const controller = {
   getFAQ: async function (req, res) {
     let faqs = await FAQ.find({}, "").lean();
 
-    //console.log(faqs)
+    ////console.log(faqs)
 
     res.render("faq", {
       layout: "index",
@@ -275,7 +275,7 @@ const controller = {
     }
 
     res.send(data);
-    //console.log(data)
+    ////console.log(data)
   },
 
   postCancelReservation: async function (req, res) {
@@ -344,37 +344,27 @@ const controller = {
     let new_password = req.body.new_password;
 
     if (fname === "") {
-      const error_msg = "Please enter your first name.";
-      await logInputValidation(email, req.path, "fname", ValidationRule.Required, fname, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter your first name." });
       return;
     }
 
     if (lname === "") {
-      const error_msg = "Please enter your last name.";
-      await logInputValidation(email, req.path, "lname", ValidationRule.Required, lname, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter your last name." });
       return;
     }
 
     if (email === "") {
-      const error_msg = "Please enter your email address.";
-      await logInputValidation(email, req.path, "email", ValidationRule.Required, email, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter your email address." });
       return;
     }
 
     if (contact === "") {
-      const error_msg = "Please enter your contact number.";
-      await logInputValidation(email, req.path, "contact", ValidationRule.Required, contact, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter your contact number." });
       return;
     }
 
     if (old_password === "") {
-      const error_msg = "Please enter your current password to continue.";
-      await logInputValidation(email, req.path, "old_password", ValidationRule.Required, old_password, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter your current password to continue." });
       return;
     }
 
@@ -382,9 +372,7 @@ const controller = {
     let isEmailValid = validEmailRegex.test(email);
 
     if (!isEmailValid) {
-      const error_msg = "Please enter a valid email address.";
-      await logInputValidation(email, req.path, "email", ValidationRule.InvalidFormatEmail, email, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter a valid email address." });
       return;
     }
 
@@ -392,9 +380,7 @@ const controller = {
     let isContactNumValid = validContactNumRegex.test(contact);
 
     if (!isContactNumValid) {
-      const error_msg = "Please enter a valid contact number.";
-      await logInputValidation(email, req.path, "contact", ValidationRule.InvalidFormatPhone, contact, error_msg);
-      res.status(400).send({ error: error_msg });
+      res.status(400).send({ error: "Please enter a valid contact number." });
       return;
     }
 
@@ -414,9 +400,7 @@ const controller = {
 
     if (new_password !== "") {
       if (new_password.length < 8) {
-        const error_msg = "Password must contain at least 8 characters!";
-        await logInputValidation(email, req.path, "new_password", ValidationRule.InvalidLengthMin, new_password, error_msg);
-        res.status(403).send({ error: error_msg });
+        res.status(403).send({ error: "Password must contain at least 8 characters!" });
         return;
       }
 
@@ -467,7 +451,7 @@ const controller = {
         firstName: fname,
         lastName: lname,
         contactNumber: contact,
-        email: email,
+        email: email
       },
     };
 

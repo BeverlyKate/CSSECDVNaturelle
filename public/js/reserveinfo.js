@@ -16,7 +16,7 @@ $(document).ready(function () {
       reservation_id: reservation_id,
     };
 
-    //console.log(reservation_id)
+    ////console.log(reservation_id)
     $.post("/reserveinfo/cancel", reservation_id_obj, function (response) {
       showSuccess(
         "Cancelled Reservation successfully!",

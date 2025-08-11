@@ -147,7 +147,7 @@ const controller = {
   },
 
   getEmployeeFirstTimeLogin: function (req, res) {
-    ////console.log(req.session.first_time);
+    //////console.log(req.session.first_time);
     if (req.session.first_time) {
       res.render("employee-first-time-login", {
         layout: "employee-no-sidebar",
@@ -206,7 +206,7 @@ const controller = {
     });
     let employee_name = result.firstName + " " + result.lastName;
 
-    ////console.log(result);
+    //////console.log(result);
     req.session.logged_in = {
       state: true,
       type: "employee",
@@ -234,10 +234,10 @@ const controller = {
       return;
     }
 
-    console.log(
+    //console.log(
       "=============================DASHBOARD=============================="
     );
-    console.log(req.session.logged_in);
+    //console.log(req.session.logged_in);
     res.render("employee-reservations", {
       layout: "employee",
       logged_in: req.session.logged_in,
@@ -272,17 +272,17 @@ const controller = {
     const filteredReservations = reservations.filter((reservation) => {
       let foundMatch = false;
       reservation.services.forEach((service) => {
-        ////console.log(service);
+        //////console.log(service);
         if (service.employeeID == undefined) {
           foundMatch = false;
         } else if (service.employeeID.equals(employee_id)) {
           foundMatch = true;
         }
       });
-      ////console.log(foundMatch);
+      //////console.log(foundMatch);
       return foundMatch;
     });
-    //console.log(filteredReservations);
+    ////console.log(filteredReservations);
     res.send(filteredReservations);
   },
 
@@ -364,7 +364,7 @@ const controller = {
       reason: req.body.reason,
       isRead: false,
     });
-    ////console.log(notification);
+    //////console.log(notification);
 
     res.sendStatus(200);
   },

@@ -44,9 +44,9 @@ async function logInputValidation(
       inputValue: inputValue,
       message: message,
     });
-    //console.log("util: " + log.userId);
+    ////console.log("util: " + log.userId);
     await log.save();
-    //console.log("Input validation log saved successfully.");
+    ////console.log("Input validation log saved successfully.");
   } catch (error) {
     console.error("Error saving input validation log:", error);
   }

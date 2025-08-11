@@ -113,7 +113,7 @@ const controller = {
       req.path,
       AttemptType.LoginAttempt
     );
-    // console.log(result);
+    // //console.log(result);
     await Notification.create({
       receiver: result._id,
       type: "Authorization Attempt",
@@ -138,7 +138,7 @@ const controller = {
       },
     };
 
-    console.log(result);
+    // //console.log(result);
 
     if (req.query.next) res.redirect(decodeURIComponent(req.query.next));
     else res.redirect("/");
@@ -410,7 +410,7 @@ const controller = {
       },
     };
 
-    //console.log(user);
+    ////console.log(user);
 
     res.redirect("/");
   },
@@ -436,20 +436,20 @@ const controller = {
       status: "Pending",
     };
 
-    // //console.log("Cart Object:", cart);
+    // ////console.log("Cart Object:", cart);
 
     try {
       const createdCart = await InCartService.create(cart);
       generatedId.push(createdCart._id);
 
-      //console.log("Cart added to MongoDB successfully! Cart ID:", generatedId);
+      ////console.log("Cart added to MongoDB successfully! Cart ID:", generatedId);
     } catch (error) {
       console.error("Error adding cart to MongoDB:", error);
     }
 
     res.redirect("/serviceform");
 
-    // //console.log(generatedId);
+    // ////console.log(generatedId);
   },
 
   postReserve: async function (req, res) {
@@ -466,7 +466,7 @@ const controller = {
         status: current,
       };
 
-      //console.log("Reservation Details:", reservation);
+      ////console.log("Reservation Details:", reservation);
 
       createdReservation = await Reservation.create(reservation);
 
@@ -475,9 +475,9 @@ const controller = {
         .lean()
         .exec();
 
-      // //console.log(populated);
+      // ////console.log(populated);
 
-      //console.log("Reservation added to MongoDB successfully!");
+      ////console.log("Reservation added to MongoDB successfully!");
       curr_date = new String(new Date());
       await Notification.create({
         receiver: userID,
@@ -489,7 +489,7 @@ const controller = {
         isRead: false,
       });
 
-      //console.log(createdReservation);
+      ////console.log(createdReservation);
 
       generatedId = [];
     } catch (error) {
@@ -505,7 +505,7 @@ const controller = {
     });
 
     // Log the carts to be deleted
-    //console.log("Carts to be deleted:", cartsToDelete);
+    ////console.log("Carts to be deleted:", cartsToDelete);
 
     // Delete all carts that match the IDs in the generatedId array
     // await InCartService.deleteOne({ _id: { $in: generatedId } });
@@ -519,7 +519,7 @@ const controller = {
     let cartsToDelete = await InCartService.find({ _id: { $in: generatedId } });
 
     // Log the carts to be deleted
-    //console.log("Carts to be deleted:", cartsToDelete);
+    ////console.log("Carts to be deleted:", cartsToDelete);
 
     // Delete all carts that match the IDs in the generatedId array
     await InCartService.deleteMany({ _id: { $in: generatedId } });

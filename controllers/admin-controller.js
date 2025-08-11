@@ -137,7 +137,7 @@ const controller = {
 
   getCurrentUser: async function (req, res) {
     user = await Admin.findOne({ username: req.session.logged_in.user });
-    console.log(user);
+    //console.log(user);
     res.send(username);
   },
 
@@ -276,10 +276,10 @@ const controller = {
         })
     );
 
-    console.log(
+    //console.log(
       "=============================ADMINLOGIN=============================="
     );
-    console.log(req.session.logged_in);
+    //console.log(req.session.logged_in);
 
     res.render("main-admin", {
       layout: "admin",
@@ -360,9 +360,9 @@ const controller = {
       .populate("services")
       .populate("userID", "firstName lastName")
       .exec();
-    console.log(reservations);
+    //console.log(reservations);
     /*reservations.forEach(reservation => {
-            console.log(reservation.services);
+            //console.log(reservation.services);
         })*/
     res.send(reservations);
   },
@@ -518,7 +518,7 @@ const controller = {
     let email = req.body.employee_email;
     let contact = req.body.employee_contact;
 
-    console.log(contact);
+    //console.log(contact);
 
     if (
       fname === undefined ||
@@ -542,7 +542,7 @@ const controller = {
       return res.status(400).json({ error: error_msg });
     } else if (!isContactNumValid(contact)) {
       const error_msg = "Contact number is not valid!";
-      console.log("controller: " + req.session.logged_in.user.id);
+      //console.log("controller: " + req.session.logged_in.user.id);
       await logInputValidation(
         req.session.logged_in.user.id,
         req.path,
