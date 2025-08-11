@@ -5,6 +5,7 @@ const InCartService = require("../models/InCartService");
 const Reservation = require("../models/Reservation");
 const Notification = require("../models/Notification");
 const dateHelper = require("../utils/dateHelper");
+const accountTimeout= require("../utils/accountTimeout");
 
 const {logAuthAttempt,Status,UserType,AttemptType,} = require("../utils/util-log-auth-attempt");
 const {logInputValidation,ValidationRule,} = require("../utils/util-log-input-validation");
@@ -92,51 +93,69 @@ const controller = {
         type: "Failed Authorization Attempt",
         timestamp: new Date(),
         title: "Failed login",
-        body:
-          "There was a failed login at " +
-          dateHelper.formatDate(new Date()) +
-          ".",
+        body:"There was a failed login at " +dateHelper.formatDate(new Date()) +".",
         isRead: false,
       });
+      
+      accountTimeout.handleFailedAttempt(result);
+      var message= accountTimeout.timeOutMessage(result);
+
+      console.log(message);
+      console.log("numAttempts: "+result.numAttempts +" timeoutEnd: "+result.timeoutEnd);
+
       res.render("login", {
         layout: "index",
         active: { login: true },
-        error: "Incorrect email address or password!",
+        error: message,
       });
       return;
     }
+    //if time < timeoutEnd
+    var currentDate= new Date();
 
-    await logAuthAttempt(
-      email,
-      Status.Success,
-      UserType.Customer,
-      req.path,
-      AttemptType.LoginAttempt
-    );
-    // //console.log(result);
-    await Notification.create({
-      receiver: result._id,
-      type: "Authorization Attempt",
-      timestamp: new Date(),
-      title: "Successful login",
-      body:
-        "There was a successful login at " +
-        dateHelper.formatDate(new Date()) +
-        ".",
-      isRead: false,
-    });
+    if(currentDate > result.timeoutEnd){
+      console.log(result);
+      console.log(currentDate > result.timeoutEnd);
+      await logAuthAttempt(
+        email,
+        Status.Success,
+        UserType.Customer,
+        req.path,
+        AttemptType.LoginAttempt
+      );
+      
+      // //console.log(result);
+      await Notification.create({
+        receiver: result._id,
+        type: "Authorization Attempt",
+        timestamp: new Date(),
+        title: "Successful login",
+        body: "There was a successful login at " + dateHelper.formatDate(new Date()) + ".",
+        isRead: false,
+      });
 
-    req.session.logged_in = {
-      state: true,
-      type: "customer",
-      user: {
-        id: result._id,
-        firstName: result.firstName,
-        lastName: result.lastName,
-        contactNumber: result.contactNumber,
-        email: result.email,
-      },
-    };
+      accountTimeout.resetAttempts(result);
+      
+      req.session.logged_in = {
+        state: true,
+        type: "customer",
+        user: {
+          id: result._id,
+          firstName: result.firstName,
+          lastName: result.lastName,
+          contactNumber: result.contactNumber,
+          email: result.email,
+        },
+      };
+    }else{
+      var message= accountTimeout.timeOutMessage(result);
+      res.render("login", {
+        layout: "index",
+        active: { login: true },
+        error: message,
+      });
+      return;
+    }
 
     // //console.log(result);
 
@@ -397,6 +416,8 @@ const controller = {
       body: "Thank you for taking your time to create an account with Salon Naturelle. You may now book reservations with us.",
       isRead: false,
     });
+
+
 
     req.session.logged_in = {
       state: true,

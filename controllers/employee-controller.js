@@ -44,7 +44,7 @@ const controller = {
 
             // add to access control logs
             const error_msg = "You are not logged in as employee.";
-            await logAccessControl(req.session.logged_in.user.userID, req.path, ValidationRule.NotEmployee, error_msg);
+            // await logAccessControl(req.session.logged_in.user.userID, req.path, ValidationRule.NotEmployee, error_msg);
         } else {
             next();
         }
