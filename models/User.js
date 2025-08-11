@@ -24,7 +24,15 @@ const UserSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
-    }
+    }, 
+    numAttempts: {
+    type: Number,
+    default: 0,
+    },
+    timeoutEnd: {
+    type: Date,
+    default: null,
+  },
 })
 
 // for MongoDB collection "users"
