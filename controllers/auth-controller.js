@@ -507,13 +507,14 @@ const controller = {
       }
 
       // Check security answers (using bcrypt comparison)
-      let isCorrect = false;
-      
+      let isCorrect1 = false;
+      let isCorrect2 = false;
+
       // If answer1 is provided and user has securityAnswer1, check it
       if (answer1 && user.securityAnswer1) {
         const answer1Match = await bcrypt.compare(answer1, user.securityAnswer1);
         if (answer1Match) {
-          isCorrect = true;
+          isCorrect1 = true;
         }
       }
       
@@ -521,25 +522,11 @@ const controller = {
       if (answer2 && user.securityAnswer2) {
         const answer2Match = await bcrypt.compare(answer2, user.securityAnswer2);
         if (answer2Match) {
-          isCorrect = true;
+          isCorrect2 = true;
         }
       }
 
-      // If user provided answers for questions they don't have, check if answers match existing ones
-      if (!isCorrect) {
-        if (answer1 && user.securityAnswer2) {
-          const crossMatch1 = await bcrypt.compare(answer1, user.securityAnswer2);
-          if (crossMatch1) {
-            isCorrect = true;
-          }
-        }
-        if (answer2 && user.securityAnswer1) {
-          const crossMatch2 = await bcrypt.compare(answer2, user.securityAnswer1);
-          if (crossMatch2) {
-            isCorrect = true;
-          }
-        }
-      }
+      let isCorrect = isCorrect1 && isCorrect2;
 
       if (!isCorrect) {
         return res.status(400).json({ success: false, message: 'Incorrect security answers.' });
