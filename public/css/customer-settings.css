@@ -67,3 +67,221 @@ input[type='password']{
     font-style: italic;
     font-size: .8em;
 }
+
+/* Security Questions Section Styles */
+#security-questions-section {
+    border-top: 2px solid var(--clr-primary-100);
+    padding-top: 1.5rem;
+    margin-top: 2rem;
+}
+
+.section-title {
+    color: var(--clr-primary-700);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.section-description {
+    color: var(--clr-primary-600);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+#security-questions-section select {
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    border-radius: var(--radius);
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+#security-questions-section select:focus {
+    border-color: var(--salon-purple);
+    box-shadow: 0 0 0 0.2rem rgba(var(--salon-purple-rgb), 0.25);
+}
+
+/* Security Status Styles */
+.security-status {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.security-status.configured {
+    color: #155724;
+}
+
+.security-status i {
+    color: #28a745;
+    font-size: 1.1rem;
+}
+
+.security-status .btn-link {
+    margin-left: auto;
+    color: var(--salon-purple);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius);
+    border: none;
+    background: none;
+}
+
+.security-status .btn-link:hover {
+    background-color: rgba(var(--salon-purple-rgb), 0.1);
+    text-decoration: underline;
+}
+
+/* Security Buttons Styles */
+.security-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.security-buttons .btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.security-buttons .btn-primary {
+    background-color: var(--salon-purple);
+    border-color: var(--salon-purple);
+    color: white;
+}
+
+.security-buttons .btn-primary:hover {
+    background-color: var(--salon-purple-dark);
+    border-color: var(--salon-purple-dark);
+}
+
+.security-buttons .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.security-buttons .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.security-buttons .btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+.security-buttons .btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(var(--salon-purple-rgb), 0.25);
+}
+
+/* Security Questions Form Styling */
+.security-questions-form {
+    margin-top: 1rem;
+}
+
+.security-questions-form .form-control:focus {
+    border-color: var(--salon-purple);
+    box-shadow: 0 0 0 0.2rem rgba(var(--salon-purple-rgb), 0.25);
+}
+
+.security-questions-form select.form-control {
+    background-color: white;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1rem;
+    padding-right: 2.5rem;
+}
+
+/* Password Change Section */
+#password-change-section {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+#password-change-section .section-title {
+    color: var(--salon-purple);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+#password-change-section .section-description {
+    color: #6c757d;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+#change-password-btn {
+    color: var(--salon-purple);
+    border-color: var(--salon-purple);
+    background-color: transparent;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+#change-password-btn:hover {
+    background-color: var(--salon-purple);
+    border-color: var(--salon-purple);
+    color: white;
+}
+
+#change-password-btn i {
+    margin-right: 0.5rem;
+}
+
+/* Password Requirements Styling */
+#password-requirements {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+#password-requirements p {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--salon-purple);
+}
+
+#password-requirements ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+#password-requirements li {
+    padding: 0.25rem 0;
+    color: red;
+    transition: color 0.3s ease;
+}
+
+#password-requirements li:before {
+    content: "✗ ";
+    font-weight: bold;
+}
+
+/* Modal Enhancements */
+.modal .form-control:focus {
+    border-color: var(--salon-purple);
+    box-shadow: 0 0 0 0.2rem rgba(var(--salon-purple-rgb), 0.25);
+}

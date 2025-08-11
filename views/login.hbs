@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="css/login.css">
+<link rel="stylesheet" href="css/modal.css">
 <script type="module" src="/js/auth.js"></script>
 
 <div id="form-wrapper">
@@ -11,9 +12,248 @@
             <input class="form-control form-control-lg" id="input-password" name="password" type="password" placeholder="Password"{{#if (isDefined logged_in)}}{{#unless (isEqual logged_in.type "customer")}} disabled{{/unless}}{{/if}}>
         </div>
         <div class="error-msg" id="login-error-msg" data-error-status="{{#if (isDefined error)}}error{{else}}normal{{/if}}">{{error}}</div>
+        {{#if success}}
+        <div class="error-msg" id="login-success-msg" data-error-status="success">{{success}}</div>
+        {{/if}}
+        {{#if showForgotPassword}}
+        <div class="forgot-pass">
+            <a href="#" id="forgot-password-link">Forgot your password?</a>
+        </div>
+        {{/if}}
         <div id="last-row">
             <a href="/register" id="form-switch-link">Create an Account</a>
             <button class="btn" id="btn-submit" type="submit"{{#if (isDefined logged_in)}}{{#unless (isEqual logged_in.type "customer")}} disabled{{/unless}}{{/if}}>Log In</button>
         </div>
     </form>
 </div>
+
+<!-- Email Input Modal -->
+<div id="email-input-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4>Forgot Password</h4>
+            <span class="close" id="close-email-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>Enter your email address to recover your password:</p>
+            <input type="email" id="recovery-email" placeholder="Email address" class="form-control">
+            <div id="email-error" class="error-msg" data-error-status="normal"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="submit-email" class="btn btn-primary">Submit</button>
+            <button type="button" id="cancel-email" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Security Questions Modal -->
+<div id="security-question-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4>Security Questions</h4>
+            <span class="close" id="close-security-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="question1-container" style="display: none;">
+                <p id="security-question1-text"></p>
+                <input type="text" id="security-answer1" placeholder="Your answer" class="form-control">
+            </div>
+            <div id="question2-container" style="display: none;">
+                <p id="security-question2-text"></p>
+                <input type="text" id="security-answer2" placeholder="Your answer" class="form-control">
+            </div>
+            <div id="security-error" class="error-msg" data-error-status="normal"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="submit-security-answers" class="btn btn-primary">Submit</button>
+            <button type="button" id="cancel-security" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const emailModal = document.getElementById('email-input-modal');
+    const securityModal = document.getElementById('security-question-modal');
+    
+    // Email modal elements
+    const closeEmailModal = document.getElementById('close-email-modal');
+    const cancelEmail = document.getElementById('cancel-email');
+    const submitEmail = document.getElementById('submit-email');
+    const emailError = document.getElementById('email-error');
+    const recoveryEmail = document.getElementById('recovery-email');
+    
+    // Security modal elements
+    const closeSecurityModal = document.getElementById('close-security-modal');
+    const cancelSecurity = document.getElementById('cancel-security');
+    const submitSecurityAnswers = document.getElementById('submit-security-answers');
+    const securityError = document.getElementById('security-error');
+    
+    let currentUserEmail = '';
+
+    // Show email input modal when "Forgot Password" is clicked
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            emailModal.style.display = 'block';
+        });
+    }
+
+    // Email modal close handlers
+    function closeEmailModalHandler() {
+        emailModal.style.display = 'none';
+        recoveryEmail.value = '';
+        emailError.setAttribute('data-error-status', 'normal');
+        emailError.textContent = '';
+        // Reset the entire flow when email modal is closed
+        currentUserEmail = '';
+        closeSecurityModalHandler();
+    }
+
+    if (closeEmailModal) closeEmailModal.addEventListener('click', closeEmailModalHandler);
+    if (cancelEmail) cancelEmail.addEventListener('click', closeEmailModalHandler);
+
+    // Security modal close handlers
+    function closeSecurityModalHandler() {
+        securityModal.style.display = 'none';
+        document.getElementById('security-answer1').value = '';
+        document.getElementById('security-answer2').value = '';
+        securityError.setAttribute('data-error-status', 'normal');
+        securityError.textContent = '';
+        // Don't reset currentUserEmail here - keep it for potential retry
+    }
+
+    if (closeSecurityModal) closeSecurityModal.addEventListener('click', closeSecurityModalHandler);
+    if (cancelSecurity) cancelSecurity.addEventListener('click', closeSecurityModalHandler);
+
+    // Submit email and fetch security questions
+    if (submitEmail) {
+        submitEmail.addEventListener('click', async function() {
+            const email = recoveryEmail.value.trim();
+            
+            if (!email) {
+                emailError.setAttribute('data-error-status', 'error');
+                emailError.textContent = 'Please enter your email address.';
+                return;
+            }
+
+            if (!email.includes('@')) {
+                emailError.setAttribute('data-error-status', 'error');
+                emailError.textContent = 'Please enter a valid email address.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/security-questions?email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUserEmail = email;
+                    console.log('Email set to:', currentUserEmail); // Debug log
+                    
+                    // Hide email modal and show security questions modal
+                    emailModal.style.display = 'none';
+                    
+                    // Set up security questions
+                    const question1Container = document.getElementById('question1-container');
+                    const question2Container = document.getElementById('question2-container');
+                    
+                    if (data.question1) {
+                        document.getElementById('security-question1-text').textContent = data.question1;
+                        question1Container.style.display = 'block';
+                    }
+                    
+                    if (data.question2) {
+                        document.getElementById('security-question2-text').textContent = data.question2;
+                        question2Container.style.display = 'block';
+                    }
+                    
+                    securityModal.style.display = 'block';
+                } else {
+                    emailError.setAttribute('data-error-status', 'error');
+                    emailError.textContent = data.message || 'No account found with this email address.';
+                }
+            } catch (error) {
+                emailError.setAttribute('data-error-status', 'error');
+                emailError.textContent = 'An error occurred while checking the email address.';
+            }
+        });
+    }
+
+    // Submit security answers
+    if (submitSecurityAnswers) {
+        submitSecurityAnswers.addEventListener('click', async function() {
+            const answer1 = document.getElementById('security-answer1').value.trim();
+            const answer2 = document.getElementById('security-answer2').value.trim();
+            
+            // Debug: Check if email is available
+            console.log('Current user email:', currentUserEmail);
+            
+            if (!currentUserEmail) {
+                securityError.setAttribute('data-error-status', 'error');
+                securityError.textContent = 'Session expired. Please start over.';
+                return;
+            }
+            
+            // Check if at least one answer is provided
+            if (!answer1 && !answer2) {
+                securityError.setAttribute('data-error-status', 'error');
+                securityError.textContent = 'Please answer at least one security question.';
+                return;
+            }
+            
+            try {
+                console.log('Sending request with:', { 
+                    email: currentUserEmail, 
+                    answer1: answer1,
+                    answer2: answer2
+                });
+                
+                const response = await fetch('/security-answers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        email: currentUserEmail, 
+                        answer1: answer1,
+                        answer2: answer2
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.success) {
+                    securityError.setAttribute('data-error-status', 'success');
+                    securityError.textContent = 'Security answers verified! You can now reset your password.';
+                    
+                    // Redirect after a short delay to show the success message
+                    setTimeout(() => {
+                        window.location.href = `/reset-password?token=${data.resetToken}`;
+                    }, 2000);
+                } else {
+                    securityError.setAttribute('data-error-status', 'error');
+                    securityError.textContent = data.message || 'Incorrect security answers.';
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                securityError.setAttribute('data-error-status', 'error');
+                securityError.textContent = 'An error occurred. Please try again.';
+            }
+        });
+    }
+
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === emailModal) {
+            closeEmailModalHandler();
+        }
+        if (event.target === securityModal) {
+            closeSecurityModalHandler();
+        }
+    });
+});
+</script>

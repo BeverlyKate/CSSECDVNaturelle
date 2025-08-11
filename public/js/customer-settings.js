@@ -10,14 +10,6 @@ document.querySelector("#form-customer-settings").addEventListener("submit", fun
     let input_lname = document.getElementById("input-settings-customer-lname");
     let input_email = document.getElementById("input-settings-customer-email");
     let input_contact = document.getElementById("input-settings-customer-contact");
-    let input_old_password = document.getElementById("input-settings-customer-old-password");
-    let input_new_password = document.getElementById("input-settings-customer-new-password");
-
-    if (input_old_password.value === "") {
-        showError("Please enter your current password to continue.", error_container);
-        input_old_password.focus();
-        return;
-    }
 
     if (input_fname.value === "") {
         showError("Please enter your first name.", error_container);
@@ -67,9 +59,7 @@ document.querySelector("#form-customer-settings").addEventListener("submit", fun
         fname: input_fname.value,
         lname: input_lname.value,
         email: input_email.value,
-        contact: input_contact.value,
-        old_password: input_old_password.value,
-        new_password: input_new_password.value
+        contact: input_contact.value
     }, (data, status, xhr) => {
         if (status === "success" && xhr.status === 200) {
             resetError(error_container);
@@ -107,4 +97,246 @@ document.querySelector("#form-customer-settings").addEventListener("submit", fun
             });
         }
     })
+});
+
+// Password Change Modal Functionality
+const changePasswordBtn = document.getElementById('change-password-btn');
+// console.log('Change password button found:', changePasswordBtn);
+
+changePasswordBtn?.addEventListener('click', function() {
+    // console.log('Change password button clicked');
+    
+    // Check if user has security questions set up
+    // console.log('Making request to /check-security-questions');
+    fetch('/check-security-questions')
+    .then(response => {
+        // console.log('Response received:', response.status, response.statusText);
+        // console.log('Response headers:', response.headers);
+        return response.json();
+    })
+    .then(data => {
+        // console.log('Response data:', data);
+        // console.log('Has security questions:', data.hasSecurityQuestions);
+        
+        if (data.hasSecurityQuestions) {
+            // Load security questions and show modal
+            loadSecurityQuestions();
+        } else {
+            // console.log('User does not have security questions');
+            // Show error that security questions are required
+            showError('You need to set up security questions before you can change your password. Please contact support for assistance.', error_container);
+        }
+    })
+    .catch(error => {
+        // console.error('Error checking security questions:', error);
+        // console.error('Error stack:', error.stack);
+        showError('An error occurred. Please try again.', error_container);
+    });
+});
+
+function loadSecurityQuestions() {
+    // Get the logged-in user's email from the form
+    const userEmail = document.getElementById('input-settings-customer-email').value;
+    // console.log('User email from form:', userEmail);
+    
+    const requestUrl = `/security-questions?email=${encodeURIComponent(userEmail)}`;
+    // console.log('Making request to:', requestUrl);
+    
+    fetch(requestUrl)
+    .then(response => {
+        // console.log('Security questions response:', response.status, response.statusText);
+        return response.json();
+    })
+    .then(data => {
+        // console.log('Security questions data:', data);
+        
+        if (data.success) {
+            const questions = [data.question1, data.question2].filter(q => q); // Filter out null questions
+            // console.log('📝 Filtered questions:', questions);
+            displaySecurityQuestions(questions);
+            document.getElementById('security-question-modal').style.display = 'block';
+            // console.log('Security question modal displayed');
+        } else {
+            // console.log('Failed to load security questions:', data.message);
+            showError('Unable to load security questions. Please try again.', error_container);
+        }
+    })
+    .catch(error => {
+        // console.error('Error loading security questions:', error);
+        // console.error('Error stack:', error.stack);
+        showError('An error occurred while loading security questions.', error_container);
+    });
+}
+
+function displaySecurityQuestions(questions) {
+    const container = document.getElementById('security-questions-container');
+    container.innerHTML = '';
+    
+    questions.forEach((question, index) => {
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'mb-3';
+        questionDiv.innerHTML = `
+            <label class="form-label">${question}</label>
+            <input type="text" class="form-control security-answer" id="answer-${index}" placeholder="Enter your answer">
+        `;
+        container.appendChild(questionDiv);
+    });
+}
+
+// Security Questions Modal Event Listeners
+document.getElementById('submit-security-answers')?.addEventListener('click', function() {
+    const securityAnswerInputs = document.querySelectorAll('.security-answer');
+    const answer1 = securityAnswerInputs[0]?.value.trim() || '';
+    const answer2 = securityAnswerInputs[1]?.value.trim() || '';
+    
+    if (answer1 === '' || answer2 === '') {
+        const errorElement = document.getElementById('security-error');
+        errorElement.textContent = 'Please answer all security questions.';
+        errorElement.setAttribute('data-error-status', 'error');
+        return;
+    }
+    
+    // Verify security answers
+    fetch('security-answers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            email: document.getElementById('input-settings-customer-email').value,
+            answer1: answer1,
+            answer2: answer2 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('security-question-modal').style.display = 'none';
+            document.getElementById('new-password-modal').style.display = 'block';
+            setupPasswordValidation();
+        } else {
+            const errorElement = document.getElementById('security-error');
+            errorElement.textContent = 'Security answers are incorrect. Please try again.';
+            errorElement.setAttribute('data-error-status', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error verifying security answers:', error);
+        const errorElement = document.getElementById('security-error');
+        errorElement.textContent = 'An error occurred. Please try again.';
+        errorElement.setAttribute('data-error-status', 'error');
+    });
+});
+
+function setupPasswordValidation() {
+    const newPasswordInput = document.getElementById('new-password-input');
+    const confirmPasswordInput = document.getElementById('confirm-password-input');
+    
+    function validatePassword() {
+        const password = newPasswordInput.value;
+        const requirements = {
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /\d/.test(password)
+        };
+        
+        Object.keys(requirements).forEach(req => {
+            const element = document.getElementById(`${req}-req`);
+            if (requirements[req]) {
+                element.style.color = 'green';
+            } else {
+                element.style.color = 'red';
+            }
+        });
+        
+        return Object.values(requirements).every(req => req);
+    }
+    
+    newPasswordInput.addEventListener('input', validatePassword);
+    confirmPasswordInput.addEventListener('input', function() {
+        const errorElement = document.getElementById('password-error');
+        if (this.value !== newPasswordInput.value) {
+            errorElement.textContent = 'Passwords do not match.';
+            errorElement.setAttribute('data-error-status', 'error');
+        } else {
+            errorElement.textContent = '';
+            errorElement.setAttribute('data-error-status', 'normal');
+        }
+    });
+}
+
+// Submit new password
+document.getElementById('submit-new-password')?.addEventListener('click', function() {
+    const newPassword = document.getElementById('new-password-input').value;
+    const confirmPassword = document.getElementById('confirm-password-input').value;
+    const errorElement = document.getElementById('password-error');
+    
+    if (newPassword !== confirmPassword) {
+        errorElement.textContent = 'Passwords do not match.';
+        errorElement.setAttribute('data-error-status', 'error');
+        return;
+    }
+    
+    if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || 
+        !/\d/.test(newPassword)) {
+        errorElement.textContent = 'Password does not meet requirements.';
+        errorElement.setAttribute('data-error-status', 'error');
+        return;
+    }
+    
+    // Submit password change
+    this.disabled = true;
+    this.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Changing...';
+    
+    fetch('/change-password-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword: newPassword })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('new-password-modal').style.display = 'none';
+            snackbar({
+                type: "success",
+                text: "Password changed successfully!",
+                duration: "short"
+            });
+        } else {
+            errorElement.textContent = data.message || 'Failed to change password.';
+            errorElement.setAttribute('data-error-status', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error changing password:', error);
+        errorElement.textContent = 'An error occurred while changing password.';
+        errorElement.setAttribute('data-error-status', 'error');
+    })
+    .finally(() => {
+        this.disabled = false;
+        this.innerHTML = 'Change Password';
+    });
+});
+
+// Modal close functionality
+document.querySelectorAll('.close, #cancel-security, #cancel-password').forEach(element => {
+    element.addEventListener('click', function() {
+        document.getElementById('security-question-modal').style.display = 'none';
+        document.getElementById('new-password-modal').style.display = 'none';
+        
+        // Reset forms
+        const securityError = document.getElementById('security-error');
+        const passwordError = document.getElementById('password-error');
+        if (securityError) {
+            securityError.textContent = '';
+            securityError.setAttribute('data-error-status', 'normal');
+        }
+        if (passwordError) {
+            passwordError.textContent = '';
+            passwordError.setAttribute('data-error-status', 'normal');
+        }
+        
+        document.querySelectorAll('.security-answer').forEach(input => input.value = '');
+        document.getElementById('new-password-input').value = '';
+        document.getElementById('confirm-password-input').value = '';
+    });
 });

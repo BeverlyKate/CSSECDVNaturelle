@@ -36,6 +36,9 @@ const hbs = exp_hbs.create({
     isNonEmpty(array) {
       return Array.isArray(array) && array.length !== 0;
     },
+    and(val1, val2) {
+      return val1 && val2;
+    },
     ifEquals(arg1, arg2, options) {
       return arg1 === arg2 ? options.fn(this) : options.inverse(this);
     }
@@ -47,6 +50,7 @@ app.set("view engine", "hbs");
 app.engine("hbs", hbs.engine);
 
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Add JSON parsing middleware
 
 //Serves static files (we need it to import a css file)
 app.use(express.static(__dirname + "/public/"));
