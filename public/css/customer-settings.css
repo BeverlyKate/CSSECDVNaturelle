@@ -248,6 +248,46 @@ input[type='password']{
     margin-right: 0.5rem;
 }
 
+/* Security Questions Change Section */
+#security-questions-section {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+#security-questions-section .section-title {
+    color: var(--salon-purple);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+#security-questions-section .section-description {
+    color: #6c757d;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+#change-security-questions-btn {
+    color: #6c757d;
+    border-color: #6c757d;
+    background-color: transparent;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+#change-security-questions-btn:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+#change-security-questions-btn i {
+    margin-right: 0.5rem;
+}
+
 /* Password Requirements Styling */
 #password-requirements {
     background-color: #f8f9fa;

@@ -317,15 +317,152 @@ document.getElementById('submit-new-password')?.addEventListener('click', functi
     });
 });
 
-// Modal close functionality
+// Change Security Questions Button Functionality
+const changeSecurityQuestionsBtn = document.getElementById('change-security-questions-btn');
+
+changeSecurityQuestionsBtn?.addEventListener('click', function() {
+    // Load current security questions if they exist when modal is triggered
+    loadCurrentSecurityQuestionsOnly();
+});
+
+function loadCurrentSecurityQuestionsOnly() {
+    const userEmail = document.getElementById('input-settings-customer-email').value;
+    
+    fetch(`/security-questions?email=${encodeURIComponent(userEmail)}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let hasExistingQuestions = false;
+            
+            // Pre-populate the dropdowns with current questions if they exist
+            if (data.question1) {
+                document.getElementById('security-question-1').value = data.question1;
+                hasExistingQuestions = true;
+            }
+            if (data.question2) {
+                document.getElementById('security-question-2').value = data.question2;
+                hasExistingQuestions = true;
+            }
+            
+            // Show info message if we loaded existing questions
+            const infoElement = document.getElementById('security-questions-info');
+            if (hasExistingQuestions && infoElement) {
+                infoElement.style.display = 'block';
+            }
+            
+            // Note: We don't prefill answers for security reasons
+            // Users need to re-enter their answers when changing questions
+        }
+    })
+    .catch(error => {
+        console.error('Error loading current security questions:', error);
+    });
+}
+
+// Submit Security Questions Change - Updated for Bootstrap modal
+document.querySelector('#change-security-questions-modal .btn-modal-success')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    const question1 = document.getElementById('security-question-1').value;
+    const answer1 = document.getElementById('security-answer-1').value.trim();
+    const question2 = document.getElementById('security-question-2').value;
+    const answer2 = document.getElementById('security-answer-2').value.trim();
+    const errorElement = document.getElementById('change-security-error');
+    
+    // Clear previous errors
+    errorElement.textContent = '';
+    errorElement.setAttribute('data-error-status', 'normal');
+    
+    // Validation
+    if (!question1 || !answer1 || !question2 || !answer2) {
+        errorElement.textContent = 'Please select both questions and provide answers.';
+        errorElement.setAttribute('data-error-status', 'error');
+        return;
+    }
+    
+    if (question1 === question2) {
+        errorElement.textContent = 'Please select two different security questions.';
+        errorElement.setAttribute('data-error-status', 'error');
+        return;
+    }
+    
+    // Disable button and show loading state
+    this.disabled = true;
+    this.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
+    
+    // Submit the security questions
+    fetch('/update-security-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: document.getElementById('input-settings-customer-email').value,
+            question1: question1,
+            answer1: answer1,
+            question2: question2,
+            answer2: answer2
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal using Bootstrap's modal hide method
+            const modal = bootstrap.Modal.getInstance(document.getElementById('change-security-questions-modal'));
+            modal.hide();
+            
+            snackbar({
+                type: "success",
+                text: "Security questions updated successfully!",
+                duration: "short"
+            });
+        } else {
+            errorElement.textContent = data.message || 'Failed to update security questions.';
+            errorElement.setAttribute('data-error-status', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating security questions:', error);
+        errorElement.textContent = 'An error occurred while updating security questions.';
+        errorElement.setAttribute('data-error-status', 'error');
+    })
+    .finally(() => {
+        this.disabled = false;
+        this.innerHTML = '<i class="fa fa-check"></i>Save Security Questions';
+    });
+});
+
+// Reset form when modal is hidden
+document.getElementById('change-security-questions-modal')?.addEventListener('hidden.bs.modal', function() {
+    // Reset form fields
+    document.getElementById('security-question-1').value = '';
+    document.getElementById('security-answer-1').value = '';
+    document.getElementById('security-question-2').value = '';
+    document.getElementById('security-answer-2').value = '';
+    
+    // Hide info message
+    const infoElement = document.getElementById('security-questions-info');
+    if (infoElement) {
+        infoElement.style.display = 'none';
+    }
+    
+    // Reset error message
+    const changeSecurityError = document.getElementById('change-security-error');
+    if (changeSecurityError) {
+        changeSecurityError.textContent = '';
+        changeSecurityError.setAttribute('data-error-status', 'normal');
+    }
+});
+
+// Modal close functionality - Updated for mixed modal types
 document.querySelectorAll('.close, #cancel-security, #cancel-password').forEach(element => {
     element.addEventListener('click', function() {
+        // Handle custom modals (non-Bootstrap)
         document.getElementById('security-question-modal').style.display = 'none';
         document.getElementById('new-password-modal').style.display = 'none';
         
         // Reset forms
         const securityError = document.getElementById('security-error');
         const passwordError = document.getElementById('password-error');
+        
         if (securityError) {
             securityError.textContent = '';
             securityError.setAttribute('data-error-status', 'normal');

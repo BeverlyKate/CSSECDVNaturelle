@@ -44,6 +44,15 @@
                         <i class="fa fa-key"></i> Change Password
                     </button>
                 </div>
+
+                <!-- Security Questions Section -->
+                <div class="mb-4" id="security-questions-section">
+                    <h5 class="section-title">Security Questions</h5>
+                    <p class="section-description">Update your security questions to ensure account security.</p>
+                    <button type="button" class="btn btn-outline-secondary" id="change-security-questions-btn" data-bs-toggle="modal" data-bs-target="#change-security-questions-modal">
+                        <i class="fa fa-shield-alt"></i> Change Security Questions
+                    </button>
+                </div>
                 
                 <div class="row mb-3" style="display: none;">
                     <div class="col">
@@ -117,6 +126,70 @@
         <div class="modal-footer">
             <button type="button" id="submit-new-password" class="btn btn-primary">Change Password</button>
             <button type="button" id="cancel-password" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Change Security Questions Modal -->
+<div class="modal modal-md fade" id="change-security-questions-modal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Security Questions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-security-questions-change">
+                    <p>Please set up or update your security questions:</p>
+                    <div class="alert alert-info" id="security-questions-info" style="display: none;">
+                        <small><i class="fa fa-info-circle"></i> Your current security questions have been loaded. You can modify them or keep them the same by re-entering your answers.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="security-question-1" class="form-label">Security Question 1</label>
+                        <select id="security-question-1" class="form-control">
+                            <option value="">Select a question</option>
+                            <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                            <option value="What is your favorite childhood game?">What is your favorite childhood game?</option>
+                            <option value="What city were you born in?">What city were you born in?</option>
+                            <option value="What was the name of your elementary school?">What was the name of your elementary school?</option>
+                            <option value="What is your favorite food?">What is your favorite food?</option>
+                            <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                            <option value="What is your motto in life?">What is your motto in life?</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="security-answer-1" class="form-label">Answer 1</label>
+                        <input type="text" id="security-answer-1" class="form-control" placeholder="Enter your answer">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="security-question-2" class="form-label">Security Question 2</label>
+                        <select id="security-question-2z" class="form-control">
+                            <option value="">Select a question</option>
+                            <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                            <option value="What is your favorite childhood game?">What is your favorite childhood game?</option>
+                            <option value="What city were you born in?">What city were you born in?</option>
+                            <option value="What was the name of your elementary school?">What was the name of your elementary school?</option>
+                            <option value="What is your favorite food?">What is your favorite food?</option>
+                            <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                            <option value="What is your motto in life?">What is your motto in life?</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="security-answer-2" class="form-label">Answer 2</label>
+                        <input type="text" id="security-answer-2" class="form-control" placeholder="Enter your answer">
+                    </div>
+
+                    <div id="change-security-error" class="error-msg" data-error-status="normal"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-discard" data-bs-dismiss="modal"><i class="fa fa-trash"></i>Discard</button>
+                <button type="submit" class="btn btn-modal-success" form="form-security-questions-change"><i class="fa fa-check"></i>Save Security Questions</button>
+            </div>
         </div>
     </div>
 </div>
