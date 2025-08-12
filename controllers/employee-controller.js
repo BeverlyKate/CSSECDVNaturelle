@@ -17,7 +17,14 @@ const {logAccessControl} = require("../utils/util-log-access-control");
 const controller = {
     getEmployeeLogin: async function (req, res, next) {
         if (!req.session.logged_in) {
-            res.render("login-employee", {layout: "no-sidebar"});
+            let renderData = { layout: "no-sidebar" };
+            
+            // Check if employee was redirected after password reset
+            if (req.query.reset === 'success') {
+                renderData.success = 'Password has been reset successfully! You can now log in with your new password.';
+            }
+            
+            res.render("login-employee", renderData);
         } else if (req.session.logged_in.type !== "employee") {
             let pre_text = "You need to logout as a";
             if (
@@ -71,6 +78,8 @@ const controller = {
                 layout: "employee-no-sidebar",
                 active: {login: true},
                 error: "Incorrect email or password.",
+                showForgotPassword: true,
+                attemptedEmail: email,
             });
             return;
         }
@@ -90,6 +99,8 @@ const controller = {
                         layout: "employee-no-sidebar",
                         active: {login: true},
                         error: message,
+                        showForgotPassword: true,
+                        attemptedEmail: email,
                     });
                     await Employee.findByIdAndUpdate(result._id, {lastFailedLogin: new Date(),});
                     return;
@@ -109,6 +120,8 @@ const controller = {
                         layout: "employee-no-sidebar",
                         active: {login: true},
                         error: message,
+                        showForgotPassword: true,
+                        attemptedEmail: email,
                     });
                     await Employee.findByIdAndUpdate(result._id, {lastFailedLogin: new Date(),});
                     return;
@@ -134,6 +147,8 @@ const controller = {
                 layout: "employee-no-sidebar",
                 active: {login: true},
                 error: message,
+                showForgotPassword: true,
+                attemptedEmail: email,
             });
             return;
         }
@@ -270,6 +285,7 @@ const controller = {
             layout: "employee",
             logged_in: req.session.logged_in,
             active: {employee_home: true},
+            page_context: "reservations",
             helpers: {
                 formatDate: dateHelper.formatDate,
             },
@@ -397,7 +413,279 @@ const controller = {
         res.sendStatus(200);
     },
 
+    getEmployeeSettings: async function (req, res) {
+        if (!req.session.logged_in || req.session.logged_in.type !== "employee") {
+            res.redirect("/employee");
+            return;
+        }
+
+        // Fetch employee's current security questions
+        const employee = await Employee.findById(req.session.logged_in.user.id, 'securityQuestion1 securityQuestion2');
+
+        res.render("employee-settings", {
+            layout: "employee",
+            logged_in: req.session.logged_in,
+            employee: employee,
+            page_context: "settings",
+            helpers: {
+                formatDate: dateHelper.formatDate,
+            },
+        });
+    },
+
     postEmployeeSettings: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== "employee") {
+                res.sendStatus(401); // HTTP 401: Unauthorized
+                return;
+            }
+
+            let employee_id = req.session.logged_in.user.id;
+            let fname = req.body.fname;
+            let lname = req.body.lname;
+            let email = req.body.email;
+            let contact = req.body.contact;
+
+            if (fname === "") {
+                res.status(400).send({ error: "Please enter your first name." });
+                return;
+            }
+
+            if (lname === "") {
+                res.status(400).send({ error: "Please enter your last name." });
+                return;
+            }
+
+            if (email === "") {
+                res.status(400).send({ error: "Please enter your email address." });
+                return;
+            }
+
+            if (contact === "") {
+                res.status(400).send({ error: "Please enter your contact number." });
+                return;
+            }
+
+            const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+            let isEmailValid = validEmailRegex.test(email);
+
+            if (!isEmailValid) {
+                res.status(400).send({ error: "Please enter a valid email address." });
+                return;
+            }
+
+            const validContactNumRegex = /^(09)\d{9}/;
+            let isContactNumValid = validContactNumRegex.test(contact);
+
+            if (!isContactNumValid) {
+                res.status(400).send({ error: "Please enter a valid contact number." });
+                return;
+            }
+
+            // Check if email is already taken by another employee
+            const existingEmployee = await Employee.findOne({ 
+                email: email, 
+                _id: { $ne: employee_id } 
+            });
+            
+            if (existingEmployee) {
+                res.status(400).send({ error: "This email address is already in use by another employee account." });
+                return;
+            }
+
+            // Update employee profile
+            await Employee.updateOne(
+                { _id: employee_id },
+                {
+                    firstName: fname,
+                    lastName: lname,
+                    email: email,
+                    contactNumber: contact,
+                }
+            );
+
+            // Update session data
+            let employee_name = fname + " " + lname;
+            req.session.logged_in.user = {
+                id: employee_id,
+                name: employee_name,
+                firstName: fname,
+                lastName: lname,
+                email: email,
+                contactNumber: contact,
+                employee_changedPassword: req.session.logged_in.user.employee_changedPassword,
+                lastLogin: req.session.logged_in.user.lastLogin,
+                lastFailedLogin: req.session.logged_in.user.lastFailedLogin,
+            };
+
+            res.sendStatus(200);
+        } catch (error) {
+            console.error('Error updating employee profile settings:', error);
+            res.status(500).send({ error: "An error occurred while updating your profile settings." });
+        }
+    },
+
+    updateEmployeeSecurityQuestions: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== 'employee') {
+                return res.status(401).json({ success: false, message: 'Unauthorized access.' });
+            }
+
+            const { question1, answer1, question2, answer2 } = req.body;
+            const employeeId = req.session.logged_in.user.id;
+
+            // Validate that at least one question and answer is provided
+            if ((!question1 || !answer1) && (!question2 || !answer2)) {
+                return res.status(400).json({ success: false, message: 'At least one security question and answer must be provided.' });
+            }
+
+            // Hash the answers
+            const saltRounds = 10;
+            let hashedAnswer1 = null;
+            let hashedAnswer2 = null;
+
+            if (answer1) {
+                hashedAnswer1 = await bcrypt.hash(answer1, saltRounds);
+            }
+
+            if (answer2) {
+                hashedAnswer2 = await bcrypt.hash(answer2, saltRounds);
+            }
+
+            // Update employee security questions
+            await Employee.updateOne(
+                { _id: employeeId },
+                {
+                    securityQuestion1: question1 || null,
+                    securityAnswer1: hashedAnswer1,
+                    securityQuestion2: question2 || null,
+                    securityAnswer2: hashedAnswer2
+                }
+            );
+
+            res.json({ success: true, message: 'Security questions updated successfully.' });
+        } catch (error) {
+            console.error('Error updating employee security questions:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while updating security questions.' });
+        }
+    },
+
+    checkEmployeeSecurityQuestions: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== 'employee') {
+                return res.status(401).json({ success: false, message: 'Unauthorized access.' });
+            }
+
+            const employeeId = req.session.logged_in.user.id;
+            const employee = await Employee.findById(employeeId, 'securityQuestion1 securityQuestion2');
+
+            if (!employee) {
+                return res.status(404).json({ success: false, message: 'Employee not found.' });
+            }
+
+            // Check if employee has security questions set up
+            if (!employee.securityQuestion1 && !employee.securityQuestion2) {
+                return res.json({ 
+                    success: false, 
+                    message: 'No security questions are set up. Please set up security questions first.',
+                    hasQuestions: false
+                });
+            }
+
+            res.json({ 
+                success: true, 
+                question1: employee.securityQuestion1 || null,
+                question2: employee.securityQuestion2 || null,
+                hasQuestions: true
+            });
+        } catch (error) {
+            console.error('Error checking employee security questions:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while checking security questions.' });
+        }
+    },
+
+    changeEmployeePasswordSettings: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== 'employee') {
+                return res.status(401).json({ success: false, message: 'Unauthorized access.' });
+            }
+
+            const { answer1, answer2, newPassword } = req.body;
+            const employeeId = req.session.logged_in.user.id;
+
+            if (!newPassword) {
+                return res.status(400).json({ success: false, message: 'New password is required.' });
+            }
+
+            // Validate password strength
+            if (newPassword.length < 8) {
+                return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long.' });
+            }
+
+            if (!/[A-Z]/.test(newPassword)) {
+                return res.status(400).json({ success: false, message: 'Password must contain at least one uppercase letter.' });
+            }
+
+            if (!/[a-z]/.test(newPassword)) {
+                return res.status(400).json({ success: false, message: 'Password must contain at least one lowercase letter.' });
+            }
+
+            if (!/[0-9]/.test(newPassword)) {
+                return res.status(400).json({ success: false, message: 'Password must contain at least one number.' });
+            }
+
+            // Get employee and verify security answers
+            const employee = await Employee.findById(employeeId, 'securityAnswer1 securityAnswer2');
+
+            if (!employee) {
+                return res.status(404).json({ success: false, message: 'Employee not found.' });
+            }
+
+            // Verify security answers
+            let isCorrect1 = false;
+            let isCorrect2 = false;
+
+            if (answer1 && employee.securityAnswer1) {
+                isCorrect1 = await bcrypt.compare(answer1, employee.securityAnswer1);
+            }
+
+            if (answer2 && employee.securityAnswer2) {
+                isCorrect2 = await bcrypt.compare(answer2, employee.securityAnswer2);
+            }
+
+            // At least one answer must be correct
+            let isCorrect = false;
+            if (answer1 && answer2) {
+                isCorrect = isCorrect1 && isCorrect2;
+            } else if (answer1) {
+                isCorrect = isCorrect1;
+            } else if (answer2) {
+                isCorrect = isCorrect2;
+            }
+
+            if (!isCorrect) {
+                return res.status(400).json({ success: false, message: 'Incorrect security answers.' });
+            }
+
+            // Hash the new password
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+            // Update employee password
+            await Employee.updateOne(
+                { _id: employeeId },
+                { password: hashedPassword }
+            );
+
+            res.json({ success: true, message: 'Password changed successfully.' });
+        } catch (error) {
+            console.error('Error changing employee password:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while changing the password.' });
+        }
+    },
+
+    // Legacy method - keeping for backward compatibility but updating
+    postEmployeeSettingsOld: async function (req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "employee") {
             res.sendStatus(401); // HTTP 401: Unauthorized
             return;
@@ -523,6 +811,248 @@ const controller = {
         };
 
         res.sendStatus(200);
+    },
+
+    getEmployeeSecurityQuestions: async function (req, res) {
+        const email = req.query.email;
+        
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email is required.' });
+        }
+
+        try {
+            const employee = await Employee.findOne({ email: email }, 'securityQuestion1 securityQuestion2');
+            
+            if (!employee) {
+                return res.status(404).json({ success: false, message: 'No employee account found with this email address.' });
+            }
+
+            // Check if employee has any security questions
+            if (!employee.securityQuestion1 && !employee.securityQuestion2) {
+                return res.status(404).json({ success: false, message: 'No security questions are set up for this account. Please contact your administrator.' });
+            }
+
+            res.json({ 
+                success: true, 
+                question1: employee.securityQuestion1 || null,
+                question2: employee.securityQuestion2 || null
+            });
+        } catch (error) {
+            console.error('Error fetching employee security questions:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while fetching the security questions.' });
+        }
+    },
+
+    postEmployeeSecurityAnswers: async function (req, res) {
+        const { email, answer1, answer2 } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email is required.' });
+        }
+
+        if (!answer1 && !answer2) {
+            return res.status(400).json({ success: false, message: 'At least one security answer is required.' });
+        }
+
+        try {
+            const employee = await Employee.findOne({ email: email }, 'securityQuestion1 securityQuestion2 securityAnswer1 securityAnswer2');
+            
+            if (!employee) {
+                return res.status(404).json({ success: false, message: 'No employee account found with this email address.' });
+            }
+
+            // Check security answers (using bcrypt comparison)
+            let isCorrect1 = false;
+            let isCorrect2 = false;
+
+            // If answer1 is provided and employee has securityAnswer1, check it
+            if (answer1 && employee.securityAnswer1) {
+                isCorrect1 = await bcrypt.compare(answer1, employee.securityAnswer1);
+            }
+            
+            // If answer2 is provided and employee has securityAnswer2, check it
+            if (answer2 && employee.securityAnswer2) {
+                isCorrect2 = await bcrypt.compare(answer2, employee.securityAnswer2);
+            }
+
+            // At least one answer must be correct, and if both are provided, both must be correct
+            let isCorrect = false;
+            if (answer1 && answer2) {
+                // Both answers provided - both must be correct
+                isCorrect = isCorrect1 && isCorrect2;
+            } else if (answer1) {
+                // Only answer1 provided
+                isCorrect = isCorrect1;
+            } else if (answer2) {
+                // Only answer2 provided
+                isCorrect = isCorrect2;
+            }
+
+            if (!isCorrect) {
+                return res.status(400).json({ success: false, message: 'Incorrect security answers. Please try again.' });
+            }
+
+            // Generate a reset token
+            const resetToken = require('crypto').randomBytes(32).toString('hex');
+            const resetExpires = new Date(Date.now() + 3600000); // 1 hour from now
+
+            // Update employee with reset token
+            await Employee.updateOne(
+                { email: email },
+                { 
+                    resetPasswordToken: resetToken,
+                    resetPasswordExpires: resetExpires 
+                }
+            );
+
+            res.json({ success: true, resetToken: resetToken });
+        } catch (error) {
+            console.error('Error verifying employee security answers:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while verifying the answers.' });
+        }
+    },
+
+    getEmployeeResetPassword: async function (req, res) {
+        const token = req.query.token;
+        
+        if (!token) {
+            return res.render('login-employee', {
+                layout: 'employee-no-sidebar',
+                error: 'Invalid reset link. Please try the forgot password process again.'
+            });
+        }
+
+        try {
+            // Find employee with this reset token and check if it's still valid
+            const employee = await Employee.findOne({
+                resetPasswordToken: token,
+                resetPasswordExpires: { $gt: Date.now() }
+            });
+            
+            if (!employee) {
+                return res.render('login-employee', {
+                    layout: 'employee-no-sidebar',
+                    error: 'Reset link has expired or is invalid. Please try the forgot password process again.'
+                });
+            }
+
+            // Render the reset password form
+            res.render('reset-password', {
+                layout: 'employee-no-sidebar',
+                token: token,
+                isEmployee: true
+            });
+        } catch (error) {
+            console.error('Error validating employee reset token:', error);
+            res.render('login-employee', {
+                layout: 'employee-no-sidebar',
+                error: 'An error occurred. Please try again.'
+            });
+        }
+    },
+
+    postEmployeeResetPassword: async function (req, res) {
+        const { token, newPassword, confirmPassword } = req.body;
+        
+        // Validate input
+        if (!token || !newPassword || !confirmPassword) {
+            return res.render('reset-password', {
+                layout: 'employee-no-sidebar',
+                token: token,
+                isEmployee: true,
+                error: 'All fields are required.'
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.render('reset-password', {
+                layout: 'employee-no-sidebar',
+                token: token,
+                isEmployee: true,
+                error: 'Passwords do not match.'
+            });
+        }
+
+        // Validate password strength
+        if (newPassword.length < 8) {
+            return res.render('reset-password', {
+                layout: 'employee-no-sidebar',
+                token: token,
+                isEmployee: true,
+                error: 'Password must be at least 8 characters long.'
+            });
+        }
+
+        if (!/[A-Z]/.test(newPassword)) {
+            return res.render('reset-password', {
+                layout: 'employee-no-sidebar',
+                token: token,
+                isEmployee: true,
+                error: 'Password must contain at least one uppercase letter.'
+            });
+        }
+
+        if (!/[a-z]/.test(newPassword)) {
+            return res.render('reset-password', {
+                layout: 'employee-no-sidebar',
+                token: token,
+                isEmployee: true,
+                error: 'Password must contain at least one lowercase letter.'
+            });
+        }
+
+        if (!/[0-9]/.test(newPassword)) {
+            return res.render('reset-password', {
+                layout: 'employee-no-sidebar',
+                token: token,
+                isEmployee: true,
+                error: 'Password must contain at least one number.'
+            });
+        }
+
+        try {
+            // Find employee with valid reset token
+            const employee = await Employee.findOne({
+                resetPasswordToken: token,
+                resetPasswordExpires: { $gt: Date.now() }
+            });
+            
+            if (!employee) {
+                return res.render('reset-password', {
+                    layout: 'employee-no-sidebar',
+                    token: token,
+                    isEmployee: true,
+                    error: 'Reset link has expired or is invalid. Please try the forgot password process again.'
+                });
+            }
+
+            // Hash the new password
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+            // Update employee password and clear reset token
+            await Employee.updateOne(
+                { _id: employee._id },
+                {
+                    password: hashedPassword,
+                    resetPasswordToken: undefined,
+                    resetPasswordExpires: undefined,
+                    changedPassword: true // Mark as changed password
+                }
+            );
+
+            // Redirect to employee login with success message
+            res.redirect('/employee?reset=success');
+
+        } catch (error) {
+            console.error('Error resetting employee password:', error);
+            res.render('reset-password', {
+                layout: 'employee-no-sidebar',
+                token: token,
+                isEmployee: true,
+                error: 'An error occurred while resetting your password. Please try again.'
+            });
+        }
     },
 };
 

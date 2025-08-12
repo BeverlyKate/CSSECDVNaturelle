@@ -1,23 +1,17 @@
 import {resetError, showError} from "./form.js";
 
-const error_container = document.getElementById("form-employee-settings-error");
-
-const modal_settings = document.getElementById("modal-employee-settings-edit");
-
-modal_settings.addEventListener("show.bs.modal", function() {
-    resetError(error_container);
-});
-
-document.querySelector("#form-employee-settings").addEventListener("submit", function(e, d) {
+// Basic Settings Form Handler
+document.querySelector("#form-employee-basic-settings").addEventListener("submit", function(e) {
     e.preventDefault();
 
-    let input_employee_id = document.getElementById("input-settings-employee-id").value;
-    let input_first_name = document.getElementById("input-settings-employee-fname");
-    let input_last_name = document.getElementById("input-settings-employee-lname");
-    let input_email = document.getElementById("input-settings-employee-email");
-    let input_contact = document.getElementById("input-settings-employee-contact");
-    let input_current_password = document.getElementById("input-settings-employee-current-password");
-    let input_new_password = document.getElementById("input-settings-employee-new-password");
+    const error_container = document.getElementById("form-employee-basic-settings-error");
+    resetError(error_container);
+
+    let input_employee_id = document.getElementById("input-basic-settings-employee-id").value;
+    let input_first_name = document.getElementById("input-basic-settings-employee-fname");
+    let input_last_name = document.getElementById("input-basic-settings-employee-lname");
+    let input_email = document.getElementById("input-basic-settings-employee-email");
+    let input_contact = document.getElementById("input-basic-settings-employee-contact");
 
     if (input_first_name.value === "") {
         showError("Please enter a first name.", error_container);
@@ -45,19 +39,7 @@ document.querySelector("#form-employee-settings").addEventListener("submit", fun
         return;
     }
 
-    if (input_current_password.value === "") {
-        showError("Please enter your current password to save your changes.", error_container);
-        input_current_password.focus();
-        return;
-    }
-
-    if (input_new_password.value !== "" && input_new_password.value.length < 8) {
-        showError("Please enter a new password that is at least 8 characters.", error_container);
-        input_username.focus();
-        return;
-    }
-
-    let btn_save = this.closest(".modal-content").querySelector(".btn-modal-success");
+    let btn_save = document.getElementById("employee-save-basic-settings-btn");
     btn_save.disabled = true;
 
     let btn_save_icon = btn_save.querySelector("i");
@@ -69,29 +51,20 @@ document.querySelector("#form-employee-settings").addEventListener("submit", fun
         fname: input_first_name.value,
         lname: input_last_name.value,
         email: input_email.value,
-        contactNumber: input_contact.value,
-        current_password: input_current_password.value,
-        new_password: input_new_password.value
+        contactNumber: input_contact.value
     }, (data, status, xhr) => {
         if (status === "success" && xhr.status === 200) {
             btn_save_icon.className = "";
             btn_save_icon.classList.add("fa", "fa-check");
             btn_save.disabled = false;
 
-            bootstrap.Modal.getInstance(modal_settings).hide();
             snackbar({
                 type: "primary",
-                text: "Employee account settings have been successfully edited!"
+                text: "Basic information updated successfully!"
             });
             setTimeout(function() {
-                snackbar({
-                    type: "primary",
-                    text: "Reloading the page…"
-                });
-                setTimeout(function() {
-                    window.location.reload();
-                }, DURATION.SHORT + 300);
-            }, DURATION.SHORT + 300);
+                window.location.reload();
+            }, 1500);
         }
     }).fail(function(data, status, xhr) {
         btn_save_icon.className = "";
@@ -101,12 +74,180 @@ document.querySelector("#form-employee-settings").addEventListener("submit", fun
         if (data.responseJSON !== undefined) {
             showError(data.responseJSON.error, error_container);
         } else {
-            bootstrap.Modal.getInstance(modal_settings).hide();
             snackbar({
                 type: "error",
-                text: "Error: Something went wrong while updating the Employee account settings.",
+                text: "Error: Something went wrong while updating basic information.",
                 duration: "long"
             });
         }
-    })
+    });
+});
+
+// Password Change Modal Handler
+document.querySelector("#form-employee-password-change").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const error_container = document.getElementById("form-employee-password-change-error");
+    resetError(error_container);
+
+    let input_employee_id = document.getElementById("input-password-change-employee-id").value;
+    let input_current_password = document.getElementById("input-password-change-current-password");
+    let input_new_password = document.getElementById("input-password-change-new-password");
+    let input_confirm_password = document.getElementById("input-password-change-confirm-password");
+
+    if (input_current_password.value === "") {
+        showError("Please enter your current password.", error_container);
+        input_current_password.focus();
+        return;
+    }
+
+    if (input_new_password.value === "" || input_new_password.value.length < 8) {
+        showError("Please enter a new password that is at least 8 characters.", error_container);
+        input_new_password.focus();
+        return;
+    }
+
+    if (input_new_password.value !== input_confirm_password.value) {
+        showError("New password and confirm password do not match.", error_container);
+        input_confirm_password.focus();
+        return;
+    }
+
+    let btn_save = document.getElementById("employee-save-password-btn");
+    btn_save.disabled = true;
+
+    let btn_save_icon = btn_save.querySelector("i");
+    btn_save_icon.className = "";
+    btn_save_icon.classList.add("spinner-border", "me-2");
+
+    $.post("/employee/change-password", {
+        id: input_employee_id,
+        current_password: input_current_password.value,
+        new_password: input_new_password.value
+    }, (data, status, xhr) => {
+        if (status === "success" && xhr.status === 200) {
+            btn_save_icon.className = "";
+            btn_save_icon.classList.add("fa", "fa-check");
+            btn_save.disabled = false;
+
+            bootstrap.Modal.getInstance(document.getElementById("modal-employee-password-change")).hide();
+            snackbar({
+                type: "primary",
+                text: "Password changed successfully!"
+            });
+            
+            // Clear the form
+            input_current_password.value = "";
+            input_new_password.value = "";
+            input_confirm_password.value = "";
+        }
+    }).fail(function(data, status, xhr) {
+        btn_save_icon.className = "";
+        btn_save_icon.classList.add("fa", "fa-check");
+        btn_save.disabled = false;
+
+        if (data.responseJSON !== undefined) {
+            showError(data.responseJSON.error, error_container);
+        } else {
+            snackbar({
+                type: "error",
+                text: "Error: Something went wrong while changing password.",
+                duration: "long"
+            });
+        }
+    });
+});
+
+// Security Questions Modal Handler
+document.querySelector("#form-employee-security-questions").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const error_container = document.getElementById("form-employee-security-questions-error");
+    resetError(error_container);
+
+    let input_employee_id = document.getElementById("input-security-questions-employee-id").value;
+    let input_question1 = document.getElementById("input-security-question-1");
+    let input_answer1 = document.getElementById("input-security-answer-1");
+    let input_question2 = document.getElementById("input-security-question-2");
+    let input_answer2 = document.getElementById("input-security-answer-2");
+
+    if (input_question1.value === "") {
+        showError("Please select a security question.", error_container);
+        input_question1.focus();
+        return;
+    }
+
+    if (input_answer1.value === "") {
+        showError("Please enter an answer for the first security question.", error_container);
+        input_answer1.focus();
+        return;
+    }
+
+    if (input_question2.value === "") {
+        showError("Please select a second security question.", error_container);
+        input_question2.focus();
+        return;
+    }
+
+    if (input_answer2.value === "") {
+        showError("Please enter an answer for the second security question.", error_container);
+        input_answer2.focus();
+        return;
+    }
+
+    if (input_question1.value === input_question2.value) {
+        showError("Please select different security questions.", error_container);
+        input_question2.focus();
+        return;
+    }
+
+    let btn_save = document.getElementById("employee-save-security-questions-btn");
+    btn_save.disabled = true;
+
+    let btn_save_icon = btn_save.querySelector("i");
+    btn_save_icon.className = "";
+    btn_save_icon.classList.add("spinner-border", "me-2");
+
+    $.post("/employee/update-security-questions", {
+        id: input_employee_id,
+        securityQuestion1: input_question1.value,
+        securityAnswer1: input_answer1.value,
+        securityQuestion2: input_question2.value,
+        securityAnswer2: input_answer2.value
+    }, (data, status, xhr) => {
+        if (status === "success" && xhr.status === 200) {
+            btn_save_icon.className = "";
+            btn_save_icon.classList.add("fa", "fa-check");
+            btn_save.disabled = false;
+
+            bootstrap.Modal.getInstance(document.getElementById("modal-employee-security-questions")).hide();
+            snackbar({
+                type: "primary",
+                text: "Security questions updated successfully!"
+            });
+        }
+    }).fail(function(data, status, xhr) {
+        btn_save_icon.className = "";
+        btn_save_icon.classList.add("fa", "fa-check");
+        btn_save.disabled = false;
+
+        if (data.responseJSON !== undefined) {
+            showError(data.responseJSON.error, error_container);
+        } else {
+            snackbar({
+                type: "error",
+                text: "Error: Something went wrong while updating security questions.",
+                duration: "long"
+            });
+        }
+    });
+});
+
+// Modal event handlers to reset errors when modals are shown
+document.getElementById("modal-employee-password-change")?.addEventListener("show.bs.modal", function() {
+    resetError(document.getElementById("form-employee-password-change-error"));
+});
+
+document.getElementById("modal-employee-security-questions")?.addEventListener("show.bs.modal", function() {
+    resetError(document.getElementById("form-employee-security-questions-error"));
 });

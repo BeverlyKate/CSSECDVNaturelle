@@ -89,7 +89,15 @@ app.get("/employee/request-temp-password", employee_controller.getRequestTempPas
 app.get("/employee/get-reservations", employee_controller.getEmployeeReservations);
 app.get("/employee/get-services", employee_controller.getEmployeeServicesOfReservation);
 app.post("/employee/update-service-status", employee_controller.postUpdateServiceStatus);
+app.get("/employee/settings", employee_controller.getEmployeeSettings);
 app.post("/employee/settings", employee_controller.postEmployeeSettings);
+app.post("/employee/update-security-questions", employee_controller.updateEmployeeSecurityQuestions);
+app.post("/employee/change-password", employee_controller.changeEmployeePasswordSettings);
+
+app.get("/employee/security-questions", employee_controller.getEmployeeSecurityQuestions);
+app.post("/employee/security-answers", employee_controller.postEmployeeSecurityAnswers);
+app.get('/employee/reset-password', employee_controller.getEmployeeResetPassword);
+app.post('/employee/reset-password', employee_controller.postEmployeeResetPassword);
 
 app.get("/admin/faq", admin_controller.getFAQ);
 app.get("/admin/faq/get-faqs", admin_controller.getAllFAQs);

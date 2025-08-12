@@ -39,6 +39,30 @@ const EmployeeSchema = new mongoose.Schema({
   timeoutEnd: {
     type: Date,
     default: null,
+  },
+  securityQuestion1: {
+    type: String,
+    default: null,
+  },
+  securityAnswer1: {
+    type: String,
+    default: null,
+  },
+  securityQuestion2: {
+    type: String,
+    default: null,
+  },
+  securityAnswer2: {
+    type: String,
+    default: null,
+  },
+  resetPasswordToken: {
+    type: String,
+    default: null,
+  },
+  resetPasswordExpires: {
+    type: Date,
+    default: null,
   }
 });
 
