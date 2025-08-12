@@ -1,5 +1,7 @@
 <link rel="stylesheet" href="css/login.css">
 <link rel="stylesheet" href="css/modal.css">
+<link rel="stylesheet" href="/css/bs-form-override.css">
+<link rel="stylesheet" href="/css/form.css">
 <script type="module" src="/js/auth.js"></script>
 
 <div id="form-wrapper">
@@ -28,45 +30,56 @@
 </div>
 
 <!-- Email Input Modal -->
-<div id="email-input-modal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h4>Forgot Password</h4>
-            <span class="close" id="close-email-modal">&times;</span>
-        </div>
-        <div class="modal-body">
-            <p>Enter your email address to recover your password:</p>
-            <input type="email" id="recovery-email" placeholder="Email address" class="form-control">
-            <div id="email-error" class="error-msg" data-error-status="normal"></div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" id="submit-email" class="btn btn-primary">Submit</button>
-            <button type="button" id="cancel-email" class="btn btn-secondary">Cancel</button>
+<div class="modal" id="email-input-modal" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Forgot Password</h5>
+                <button type="button" class="btn-close" id="close-email-modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Enter your email address to recover your password:</p>
+                <div class="mb-3">
+                    <label for="recovery-email" class="form-label">Email Address</label>
+                    <input type="email" id="recovery-email" placeholder="Email address" class="form-control">
+                </div>
+                <div id="email-error" class="error-msg" data-error-status="normal"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancel-email" class="btn btn-discard"><i class="fa fa-times"></i>Cancel</button>
+                <button type="button" id="submit-email" class="btn btn-modal-success"><i class="fa fa-check"></i>Submit</button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Security Questions Modal -->
-<div id="security-question-modal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h4>Security Questions</h4>
-            <span class="close" id="close-security-modal">&times;</span>
-        </div>
-        <div class="modal-body">
-            <div id="question1-container" style="display: none;">
-                <p id="security-question1-text"></p>
-                <input type="text" id="security-answer1" placeholder="Your answer" class="form-control">
+<div class="modal" id="security-question-modal" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Security Questions</h5>
+                <button type="button" class="btn-close" id="close-security-modal" aria-label="Close"></button>
             </div>
-            <div id="question2-container" style="display: none;">
-                <p id="security-question2-text"></p>
-                <input type="text" id="security-answer2" placeholder="Your answer" class="form-control">
+            <div class="modal-body">
+                <div id="question1-container" style="display: none;">
+                    <div class="mb-3">
+                        <label id="security-question1-text" class="form-label"></label>
+                        <input type="text" id="security-answer1" placeholder="Your answer" class="form-control">
+                    </div>
+                </div>
+                <div id="question2-container" style="display: none;">
+                    <div class="mb-3">
+                        <label id="security-question2-text" class="form-label"></label>
+                        <input type="text" id="security-answer2" placeholder="Your answer" class="form-control">
+                    </div>
+                </div>
+                <div id="security-error" class="error-msg" data-error-status="normal"></div>
             </div>
-            <div id="security-error" class="error-msg" data-error-status="normal"></div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" id="submit-security-answers" class="btn btn-primary">Submit</button>
-            <button type="button" id="cancel-security" class="btn btn-secondary">Cancel</button>
+            <div class="modal-footer">
+                <button type="button" id="cancel-security" class="btn btn-discard"><i class="fa fa-times"></i>Cancel</button>
+                <button type="button" id="submit-security-answers" class="btn btn-modal-success"><i class="fa fa-check"></i>Submit</button>
+            </div>
         </div>
     </div>
 </div>
@@ -97,12 +110,16 @@ document.addEventListener('DOMContentLoaded', function() {
         forgotPasswordLink.addEventListener('click', function(e) {
             e.preventDefault();
             emailModal.style.display = 'block';
+            emailModal.classList.add('show');
+            document.body.classList.add('modal-open');
         });
     }
 
     // Email modal close handlers
     function closeEmailModalHandler() {
         emailModal.style.display = 'none';
+        emailModal.classList.remove('show');
+        document.body.classList.remove('modal-open');
         recoveryEmail.value = '';
         emailError.setAttribute('data-error-status', 'normal');
         emailError.textContent = '';
@@ -117,6 +134,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Security modal close handlers
     function closeSecurityModalHandler() {
         securityModal.style.display = 'none';
+        securityModal.classList.remove('show');
+        document.body.classList.remove('modal-open');
         document.getElementById('security-answer1').value = '';
         document.getElementById('security-answer2').value = '';
         securityError.setAttribute('data-error-status', 'normal');
@@ -154,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Hide email modal and show security questions modal
                     emailModal.style.display = 'none';
+                    emailModal.classList.remove('show');
                     
                     // Set up security questions
                     const question1Container = document.getElementById('question1-container');
@@ -170,6 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     securityModal.style.display = 'block';
+                    securityModal.classList.add('show');
                 } else {
                     emailError.setAttribute('data-error-status', 'error');
                     emailError.textContent = data.message || 'No account found with this email address.';
