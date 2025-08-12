@@ -96,6 +96,10 @@ app.post("/employee/change-password", employee_controller.changeEmployeePassword
 
 app.get("/employee/security-questions", employee_controller.getEmployeeSecurityQuestions);
 app.post("/employee/security-answers", employee_controller.postEmployeeSecurityAnswers);
+app.post("/employee/verify-security-answers", employee_controller.verifyEmployeeSecurityAnswers);
+app.get("/employee/check-security-questions", employee_controller.checkEmployeeSecurityQuestions);
+app.get("/employee/current-security-questions", employee_controller.getCurrentEmployeeSecurityQuestions);
+app.post("/employee/change-password-settings", employee_controller.changeEmployeePasswordSettings);
 app.get('/employee/reset-password', employee_controller.getEmployeeResetPassword);
 app.post('/employee/reset-password', employee_controller.postEmployeeResetPassword);
 

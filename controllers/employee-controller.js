@@ -610,7 +610,7 @@ const controller = {
                 return res.status(401).json({ success: false, message: 'Unauthorized access.' });
             }
 
-            const { answer1, answer2, newPassword } = req.body;
+            const { newPassword } = req.body;
             const employeeId = req.session.logged_in.user.id;
 
             if (!newPassword) {
@@ -634,37 +634,11 @@ const controller = {
                 return res.status(400).json({ success: false, message: 'Password must contain at least one number.' });
             }
 
-            // Get employee and verify security answers
-            const employee = await Employee.findById(employeeId, 'securityAnswer1 securityAnswer2');
+            // Get employee
+            const employee = await Employee.findById(employeeId);
 
             if (!employee) {
                 return res.status(404).json({ success: false, message: 'Employee not found.' });
-            }
-
-            // Verify security answers
-            let isCorrect1 = false;
-            let isCorrect2 = false;
-
-            if (answer1 && employee.securityAnswer1) {
-                isCorrect1 = await bcrypt.compare(answer1, employee.securityAnswer1);
-            }
-
-            if (answer2 && employee.securityAnswer2) {
-                isCorrect2 = await bcrypt.compare(answer2, employee.securityAnswer2);
-            }
-
-            // At least one answer must be correct
-            let isCorrect = false;
-            if (answer1 && answer2) {
-                isCorrect = isCorrect1 && isCorrect2;
-            } else if (answer1) {
-                isCorrect = isCorrect1;
-            } else if (answer2) {
-                isCorrect = isCorrect2;
-            }
-
-            if (!isCorrect) {
-                return res.status(400).json({ success: false, message: 'Incorrect security answers.' });
             }
 
             // Hash the new password
@@ -674,13 +648,19 @@ const controller = {
             // Update employee password
             await Employee.updateOne(
                 { _id: employeeId },
-                { password: hashedPassword }
+                {
+                    password: hashedPassword,
+                    changedPassword: true
+                }
             );
+
+            // Update session with new password change status
+            req.session.logged_in.user.employee_changedPassword = true;
 
             res.json({ success: true, message: 'Password changed successfully.' });
         } catch (error) {
-            console.error('Error changing employee password:', error);
-            res.status(500).json({ success: false, message: 'An error occurred while changing the password.' });
+            console.error('Error changing employee password in settings:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while changing your password. Please try again.' });
         }
     },
 
@@ -912,6 +892,73 @@ const controller = {
         }
     },
 
+    verifyEmployeeSecurityAnswers: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== 'employee') {
+                return res.status(401).json({ success: false, message: 'Unauthorized access.' });
+            }
+
+            const { email, answer1, answer2 } = req.body;
+            
+            if (!email) {
+                return res.status(400).json({ success: false, message: 'Email is required.' });
+            }
+
+            if (!answer1 && !answer2) {
+                return res.status(400).json({ success: false, message: 'At least one security answer is required.' });
+            }
+
+            // Verify that the email matches the logged-in employee
+            if (email !== req.session.logged_in.user.email) {
+                return res.status(403).json({ success: false, message: 'Access denied.' });
+            }
+
+            const employee = await Employee.findOne({ email: email }, 'securityQuestion1 securityQuestion2 securityAnswer1 securityAnswer2');
+            
+            if (!employee) {
+                return res.status(404).json({ success: false, message: 'No employee account found with this email address.' });
+            }
+
+            // Check security answers (using bcrypt comparison)
+            let isCorrect1 = false;
+            let isCorrect2 = false;
+
+            // If answer1 is provided and employee has securityAnswer1, check it
+            if (answer1 && employee.securityAnswer1) {
+                isCorrect1 = await bcrypt.compare(answer1, employee.securityAnswer1);
+            }
+            
+            // If answer2 is provided and employee has securityAnswer2, check it
+            if (answer2 && employee.securityAnswer2) {
+                isCorrect2 = await bcrypt.compare(answer2, employee.securityAnswer2);
+            }
+
+            // At least one answer must be correct, and if both are provided, both must be correct
+            let isCorrect = false;
+            if (answer1 && answer2) {
+                // Both answers provided - both must be correct
+                isCorrect = isCorrect1 && isCorrect2;
+            } else if (answer1) {
+                // Only answer1 provided
+                isCorrect = isCorrect1;
+            } else if (answer2) {
+                // Only answer2 provided
+                isCorrect = isCorrect2;
+            }
+
+            if (!isCorrect) {
+                return res.status(400).json({ success: false, message: 'Incorrect security answers. Please try again.' });
+            }
+
+            // For settings verification, we don't need to generate tokens
+            // Just confirm that the verification was successful
+            res.json({ success: true, message: 'Security answers verified successfully.' });
+        } catch (error) {
+            console.error('Error verifying employee security answers for settings:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while verifying the answers.' });
+        }
+    },
+
     getEmployeeResetPassword: async function (req, res) {
         const token = req.query.token;
         
@@ -937,7 +984,7 @@ const controller = {
             }
 
             // Render the reset password form
-            res.render('reset-password', {
+            res.render('reset-password-employee', {
                 layout: 'employee-no-sidebar',
                 token: token,
                 isEmployee: true
@@ -956,7 +1003,7 @@ const controller = {
         
         // Validate input
         if (!token || !newPassword || !confirmPassword) {
-            return res.render('reset-password', {
+            return res.render('reset-password-employee', {
                 layout: 'employee-no-sidebar',
                 token: token,
                 isEmployee: true,
@@ -965,7 +1012,7 @@ const controller = {
         }
 
         if (newPassword !== confirmPassword) {
-            return res.render('reset-password', {
+            return res.render('reset-password-employee', {
                 layout: 'employee-no-sidebar',
                 token: token,
                 isEmployee: true,
@@ -975,7 +1022,7 @@ const controller = {
 
         // Validate password strength
         if (newPassword.length < 8) {
-            return res.render('reset-password', {
+            return res.render('reset-password-employee', {
                 layout: 'employee-no-sidebar',
                 token: token,
                 isEmployee: true,
@@ -984,7 +1031,7 @@ const controller = {
         }
 
         if (!/[A-Z]/.test(newPassword)) {
-            return res.render('reset-password', {
+            return res.render('reset-password-employee', {
                 layout: 'employee-no-sidebar',
                 token: token,
                 isEmployee: true,
@@ -993,7 +1040,7 @@ const controller = {
         }
 
         if (!/[a-z]/.test(newPassword)) {
-            return res.render('reset-password', {
+            return res.render('reset-password-employee', {
                 layout: 'employee-no-sidebar',
                 token: token,
                 isEmployee: true,
@@ -1002,7 +1049,7 @@ const controller = {
         }
 
         if (!/[0-9]/.test(newPassword)) {
-            return res.render('reset-password', {
+            return res.render('reset-password-employee', {
                 layout: 'employee-no-sidebar',
                 token: token,
                 isEmployee: true,
@@ -1018,7 +1065,7 @@ const controller = {
             });
             
             if (!employee) {
-                return res.render('reset-password', {
+                return res.render('reset-password-employee', {
                     layout: 'employee-no-sidebar',
                     token: token,
                     isEmployee: true,
@@ -1046,12 +1093,45 @@ const controller = {
 
         } catch (error) {
             console.error('Error resetting employee password:', error);
-            res.render('reset-password', {
+            res.render('reset-password-employee', {
                 layout: 'employee-no-sidebar',
                 token: token,
                 isEmployee: true,
                 error: 'An error occurred while resetting your password. Please try again.'
             });
+        }
+    },
+
+    getCurrentEmployeeSecurityQuestions: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== 'employee') {
+                return res.status(401).json({ success: false, message: 'Unauthorized access.' });
+            }
+
+            const email = req.query.email;
+            if (!email) {
+                return res.status(400).json({ success: false, message: 'Email is required.' });
+            }
+
+            // Verify that the email matches the logged-in employee
+            if (email !== req.session.logged_in.user.email) {
+                return res.status(403).json({ success: false, message: 'Access denied.' });
+            }
+
+            const employee = await Employee.findOne({ email: email }, 'securityQuestion1 securityQuestion2');
+            
+            if (!employee) {
+                return res.status(404).json({ success: false, message: 'Employee not found.' });
+            }
+
+            res.json({ 
+                success: true, 
+                question1: employee.securityQuestion1 || null,
+                question2: employee.securityQuestion2 || null
+            });
+        } catch (error) {
+            console.error('Error getting current employee security questions:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while retrieving security questions.' });
         }
     },
 };
