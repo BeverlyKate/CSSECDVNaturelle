@@ -335,86 +335,66 @@ const controller = {
   },
 
   postSettings: async function (req, res) {
-    if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
-      res.sendStatus(401); // HTTP 401: Unauthorized
-      return;
-    }
-
-    let customer_id = req.body.customer_id;
-    let fname = req.body.fname;
-    let lname = req.body.lname;
-    let email = req.body.email;
-    let contact = req.body.contact;
-
-    if (fname === "") {
-      res.status(400).send({ error: "Please enter your first name." });
-      return;
-    }
-
-    if (lname === "") {
-      res.status(400).send({ error: "Please enter your last name." });
-      return;
-    }
-
-    if (email === "") {
-      res.status(400).send({ error: "Please enter your email address." });
-      return;
-    }
-
-    if (contact === "") {
-      res.status(400).send({ error: "Please enter your contact number." });
-      return;
-    }
-
-    if (old_password === "") {
-      res.status(400).send({ error: "Please enter your current password to continue." });
-      return;
-    }
-
-    const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    let isEmailValid = validEmailRegex.test(email);
-
-    if (!isEmailValid) {
-      res.status(400).send({ error: "Please enter a valid email address." });
-      return;
-    }
-
-    const validContactNumRegex = /^(09)\d{9}/;
-    let isContactNumValid = validContactNumRegex.test(contact);
-
-    if (!isContactNumValid) {
-      res.status(400).send({ error: "Please enter a valid contact number." });
-      return;
-    }
-
-    // Update user profile (no password change here)
-    let updateData = {
-      firstName: fname,
-      lastName: lname,
-      email: email,
-      contactNumber: contact,
-    };
-
-    let passwordCompare = await bcrypt.compare(
-      old_password,
-      currentPassword.password
-    );
-    if (!passwordCompare) {
-      await logAuthAttempt(email, Status.Fail, UserType.Customer, req.path, AttemptType.PasswordVerification);
-      res.status(403).send({ error: "Current password is incorrect!" });
-      return;
-    }
-
-    await logAuthAttempt(email, Status.Success, UserType.Customer, req.path, AttemptType.PasswordVerification);
-
-    if (new_password !== "") {
-      if (new_password.length < 8) {
-        res.status(403).send({ error: "Password must contain at least 8 characters!" });
+    try {
+      if (!req.session.logged_in || req.session.logged_in.type !== "customer") {
+        res.sendStatus(401); // HTTP 401: Unauthorized
         return;
       }
 
-      let passwordHashed = await bcrypt.hash(new_password, 10);
+      let customer_id = req.body.customer_id;
+      let fname = req.body.fname;
+      let lname = req.body.lname;
+      let email = req.body.email;
+      let contact = req.body.contact;
 
+      if (fname === "") {
+        res.status(400).send({ error: "Please enter your first name." });
+        return;
+      }
+
+      if (lname === "") {
+        res.status(400).send({ error: "Please enter your last name." });
+        return;
+      }
+
+      if (email === "") {
+        res.status(400).send({ error: "Please enter your email address." });
+        return;
+      }
+
+      if (contact === "") {
+        res.status(400).send({ error: "Please enter your contact number." });
+        return;
+      }
+
+      const validEmailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+      let isEmailValid = validEmailRegex.test(email);
+
+      if (!isEmailValid) {
+        res.status(400).send({ error: "Please enter a valid email address." });
+        return;
+      }
+
+      const validContactNumRegex = /^(09)\d{9}/;
+      let isContactNumValid = validContactNumRegex.test(contact);
+
+      if (!isContactNumValid) {
+        res.status(400).send({ error: "Please enter a valid contact number." });
+        return;
+      }
+
+      // Check if email is already taken by another user
+      const existingUser = await User.findOne({ 
+        email: email, 
+        _id: { $ne: customer_id } 
+      });
+      
+      if (existingUser) {
+        res.status(400).send({ error: "This email address is already in use by another account." });
+        return;
+      }
+
+      // Update user profile (no password change here since password fields are hidden)
       await User.updateOne(
         { _id: customer_id },
         {
@@ -422,49 +402,23 @@ const controller = {
           lastName: lname,
           email: email,
           contactNumber: contact,
-          password: passwordHashed,
         }
       );
 
-      req.session.logged_in = {
-        state: true,
-        type: "customer",
-        user: {
-          userID: customer_id,
-          firstName: fname,
-          lastName: lname,
-          contactNumber: contact,
-          email: email,
-        },
-      };
-
-      res.sendStatus(200);
-      return;
-    }
-
-    await User.updateOne(
-      { _id: customer_id },
-      {
-        firstName: fname,
-        lastName: lname,
-        email: email,
-        contactNumber: contact,
-      }
-    );
-
-    req.session.logged_in = {
-      state: true,
-      type: "customer",
-      user: {
-        userID: customer_id,
+      // Update session data
+      req.session.logged_in.user = {
+        id: customer_id,
         firstName: fname,
         lastName: lname,
         contactNumber: contact,
         email: email
-      },
-    };
+      };
 
-    res.sendStatus(200);
+      res.sendStatus(200);
+    } catch (error) {
+      console.error('Error updating profile settings:', error);
+      res.status(500).send({ error: "An error occurred while updating your profile settings." });
+    }
   },
 };
 

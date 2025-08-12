@@ -396,10 +396,10 @@ document.querySelector('#change-security-questions-modal .btn-modal-success')?.a
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             email: document.getElementById('input-settings-customer-email').value,
-            question1: question1,
-            answer1: answer1,
-            question2: question2,
-            answer2: answer2
+            securityQuestion1: question1,
+            securityAnswer1: answer1,
+            securityQuestion2: question2,
+            securityAnswer2: answer2
         })
     })
     .then(response => response.json())

@@ -118,6 +118,8 @@ const controller = {
             layout: "index",
             active: { login: true },
             error: message,
+            showForgotPassword: true,
+            attemptedEmail: email,
           });
           return;
         }
@@ -826,7 +828,7 @@ const controller = {
 
       // Update the user's security questions
       await User.updateOne(
-        { _id: req.session.logged_in.id },
+        { _id: req.session.logged_in.user.id },
         {
           securityQuestion1: securityQuestion1,
           securityAnswer1: hashedAnswer1,
@@ -901,7 +903,7 @@ const controller = {
 
       // Update the user's password
       await User.updateOne(
-        { _id: req.session.logged_in.id },
+        { _id: req.session.logged_in.user.id },
         { password: hashedPassword }
       );
 
