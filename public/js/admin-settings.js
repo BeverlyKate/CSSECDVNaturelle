@@ -161,6 +161,139 @@ document.getElementById('submit-security-answers')?.addEventListener('click', fu
 function showPasswordModal() {
     const passwordModal = document.getElementById('new-password-modal');
     passwordModal.style.display = 'block';
+    
+    // Add real-time validation for password requirements
+    const newPasswordInput = document.getElementById('new-password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    
+    // Reset requirements visual state
+    resetPasswordRequirements();
+    
+    // Add event listeners for real-time validation
+    newPasswordInput.addEventListener('input', validatePasswordRequirements);
+    confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+}
+
+function resetPasswordRequirements() {
+    const requirements = ['length-req', 'uppercase-req', 'lowercase-req', 'number-req'];
+    requirements.forEach(id => {
+        const element = document.getElementById(id);
+        element.style.color = '';
+        element.style.fontWeight = '';
+        // Remove any existing checkmarks
+        const existingCheck = element.querySelector('.fa-check');
+        if (existingCheck) {
+            existingCheck.remove();
+        }
+    });
+    
+    // Reset submit button state
+    const submitButton = document.getElementById('submit-new-password');
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.classList.remove('btn-modal-success');
+        submitButton.classList.add('btn-secondary');
+    }
+}
+
+function validatePasswordRequirements() {
+    const password = document.getElementById('new-password').value;
+    
+    // Check length requirement
+    const lengthReq = document.getElementById('length-req');
+    if (password.length >= 8) {
+        setRequirementMet(lengthReq);
+    } else {
+        setRequirementNotMet(lengthReq);
+    }
+    
+    // Check uppercase requirement
+    const uppercaseReq = document.getElementById('uppercase-req');
+    if (/[A-Z]/.test(password)) {
+        setRequirementMet(uppercaseReq);
+    } else {
+        setRequirementNotMet(uppercaseReq);
+    }
+    
+    // Check lowercase requirement
+    const lowercaseReq = document.getElementById('lowercase-req');
+    if (/[a-z]/.test(password)) {
+        setRequirementMet(lowercaseReq);
+    } else {
+        setRequirementNotMet(lowercaseReq);
+    }
+    
+    // Check number requirement
+    const numberReq = document.getElementById('number-req');
+    if (/[0-9]/.test(password)) {
+        setRequirementMet(numberReq);
+    } else {
+        setRequirementNotMet(numberReq);
+    }
+    
+    // Update submit button state
+    updateSubmitButtonState();
+}
+
+function updateSubmitButtonState() {
+    const password = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    const submitButton = document.getElementById('submit-new-password');
+    
+    const allRequirementsMet = password.length >= 8 && 
+                              /[A-Z]/.test(password) && 
+                              /[a-z]/.test(password) && 
+                              /[0-9]/.test(password) && 
+                              password === confirmPassword && 
+                              confirmPassword.length > 0;
+    
+    if (allRequirementsMet) {
+        submitButton.disabled = false;
+        submitButton.classList.remove('btn-secondary');
+        submitButton.classList.add('btn-modal-success');
+    } else {
+        submitButton.disabled = true;
+        submitButton.classList.remove('btn-modal-success');
+        submitButton.classList.add('btn-secondary');
+    }
+}
+
+function validatePasswordMatch() {
+    const password = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    const passwordError = document.getElementById('password-error');
+    
+    if (confirmPassword && password !== confirmPassword) {
+        showError('Passwords do not match.', passwordError);
+    } else {
+        resetError(passwordError);
+    }
+    
+    // Update submit button state
+    updateSubmitButtonState();
+}
+
+function setRequirementMet(element) {
+    element.style.color = '#28a745'; // Bootstrap success green
+    element.style.fontWeight = 'bold';
+    
+    // Add checkmark if not already present
+    if (!element.querySelector('.fa-check')) {
+        const checkmark = document.createElement('i');
+        checkmark.className = 'fa fa-check ms-2';
+        element.appendChild(checkmark);
+    }
+}
+
+function setRequirementNotMet(element) {
+    element.style.color = '';
+    element.style.fontWeight = '';
+    
+    // Remove checkmark if present
+    const existingCheck = element.querySelector('.fa-check');
+    if (existingCheck) {
+        existingCheck.remove();
+    }
 }
 
 // Password Modal Event Handlers
@@ -175,9 +308,21 @@ document.getElementById('cancel-password')?.addEventListener('click', function()
 function closePasswordModal() {
     const modal = document.getElementById('new-password-modal');
     modal.style.display = 'none';
+    
     // Clear inputs
-    document.getElementById('new-password').value = '';
-    document.getElementById('confirm-password').value = '';
+    const newPasswordInput = document.getElementById('new-password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    newPasswordInput.value = '';
+    confirmPasswordInput.value = '';
+    
+    // Remove event listeners to prevent multiple bindings
+    newPasswordInput.removeEventListener('input', validatePasswordRequirements);
+    confirmPasswordInput.removeEventListener('input', validatePasswordMatch);
+    
+    // Reset password requirements visual state
+    resetPasswordRequirements();
+    
+    // Clear error messages
     const passwordError = document.getElementById('password-error');
     resetError(passwordError);
 }
@@ -252,6 +397,7 @@ const changeSecurityQuestionsBtn = document.getElementById('change-security-ques
 
 changeSecurityQuestionsBtn?.addEventListener('click', function() {
     loadSecurityQuestionsOptions();
+    loadCurrentSecurityQuestions();
     const modal = document.getElementById('change-security-questions-modal');
     modal.style.display = 'block';
 });
@@ -289,6 +435,35 @@ function loadSecurityQuestionsOptions() {
     });
 }
 
+function loadCurrentSecurityQuestions() {
+    // Fetch current security questions from the server
+    fetch('/admin/settings/security-questions')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const select1 = document.getElementById('security-question-1');
+            const select2 = document.getElementById('security-question-2');
+            const answer1 = document.getElementById('security-answer-1');
+            const answer2 = document.getElementById('security-answer-2');
+            
+            // Prefill the existing security questions
+            if (data.securityQuestion1) {
+                select1.value = data.securityQuestion1;
+            }
+            if (data.securityQuestion2) {
+                select2.value = data.securityQuestion2;
+            }
+            
+            // Clear the answer fields for security reasons
+            answer1.value = '';
+            answer2.value = '';
+        }
+    })
+    .catch(error => {
+        console.error('Error loading current security questions:', error);
+    });
+}
+
 // Security Questions Modal Event Handlers
 document.getElementById('close-change-security-modal')?.addEventListener('click', function() {
     closeChangeSecurityModal();
@@ -303,6 +478,12 @@ function closeChangeSecurityModal() {
     modal.style.display = 'none';
     // Clear form
     document.getElementById('security-questions-form').reset();
+    // Reset select elements to default
+    document.getElementById('security-question-1').selectedIndex = 0;
+    document.getElementById('security-question-2').selectedIndex = 0;
+    // Clear answer fields
+    document.getElementById('security-answer-1').value = '';
+    document.getElementById('security-answer-2').value = '';
     const securityError = document.getElementById('security-questions-error');
     resetError(securityError);
 }
@@ -316,12 +497,39 @@ document.getElementById('save-security-questions')?.addEventListener('click', fu
     
     resetError(securityError);
     
-    if (!question1 || !answer1 || !question2 || !answer2) {
-        showError('Please fill in all fields.', securityError);
+    // Check if at least one question and answer pair is provided
+    const hasQuestion1 = question1 && answer1;
+    const hasQuestion2 = question2 && answer2;
+    
+    if (!hasQuestion1 && !hasQuestion2) {
+        showError('Please provide at least one security question and answer.', securityError);
         return;
     }
     
-    if (question1 === question2) {
+    // Validate that if a question is selected, an answer is provided
+    if (question1 && !answer1) {
+        showError('Please provide an answer for security question 1.', securityError);
+        return;
+    }
+    
+    if (question2 && !answer2) {
+        showError('Please provide an answer for security question 2.', securityError);
+        return;
+    }
+    
+    // Validate that if an answer is provided, a question is selected
+    if (answer1 && !question1) {
+        showError('Please select a security question 1.', securityError);
+        return;
+    }
+    
+    if (answer2 && !question2) {
+        showError('Please select a security question 2.', securityError);
+        return;
+    }
+    
+    // Check that different questions are selected if both are provided
+    if (hasQuestion1 && hasQuestion2 && question1 === question2) {
         showError('Please select different questions.', securityError);
         return;
     }
@@ -348,7 +556,7 @@ document.getElementById('save-security-questions')?.addEventListener('click', fu
                 text: "Security questions updated successfully!"
             });
         } else {
-            showError(data.error || 'Error updating security questions.', securityError);
+            showError(data.message || 'Error updating security questions.', securityError);
         }
     })
     .catch(error => {
