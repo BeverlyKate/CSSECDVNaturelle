@@ -1,4 +1,7 @@
 <link rel="stylesheet" href="/css/login-admin.css">
+<link rel="stylesheet" href="/css/modal.css">
+<link rel="stylesheet" href="/css/bs-form-override.css">
+<link rel="stylesheet" href="/css/form.css">
 <script type="module" src="/js/auth.js"></script>
 
 <div id="salon-title-login">Salon</br>Naturelle</div>
@@ -13,9 +16,256 @@
             <input class="form-control form-control-lg" id="input-password" name="password" type="password" placeholder="Password"{{#if (isDefined logged_in)}}{{#unless (isEqual logged_in.type "admin")}} disabled{{/unless}}{{/if}}>
         </div>
         <div class="error-msg" id="login-admin-error-msg" data-error-status="{{#if (isDefined error)}}error{{else}}normal{{/if}}">{{error}}</div>
+        {{#if success}}
+        <div class="error-msg" id="login-admin-success-msg" data-error-status="success">{{success}}</div>
+        {{/if}}
+        {{#if showForgotPassword}}
+        <div class="forgot-pass">
+            <a href="#" id="forgot-password-link">Forgot your password?</a>
+        </div>
+        {{/if}}
         <div id="last-row">
             <a href="/" id="form-switch-link">Go Back To Customer View</a>
             <button class="btn" id="btn-submit" type="submit"{{#if (isDefined logged_in)}}{{#unless (isEqual logged_in.type "admin")}} disabled{{/unless}}{{/if}}>Log In</button>
         </div>
     </form>
 </div>
+
+<!-- Username Input Modal -->
+<div class="modal" id="username-input-modal" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Forgot Password</h5>
+                <button type="button" class="btn-close" id="close-username-modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Enter your username to recover your password:</p>
+                <div class="mb-3">
+                    <label for="recovery-username" class="form-label">Username</label>
+                    <input type="text" id="recovery-username" placeholder="Username" class="form-control">
+                </div>
+                <div id="username-error" class="error-msg" data-error-status="normal"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancel-username" class="btn btn-discard"><i class="fa fa-times"></i>Cancel</button>
+                <button type="button" id="submit-username" class="btn btn-modal-success"><i class="fa fa-check"></i>Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Questions Modal -->
+<div class="modal" id="security-question-modal" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Security Questions</h5>
+                <button type="button" class="btn-close" id="close-security-modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="question1-container" style="display: none;">
+                    <div class="mb-3">
+                    </div>
+                </div>
+                <div id="question2-container" style="display: none;">
+                    <div class="mb-3">
+                    </div>
+                </div>
+                <div id="security-error" class="error-msg" data-error-status="normal"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancel-security" class="btn btn-discard"><i class="fa fa-times"></i>Cancel</button>
+                <button type="button" id="submit-security-answers" class="btn btn-modal-success"><i class="fa fa-check"></i>Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const usernameModal = document.getElementById('username-input-modal');
+    const securityModal = document.getElementById('security-question-modal');
+    
+    // Username modal elements
+    const closeUsernameModal = document.getElementById('close-username-modal');
+    const cancelUsername = document.getElementById('cancel-username');
+    const submitUsername = document.getElementById('submit-username');
+    const usernameError = document.getElementById('username-error');
+    const recoveryUsername = document.getElementById('recovery-username');
+    
+    // Security modal elements
+    const closeSecurityModal = document.getElementById('close-security-modal');
+    const cancelSecurity = document.getElementById('cancel-security');
+    const submitSecurityAnswers = document.getElementById('submit-security-answers');
+    const securityError = document.getElementById('security-error');
+    
+    let currentUsername = '';
+
+    // Show username input modal when "Forgot Password" is clicked
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            usernameModal.style.display = 'block';
+            usernameModal.classList.add('show');
+            document.body.classList.add('modal-open');
+        });
+    }
+
+    // Username modal close handlers
+    function closeUsernameModalHandler() {
+        usernameModal.style.display = 'none';
+        usernameModal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        recoveryUsername.value = '';
+        usernameError.setAttribute('data-error-status', 'normal');
+        usernameError.textContent = '';
+        // Reset the entire flow when username modal is closed
+        currentUsername = '';
+        closeSecurityModalHandler();
+    }
+
+    if (closeUsernameModal) closeUsernameModal.addEventListener('click', closeUsernameModalHandler);
+    if (cancelUsername) cancelUsername.addEventListener('click', closeUsernameModalHandler);
+
+    // Security modal close handlers
+    function closeSecurityModalHandler() {
+        securityModal.style.display = 'none';
+        securityModal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        const answer1 = document.getElementById('security-answer1');
+        const answer2 = document.getElementById('security-answer2');
+        if (answer1) answer1.value = '';
+        if (answer2) answer2.value = '';
+        securityError.setAttribute('data-error-status', 'normal');
+        securityError.textContent = '';
+    }
+
+    if (closeSecurityModal) closeSecurityModal.addEventListener('click', closeSecurityModalHandler);
+    if (cancelSecurity) cancelSecurity.addEventListener('click', closeSecurityModalHandler);
+
+    // Submit username and fetch security questions
+    if (submitUsername) {
+        submitUsername.addEventListener('click', async function() {
+            const username = recoveryUsername.value.trim();
+            
+            if (!username) {
+                usernameError.setAttribute('data-error-status', 'error');
+                usernameError.textContent = 'Please enter your username.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/admin/security-questions?username=${encodeURIComponent(username)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUsername = username;
+                    console.log('Username set to:', currentUsername);
+                    
+                    // Hide username modal and show security questions modal
+                    usernameModal.style.display = 'none';
+                    usernameModal.classList.remove('show');
+                    
+                    // Set up security questions
+                    const question1Container = document.getElementById('question1-container');
+                    const question2Container = document.getElementById('question2-container');
+                    
+                    if (data.question1) {
+                        question1Container.style.display = 'block';
+                        question1Container.querySelector('.mb-3').innerHTML = `
+                            <label class="form-label">${data.question1}</label>
+                            <input type="text" class="form-control" id="security-answer1" placeholder="Enter your answer">
+                        `;
+                    }
+                    
+                    if (data.question2) {
+                        question2Container.style.display = 'block';
+                        question2Container.querySelector('.mb-3').innerHTML = `
+                            <label class="form-label">${data.question2}</label>
+                            <input type="text" class="form-control" id="security-answer2" placeholder="Enter your answer">
+                        `;
+                    }
+                    
+                    securityModal.style.display = 'block';
+                    securityModal.classList.add('show');
+                } else {
+                    usernameError.setAttribute('data-error-status', 'error');
+                    usernameError.textContent = data.message || 'No admin account found with this username.';
+                }
+            } catch (error) {
+                usernameError.setAttribute('data-error-status', 'error');
+                usernameError.textContent = 'An error occurred while checking the username.';
+            }
+        });
+    }
+
+    // Submit security answers
+    if (submitSecurityAnswers) {
+        submitSecurityAnswers.addEventListener('click', async function() {
+            const answer1 = document.getElementById('security-answer1')?.value.trim() || '';
+            const answer2 = document.getElementById('security-answer2')?.value.trim() || '';
+            
+            if (!currentUsername) {
+                securityError.setAttribute('data-error-status', 'error');
+                securityError.textContent = 'Session expired. Please start over.';
+                return;
+            }
+            
+            // Check if at least one answer is provided
+            if (!answer1 && !answer2) {
+                securityError.setAttribute('data-error-status', 'error');
+                securityError.textContent = 'Please answer at least one security question.';
+                return;
+            }
+            
+            try {
+                console.log('Sending request with:', { 
+                    username: currentUsername, 
+                    answer1: answer1,
+                    answer2: answer2
+                });
+                
+                const response = await fetch('/admin/security-answers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: currentUsername,
+                        answer1: answer1,
+                        answer2: answer2
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.success) {
+                    // Redirect to reset password page with token
+                    window.location.href = `/admin/reset-password?token=${data.resetToken}`;
+                } else {
+                    securityError.setAttribute('data-error-status', 'error');
+                    securityError.textContent = data.message || 'Incorrect security answers. Please try again.';
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                securityError.setAttribute('data-error-status', 'error');
+                securityError.textContent = 'An error occurred. Please try again.';
+            }
+        });
+    }
+
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === usernameModal) {
+            closeUsernameModalHandler();
+        }
+        if (event.target === securityModal) {
+            closeSecurityModalHandler();
+        }
+    });
+});
+</script>

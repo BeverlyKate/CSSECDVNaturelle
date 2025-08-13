@@ -81,6 +81,7 @@ const controller = {
         layout: "no-sidebar",
         active: { login: true },
         error: "Please enter your username and password.",
+        showForgotPassword: true,
       });
       return;
     }
@@ -93,6 +94,7 @@ const controller = {
                 layout: "no-sidebar",
                 active: {login: true},
                 error: "Incorrect username or password.",
+                showForgotPassword: true,
             });
             return;
         }
@@ -113,6 +115,7 @@ const controller = {
           layout: "no-sidebar",
           active: { login: true },
           error: message,
+          showForgotPassword: true,
         });
         await Admin.findByIdAndUpdate(result._id, {
           lastFailedLogin: new Date(),
@@ -144,6 +147,7 @@ const controller = {
         layout: "no-sidebar",
         active: { login: true },
         error: message,
+        showForgotPassword: true,
       });
       return;
     }
@@ -158,102 +162,183 @@ const controller = {
         res.send(username);
     },
 
-    postAdminSettings: async function (req, res) {
+    getAdminSettings: async function (req, res) {
         if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
-            res.sendStatus(401); // HTTP 401: Unauthorized
+            res.redirect("/admin");
             return;
         }
 
-        let username = req.body.username;
-        let old_password = req.body.old_password;
-        let new_password = req.body.new_password;
+        // Fetch admin's current security questions
+        const admin = await Admin.findById(req.session.logged_in.user.id, 'securityQuestion1 securityQuestion2');
 
-        if (username === "") {
-            const error_msg = "Please enter a username.";
-            await logInputValidation(
-                req.session.logged_in.user.id,
-                req.path,
-                "username",
-                ValidationRule.Required,
-                username,
-                error_msg
-            );
-            res.status(400).send({error: error_msg});
-            return;
-        }
+        res.render("admin-settings", {
+            layout: "admin",
+            logged_in: req.session.logged_in,
+            admin: admin,
+            active: {admin_settings: true},
+            helpers: {
+                formatDate: dateHelper.formatDate,
+            },
+        });
+    },
 
-        if (old_password === "") {
-            const error_msg = "Please enter your current password to continue.";
-            await logInputValidation(
-                req.session.logged_in.user.id,
-                req.path,
-                "old_password",
-                ValidationRule.Required,
-                old_password,
-                error_msg
-            );
-            res.status(400).send({error: error_msg});
-            return;
-        }
-
-        let currentPassword = await Admin.findOne({username: req.session.logged_in.user.username}, "password");
-
-        let passwordCompare = await bcrypt.compare(old_password, currentPassword.password);
-        if (!passwordCompare) {
-            await logAuthAttempt(req.session.logged_in.user.username, Status.Fail, UserType.Admin, req.path, AttemptType.PasswordVerification);
-            res.status(403).send({error: "Current password is incorrect!"});
-            return;
-        }
-
-        await logAuthAttempt(req.session.logged_in.user.username, Status.Success, UserType.Admin, req.path, AttemptType.PasswordVerification);
-
-        if (new_password !== "") {
-            if (new_password.length < 8) {
-                const error_msg = "Password must contain at least 8 characters!";
-                await logInputValidation(
-                    req.session.logged_in.user.id,
-                    req.path,
-                    "new_password",
-                    ValidationRule.InvalidLengthMin,
-                    new_password,
-                    error_msg
-                );
-                res.status(403).send({error: error_msg});
+    postAdminSettings: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== "admin") {
+                res.sendStatus(401); // HTTP 401: Unauthorized
                 return;
             }
 
-            let passwordHashed = await bcrypt.hash(new_password, 10);
+            let admin_id = req.session.logged_in.user.id;
+            let username = req.body.username;
 
+            if (username === "") {
+                const error_msg = "Please enter a username.";
+                await logInputValidation(
+                    req.session.logged_in.user.id,
+                    req.path,
+                    "username",
+                    ValidationRule.Required,
+                    username,
+                    error_msg
+                );
+                res.status(400).send({error: error_msg});
+                return;
+            }
+
+            // Check if username is already taken by another admin
+            const existingAdmin = await Admin.findOne({ 
+                username: username, 
+                _id: { $ne: admin_id } 
+            });
+            
+            if (existingAdmin) {
+                res.status(400).send({ error: "This username is already in use by another admin account." });
+                return;
+            }
+
+            // Update admin profile
             await Admin.updateOne(
-                {username: req.session.logged_in.user.username},
+                { _id: admin_id },
                 {
                     username: username,
-                    password: passwordHashed,
                 }
             );
 
+            // Update session data
+            req.session.logged_in.user = {
+                id: admin_id,
+                username: username,
+                lastLogin: req.session.logged_in.user.lastLogin,
+                lastFailedLogin: req.session.logged_in.user.lastFailedLogin,
+            };
+
             res.sendStatus(200);
-            return;
+        } catch (error) {
+            console.error('Error updating admin profile settings:', error);
+            res.status(500).send({ error: "An error occurred while updating your profile settings." });
         }
+    },
 
-        await Admin.updateOne(
-            {username: req.session.logged_in.user.username},
-            {
-                username: username,
+    updateAdminSecurityQuestions: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== 'admin') {
+                return res.status(401).json({ success: false, message: 'Unauthorized access.' });
             }
-        );
 
-        req.session.logged_in = {
-            state: true,
-            type: "admin",
-            user: {
-                username: username,
-                lastLogin: result.lastLogin,
-                lastFailedLogin: result.lastFailedLogin,
-            },
-        };
+            const { question1, answer1, question2, answer2 } = req.body;
+            const adminId = req.session.logged_in.user.id;
 
-        res.sendStatus(200);
+            // Validate that at least one question and answer is provided
+            if ((!question1 || !answer1) && (!question2 || !answer2)) {
+                return res.status(400).json({ success: false, message: 'At least one security question and answer must be provided.' });
+            }
+
+            // Hash the answers
+            const saltRounds = 10;
+            let hashedAnswer1 = null;
+            let hashedAnswer2 = null;
+
+            if (answer1) {
+                hashedAnswer1 = await bcrypt.hash(answer1, saltRounds);
+            }
+
+            if (answer2) {
+                hashedAnswer2 = await bcrypt.hash(answer2, saltRounds);
+            }
+
+            // Update admin security questions
+            await Admin.updateOne(
+                { _id: adminId },
+                {
+                    securityQuestion1: question1 || null,
+                    securityAnswer1: hashedAnswer1,
+                    securityQuestion2: question2 || null,
+                    securityAnswer2: hashedAnswer2
+                }
+            );
+
+            res.json({ success: true, message: 'Security questions updated successfully.' });
+        } catch (error) {
+            console.error('Error updating admin security questions:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while updating security questions.' });
+        }
+    },
+
+    changeAdminPasswordSettings: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== 'admin') {
+                return res.status(401).json({ success: false, message: 'Unauthorized access.' });
+            }
+
+            const { newPassword } = req.body;
+            const adminId = req.session.logged_in.user.id;
+
+            if (!newPassword) {
+                return res.status(400).json({ success: false, message: 'New password is required.' });
+            }
+
+            // Validate password strength
+            if (newPassword.length < 8) {
+                return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long.' });
+            }
+
+            if (!/[A-Z]/.test(newPassword)) {
+                return res.status(400).json({ success: false, message: 'Password must contain at least one uppercase letter.' });
+            }
+
+            if (!/[a-z]/.test(newPassword)) {
+                return res.status(400).json({ success: false, message: 'Password must contain at least one lowercase letter.' });
+            }
+
+            if (!/[0-9]/.test(newPassword)) {
+                return res.status(400).json({ success: false, message: 'Password must contain at least one number.' });
+            }
+
+            // Get admin
+            const admin = await Admin.findById(adminId);
+
+            if (!admin) {
+                return res.status(404).json({ success: false, message: 'Admin not found.' });
+            }
+
+            // Hash the new password
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+            // Update admin password
+            await Admin.updateOne(
+                { _id: adminId },
+                {
+                    password: hashedPassword
+                }
+            );
+
+            res.json({ success: true, message: 'Password changed successfully.' });
+        } catch (error) {
+            console.error('Error changing admin password in settings:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while changing your password. Please try again.' });
+        }
     },
 
     getAdminDashboard: async function (req, res, next) {
@@ -1012,6 +1097,340 @@ const controller = {
             res.sendStatus(200); // HTTP 200: OK
         } else {
             res.json({hasError: true, error: "Nothing to delete."});
+        }
+    },
+
+    // Admin Forgot Password Methods
+    getAdminSecurityQuestions: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== 'admin') {
+                return res.status(401).json({ success: false, message: 'Unauthorized access.' });
+            }
+
+            const adminId = req.session.logged_in.user.id;
+            const admin = await Admin.findById(adminId, 'securityQuestion1 securityQuestion2');
+
+            if (!admin) {
+                return res.status(404).json({ success: false, message: 'Admin not found.' });
+            }
+
+            // Check if admin has security questions set up
+            if (!admin.securityQuestion1 && !admin.securityQuestion2) {
+                return res.json({ 
+                    success: false, 
+                    message: 'No security questions are set up. Please set up security questions first.',
+                    hasQuestions: false
+                });
+            }
+
+            res.json({ 
+                success: true, 
+                securityQuestion1: admin.securityQuestion1 || null,
+                securityQuestion2: admin.securityQuestion2 || null,
+                hasQuestions: true
+            });
+        } catch (error) {
+            console.error('Error checking admin security questions:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while checking security questions.' });
+        }
+    },
+
+    postAdminSecurityAnswers: async function (req, res) {
+        try {
+            if (!req.session.logged_in || req.session.logged_in.type !== 'admin') {
+                return res.status(401).json({ success: false, message: 'Unauthorized access.' });
+            }
+
+            const { answer1, answer2 } = req.body;
+            const adminId = req.session.logged_in.user.id;
+            
+            if (!answer1 && !answer2) {
+                return res.status(400).json({ success: false, error: 'At least one security answer is required.' });
+            }
+
+            const admin = await Admin.findById(adminId, 'securityQuestion1 securityQuestion2 securityAnswer1 securityAnswer2');
+            
+            if (!admin) {
+                return res.status(404).json({ success: false, error: 'Admin not found.' });
+            }
+
+            // Check security answers (using bcrypt comparison)
+            let isCorrect1 = false;
+            let isCorrect2 = false;
+
+            // If answer1 is provided and admin has securityAnswer1, check it
+            if (answer1 && admin.securityAnswer1) {
+                isCorrect1 = await bcrypt.compare(answer1, admin.securityAnswer1);
+            }
+            
+            // If answer2 is provided and admin has securityAnswer2, check it
+            if (answer2 && admin.securityAnswer2) {
+                isCorrect2 = await bcrypt.compare(answer2, admin.securityAnswer2);
+            }
+
+            // At least one answer must be correct, and if both are provided, both must be correct
+            let isCorrect = false;
+            if (answer1 && answer2) {
+                // Both answers provided - both must be correct
+                isCorrect = isCorrect1 && isCorrect2;
+            } else if (answer1) {
+                // Only answer1 provided
+                isCorrect = isCorrect1;
+            } else if (answer2) {
+                // Only answer2 provided
+                isCorrect = isCorrect2;
+            }
+
+            if (!isCorrect) {
+                return res.status(400).json({ verified: false, error: 'Incorrect security answers. Please try again.' });
+            }
+
+            res.json({ verified: true, success: true });
+        } catch (error) {
+            console.error('Error verifying admin security answers:', error);
+            res.status(500).json({ success: false, error: 'An error occurred while verifying the answers.' });
+        }
+    },
+
+    getAdminResetPassword: async function (req, res) {
+        const token = req.query.token;
+        
+        if (!token) {
+            return res.render('login-admin', {
+                layout: 'no-sidebar',
+                error: 'Invalid reset link. Please try the forgot password process again.'
+            });
+        }
+
+        try {
+            // Find admin with this reset token and check if it's still valid
+            const admin = await Admin.findOne({
+                resetPasswordToken: token,
+                resetPasswordExpires: { $gt: Date.now() }
+            });
+            
+            if (!admin) {
+                return res.render('login-admin', {
+                    layout: 'no-sidebar',
+                    error: 'Reset link has expired or is invalid. Please try the forgot password process again.'
+                });
+            }
+
+            // Render the reset password form
+            res.render('reset-password-admin', {
+                layout: 'no-sidebar',
+                token: token,
+                isAdmin: true
+            });
+        } catch (error) {
+            console.error('Error validating admin reset token:', error);
+            res.render('login-admin', {
+                layout: 'no-sidebar',
+                error: 'An error occurred. Please try again.'
+            });
+        }
+    },
+
+    postAdminResetPassword: async function (req, res) {
+        const { token, newPassword, confirmPassword } = req.body;
+        
+        // Validate input
+        if (!token || !newPassword || !confirmPassword) {
+            return res.render('reset-password-admin', {
+                layout: 'no-sidebar',
+                token: token,
+                isAdmin: true,
+                error: 'All fields are required.'
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.render('reset-password-admin', {
+                layout: 'no-sidebar',
+                token: token,
+                isAdmin: true,
+                error: 'Passwords do not match.'
+            });
+        }
+
+        // Validate password strength
+        if (newPassword.length < 8) {
+            return res.render('reset-password-admin', {
+                layout: 'no-sidebar',
+                token: token,
+                isAdmin: true,
+                error: 'Password must be at least 8 characters long.'
+            });
+        }
+
+        if (!/[A-Z]/.test(newPassword)) {
+            return res.render('reset-password-admin', {
+                layout: 'no-sidebar',
+                token: token,
+                isAdmin: true,
+                error: 'Password must contain at least one uppercase letter.'
+            });
+        }
+
+        if (!/[a-z]/.test(newPassword)) {
+            return res.render('reset-password-admin', {
+                layout: 'no-sidebar',
+                token: token,
+                isAdmin: true,
+                error: 'Password must contain at least one lowercase letter.'
+            });
+        }
+
+        if (!/[0-9]/.test(newPassword)) {
+            return res.render('reset-password-admin', {
+                layout: 'no-sidebar',
+                token: token,
+                isAdmin: true,
+                error: 'Password must contain at least one number.'
+            });
+        }
+
+        try {
+            // Find admin with valid reset token
+            const admin = await Admin.findOne({
+                resetPasswordToken: token,
+                resetPasswordExpires: { $gt: Date.now() }
+            });
+            
+            if (!admin) {
+                return res.render('reset-password-admin', {
+                    layout: 'no-sidebar',
+                    token: token,
+                    isAdmin: true,
+                    error: 'Reset link has expired or is invalid. Please try the forgot password process again.'
+                });
+            }
+
+            // Hash the new password
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+            // Update admin password and clear reset token
+            await Admin.updateOne(
+                { _id: admin._id },
+                {
+                    password: hashedPassword,
+                    resetPasswordToken: undefined,
+                    resetPasswordExpires: undefined
+                }
+            );
+
+            // Redirect to admin login with success message
+            res.redirect('/admin?reset=success');
+
+        } catch (error) {
+            console.error('Error resetting admin password:', error);
+            res.render('reset-password-admin', {
+                layout: 'no-sidebar',
+                token: token,
+                isAdmin: true,
+                error: 'An error occurred while resetting your password. Please try again.'
+            });
+        }
+    },
+
+    // Admin Password Recovery Functions (for forgot password flow)
+    getAdminSecurityQuestionsForRecovery: async function (req, res) {
+        const username = req.query.username;
+        
+        if (!username) {
+            return res.status(400).json({ success: false, message: 'Username is required.' });
+        }
+
+        try {
+            const admin = await Admin.findOne({ username: username }, 'securityQuestion1 securityQuestion2');
+            
+            if (!admin) {
+                return res.status(404).json({ success: false, message: 'No admin account found with this username.' });
+            }
+
+            // Check if admin has any security questions
+            if (!admin.securityQuestion1 && !admin.securityQuestion2) {
+                return res.status(404).json({ success: false, message: 'No security questions are set up for this account. Please contact your administrator.' });
+            }
+
+            res.json({ 
+                success: true, 
+                question1: admin.securityQuestion1 || null,
+                question2: admin.securityQuestion2 || null
+            });
+        } catch (error) {
+            console.error('Error fetching admin security questions:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while fetching the security questions.' });
+        }
+    },
+
+    postAdminSecurityAnswersForRecovery: async function (req, res) {
+        const { username, answer1, answer2 } = req.body;
+        
+        if (!username) {
+            return res.status(400).json({ success: false, message: 'Username is required.' });
+        }
+
+        if (!answer1 && !answer2) {
+            return res.status(400).json({ success: false, message: 'At least one security answer is required.' });
+        }
+
+        try {
+            const admin = await Admin.findOne({ username: username }, 'securityQuestion1 securityQuestion2 securityAnswer1 securityAnswer2');
+            
+            if (!admin) {
+                return res.status(404).json({ success: false, message: 'No admin account found with this username.' });
+            }
+
+            // Check security answers (using bcrypt comparison)
+            let isCorrect1 = false;
+            let isCorrect2 = false;
+
+            // If answer1 is provided and admin has securityAnswer1, check it
+            if (answer1 && admin.securityAnswer1) {
+                isCorrect1 = await bcrypt.compare(answer1, admin.securityAnswer1);
+            }
+            
+            // If answer2 is provided and admin has securityAnswer2, check it
+            if (answer2 && admin.securityAnswer2) {
+                isCorrect2 = await bcrypt.compare(answer2, admin.securityAnswer2);
+            }
+
+            // At least one answer must be correct, and if both are provided, both must be correct
+            let isCorrect = false;
+            if (answer1 && answer2) {
+                // Both answers provided - both must be correct
+                isCorrect = isCorrect1 && isCorrect2;
+            } else if (answer1) {
+                // Only answer1 provided
+                isCorrect = isCorrect1;
+            } else if (answer2) {
+                // Only answer2 provided
+                isCorrect = isCorrect2;
+            }
+
+            if (!isCorrect) {
+                return res.status(400).json({ success: false, message: 'Incorrect security answers. Please try again.' });
+            }
+
+            // Generate a reset token
+            const resetToken = require('crypto').randomBytes(32).toString('hex');
+            const resetExpires = new Date(Date.now() + 3600000); // 1 hour from now
+
+            // Update admin with reset token
+            await Admin.updateOne(
+                { username: username },
+                { 
+                    resetPasswordToken: resetToken,
+                    resetPasswordExpires: resetExpires 
+                }
+            );
+
+            res.json({ success: true, resetToken: resetToken });
+        } catch (error) {
+            console.error('Error verifying admin security answers:', error);
+            res.status(500).json({ success: false, message: 'An error occurred while verifying the answers.' });
         }
     },
 };

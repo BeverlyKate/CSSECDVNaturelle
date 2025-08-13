@@ -31,12 +31,18 @@
             <li class="nav-item{{#if active.admin_FAQ}} active{{/if}}">
                 <a href="/admin/faq" class="nav-link">FAQ<i class="fa fa-solid fa-question-circle"></i></a>
             </li>
+            <li class="nav-separator">
+                <hr>
+            </li>
+            <li class="nav-item{{#if active.admin_settings}} active{{/if}}">
+                <a href="/admin/settings" class="nav-link">Settings<i class="fa fa-solid fa-gear"></i></a>
+            </li>
         </ul>
     </div>
     <div id="bottom-btn-container">
         <a href="/" class="btn bottom-btn" id="customer-view-btn"><i class="fa fa-solid fa-laptop"></i>Customer View</a>
         <div id="account-tab-container">
-            <button class="btn bottom-btn" id="settings-btn" data-bs-toggle="modal" data-bs-target="#modal-settings-edit"><i class="fa fa-solid fa-gear"></i>Settings</button>
+            <a href="/admin/settings" class="btn bottom-btn" id="settings-btn"><i class="fa fa-solid fa-gear"></i>Settings</a>
             <a href="/logout" class="btn bottom-btn" id="admin-logout-btn"><i class="fa fa-solid fa-right-from-bracket"></i>Log Out</a>
         </div>
     </div>
@@ -51,7 +57,7 @@
                 <div class="fab-item-label">Customer View</div>
                 <div class="fab-item-icon"><i class="fa fa-laptop"></i></div>
             </a>
-            <a href="#" class="fab-item-group" id="settings-fab" data-bs-toggle="modal" data-bs-target="#modal-settings-edit">
+            <a href="/admin/settings" class="fab-item-group" id="settings-fab">
                 <div class="fab-item-label">Settings</div>
                 <div class="fab-item-icon"><i class="fa fa-gear"></i></div>
             </a>
@@ -59,41 +65,6 @@
                 <div class="fab-item-label">Log Out</div>
                 <div class="fab-item-icon"><i class="fa fa-right-from-bracket"></i></div>
             </a>
-        </div>
-    </div>
-</div>
-
-<div class="modal modal-md fade" id="modal-settings-edit">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Account Settings</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="form-settings-edit">
-                    <div class="row mb-3">
-                        <div class="col">
-                            <label for="input-settings-username" class="form-label">Username</label>
-                            <input type="text" id="input-settings-username" name="username" class="form-control" value="{{logged_in.user.username}}">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="input-settings-old-password" class="form-label">Old Password</label>
-                        <input type="password" id="input-settings-old-password" name="old_password" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="input-settings-new-password" class="form-label">New Password</label>
-                        <input type="password" id="input-settings-new-password" name="new_password" class="form-control">
-                    </div>
-                    <div id="form-password-notice">You need to enter your current password<br />to make any changes.</div>
-                    <div class="error-msg" id="form-settings-error" data-error-status="normal"></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-discard" data-bs-dismiss="modal"><i class="fa fa-trash"></i>Discard</button>
-                <button type="submit" class="btn btn-modal-success" form="form-settings-edit"><i class="fa fa-check"></i>Save</button>
-            </div>
         </div>
     </div>
 </div>

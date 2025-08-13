@@ -61,7 +61,12 @@ app.get("/admin/getuser", admin_controller.getCurrentUser);
 
 app.get("/admin/logs", admin_controller.getAdminLogs);
 
+app.get("/admin/settings", admin_controller.getAdminSettings);
 app.post("/admin/settings", admin_controller.postAdminSettings);
+app.post('/admin/update-security-questions', admin_controller.updateAdminSecurityQuestions);
+app.get('/admin/settings/security-questions', admin_controller.getAdminSecurityQuestions);
+app.post('/admin/settings/security-answers', admin_controller.postAdminSecurityAnswers);
+app.post('/admin/change-password-settings', admin_controller.changeAdminPasswordSettings);
 
 app.get("/admin/reservations", admin_controller.getAdminReservations);
 app.get("/admin/reservations/get", admin_controller.getAllReservations);
@@ -80,6 +85,11 @@ app.get("/admin/services/get-service-collections", admin_controller.getServiceCo
 app.post("/admin/services/add-service-collection", admin_controller.postAddServiceCollection);
 app.post("/admin/services/edit-service-collection", admin_controller.postEditServiceCollection);
 app.post("/admin/services/delete-service-collection", admin_controller.postDeleteServiceCollection);
+
+app.get("/admin/security-questions", admin_controller.getAdminSecurityQuestionsForRecovery);
+app.post("/admin/security-answers", admin_controller.postAdminSecurityAnswersForRecovery);
+app.get('/admin/reset-password', admin_controller.getAdminResetPassword);
+app.post('/admin/reset-password', admin_controller.postAdminResetPassword);
 
 app.get("/employee", employee_controller.getEmployeeLogin, employee_controller.getEmployeeDashboard);
 app.post("/employee", employee_controller.postEmployeeLogin);
