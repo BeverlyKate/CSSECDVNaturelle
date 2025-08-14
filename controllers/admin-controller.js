@@ -804,7 +804,9 @@ const controller = {
             for (const s of servicesArr) {
                 if (parseFloat(s.price) <= 0.00) {
                     negPrice = true;
-                    res.status(400).send({error: "Price should be greater than 0."});
+                    const error_msg = "Price should be greater than 0.";
+                    await logInputValidation(req.session.logged_in.user.id, req.path, "input-tabular-price", ValidationRule.InvalidValueMin, s.price, error_msg);
+                    res.status(400).send({error: error_msg});
                     break;
                 }
             }
@@ -821,7 +823,9 @@ const controller = {
             for (const s of specialServicesArr) {
                 if (parseFloat(s.price) <= 0.00) {
                     negPrice = true;
-                    res.status(400).send({error: "Price should be greater than 0."});
+                    const error_msg = "Price should be greater than 0.";
+                    await logInputValidation(req.session.logged_in.user.id, req.path, "input-standalone-price", ValidationRule.InvalidValueMin, s.price, error_msg);
+                    res.status(400).send({error: error_msg});
                     break;
                 }
             }
@@ -891,7 +895,9 @@ const controller = {
             for (const s of servicesArr) {
                 if (parseFloat(s.price) <= 0.00) {
                     negPrice = true;
-                    res.status(400).send({error: "Price should be greater than 0."});
+                    const error_msg = "Price should be greater than 0.";
+                    await logInputValidation(req.session.logged_in.user.id, req.path, "input-tabular-price", ValidationRule.InvalidValueMin, s.price, error_msg);
+                    res.status(400).send({error: error_msg});
                     break;
                 }
             }
@@ -911,7 +917,9 @@ const controller = {
             for (const s of specialServicesArr) {
                 if (parseFloat(s.price) <= 0.00) {
                     negPrice = true;
-                    res.status(400).send({error: "Price should be greater than 0."});
+                    const error_msg = "Price should be greater than 0.";
+                    await logInputValidation(req.session.logged_in.user.id, req.path, "input-standalone-price", ValidationRule.InvalidValueMin, s.price, error_msg);
+                    res.status(400).send({error: error_msg});
                     break;
                 }
             }
