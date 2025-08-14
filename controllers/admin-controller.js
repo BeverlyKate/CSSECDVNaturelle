@@ -798,15 +798,38 @@ const controller = {
 
         // extract services and insert to DB
 
-        if (Array.isArray(req.body.services) && req.body.services.length !== 0) {
-            await Service.insertMany(req.body.services);
+        const servicesArr = req.body.services;
+        if (Array.isArray(servicesArr) && servicesArr.length !== 0) {
+            let negPrice = false;
+            for (const s of servicesArr) {
+                if (parseFloat(s.price) <= 0.00) {
+                    negPrice = true;
+                    res.status(400).send({error: "Price should be greater than 0."});
+                    break;
+                }
+            }
+            if (!negPrice) {
+                await Service.insertMany(servicesArr);
+            } else {
+                return;
+            }
         }
 
-        if (
-            Array.isArray(req.body.specialServices) &&
-            req.body.specialServices.length !== 0
-        ) {
-            await SpecialService.insertMany(req.body.specialServices);
+        const specialServicesArr = req.body.specialServices;
+        if (Array.isArray(specialServicesArr) && specialServicesArr.length !== 0) {
+            let negPrice = false;
+            for (const s of specialServicesArr) {
+                if (parseFloat(s.price) <= 0.00) {
+                    negPrice = true;
+                    res.status(400).send({error: "Price should be greater than 0."});
+                    break;
+                }
+            }
+            if (!negPrice) {
+                await SpecialService.insertMany(specialServicesArr);
+            } else {
+                return;
+            }
         }
 
         let services = await Service.find({serviceTitle: req.body.serviceTitle});
@@ -860,26 +883,47 @@ const controller = {
             _id: id,
         });
 
-        // delete existing info
-
-        await Service.deleteMany({
-            serviceTitle: service_collection_to_be_deleted.serviceTitle,
-        });
-        await SpecialService.deleteMany({
-            serviceTitle: service_collection_to_be_deleted.serviceTitle,
-        });
-
         // extract services and insert to DB
 
-        if (Array.isArray(req.body.services) && req.body.services.length !== 0) {
-            await Service.insertMany(req.body.services);
+        const servicesArr = req.body.services;
+        if (Array.isArray(servicesArr) && servicesArr.length !== 0) {
+            let negPrice = false;
+            for (const s of servicesArr) {
+                if (parseFloat(s.price) <= 0.00) {
+                    negPrice = true;
+                    res.status(400).send({error: "Price should be greater than 0."});
+                    break;
+                }
+            }
+            if (!negPrice) {
+                await Service.deleteMany({
+                    serviceTitle: service_collection_to_be_deleted.serviceTitle,
+                });
+                await Service.insertMany(servicesArr);
+            } else {
+                return;
+            }
         }
 
-        if (
-            Array.isArray(req.body.specialServices) &&
-            req.body.specialServices.length !== 0
-        ) {
-            await SpecialService.insertMany(req.body.specialServices);
+        const specialServicesArr = req.body.specialServices;
+        if (Array.isArray(specialServicesArr) && specialServicesArr.length !== 0) {
+            let negPrice = false;
+            for (const s of specialServicesArr) {
+                if (parseFloat(s.price) <= 0.00) {
+                    negPrice = true;
+                    res.status(400).send({error: "Price should be greater than 0."});
+                    break;
+                }
+            }
+            if (!negPrice) {
+                await SpecialService.deleteMany({
+                    serviceTitle: service_collection_to_be_deleted.serviceTitle,
+                });
+                await SpecialService.insertMany(specialServicesArr);
+            } else {
+                return;
+            }
+
         }
 
         let services = await Service.find({serviceTitle: req.body.serviceTitle});
