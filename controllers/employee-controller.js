@@ -13,6 +13,7 @@ const accountTimeout= require("../utils/accountTimeout.js");
 const {logInputValidation, ValidationRule} = require("../utils/util-log-input-validation");
 const {logAuthAttempt, Status, UserType, AttemptType} = require("../utils/util-log-auth-attempt");
 const {logAccessControl} = require("../utils/util-log-access-control");
+const Admin = require("../models/Admin");
 
 const controller = {
     getEmployeeLogin: async function (req, res, next) {
@@ -639,6 +640,15 @@ const controller = {
 
             if (!employee) {
                 return res.status(404).json({ success: false, message: 'Employee not found.' });
+            }
+
+            const minTimeBetweenPasswordChanges = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+            const now = new Date();
+
+            if (employee.lastPasswordChange && (now.getTime() - employee.lastPasswordChange.getTime() < minTimeBetweenPasswordChanges)) {
+                return res.status(400).json({ success: false, message: 'You can only change your password once every 1 day.' });
+            } else {
+                await Admin.updateOne({_id: employeeId}, {lastPasswordChange: now});
             }
 
             // Hash the new password

@@ -322,6 +322,15 @@ const controller = {
                 return res.status(404).json({ success: false, message: 'Admin not found.' });
             }
 
+            const minTimeBetweenPasswordChanges = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+            const now = new Date();
+
+            if (admin.lastPasswordChange && (now.getTime() - admin.lastPasswordChange.getTime() < minTimeBetweenPasswordChanges)) {
+                return res.status(400).json({ success: false, message: 'You can only change your password once every 1 day.' });
+            } else {
+                    await Admin.updateOne({_id: adminId}, {lastPasswordChange: now});
+            }
+
             // Hash the new password
             const saltRounds = 10;
             const hashedPassword = await bcrypt.hash(newPassword, saltRounds);

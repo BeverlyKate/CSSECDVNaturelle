@@ -10,6 +10,7 @@ const accountTimeout= require("../utils/accountTimeout");
 
 const {logAuthAttempt,Status,UserType,AttemptType,} = require("../utils/util-log-auth-attempt");
 const {logInputValidation,ValidationRule,} = require("../utils/util-log-input-validation");
+const Admin = require("../models/Admin");
 
 let generatedId = [];
 
@@ -903,6 +904,18 @@ const controller = {
           success: false, 
           message: 'New password is required.' 
         });
+      }
+
+      const userId = req.session.logged_in.user.id;
+      const user = await User.findById({ _id: userId});
+
+      const minTimeBetweenPasswordChanges = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+      const now = new Date();
+
+      if (user.lastPasswordChange && (now.getTime() - user.lastPasswordChange.getTime() < minTimeBetweenPasswordChanges)) {
+        return res.status(400).json({ success: false, message: 'You can only change your password once every 1 day.' });
+      } else {
+        await User.updateOne({_id: userId}, {lastPasswordChange: now});
       }
 
       // Hash the new password

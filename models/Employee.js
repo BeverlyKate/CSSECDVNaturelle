@@ -63,6 +63,10 @@ const EmployeeSchema = new mongoose.Schema({
   resetPasswordExpires: {
     type: Date,
     default: null,
+  },
+  lastPasswordChange: {
+    type: Date,
+    default: null
   }
 });
 

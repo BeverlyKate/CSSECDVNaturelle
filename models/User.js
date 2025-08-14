@@ -50,13 +50,17 @@ const UserSchema = new mongoose.Schema({
         required: false
     }, 
     numAttempts: {
-    type: Number,
-    default: 0,
+        type: Number,
+        default: 0,
     },
     timeoutEnd: {
-    type: Date,
-    default: null,
-  },
+        type: Date,
+        default: null,
+    },
+    lastPasswordChange: {
+        type: Date,
+        default: null
+    }
 })
 
 // for MongoDB collection "users"
