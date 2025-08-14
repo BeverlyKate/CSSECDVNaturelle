@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 
 const InCartService = require("../models/InCartService");
 const Reservation = require("../models/Reservation");
+const Employee = require("../models/Employee");
 const Notification = require("../models/Notification");
 const dateHelper = require("../utils/dateHelper");
 const accountTimeout= require("../utils/accountTimeout");
@@ -467,6 +468,12 @@ const controller = {
     let pservice = req.body.service;
     let employeeID = req.body.employeeID;
 
+    const employee = await Employee.findById(employeeID);
+    if (employee == null) {
+      res.status(400).send({error: "Error: Staff not found."})
+      return;
+    }
+
     let cart = {
       details: detail,
       preferredEmployee: pstaff,
@@ -486,7 +493,7 @@ const controller = {
       console.error("Error adding cart to MongoDB:", error);
     }
 
-    res.redirect("/serviceform");
+    res.sendStatus(201);
 
     // ////console.log(generatedId);
   },

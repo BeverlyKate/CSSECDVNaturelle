@@ -60,41 +60,69 @@ $(document).ready(function () {
           "data-service-price"
         );
 
-      addToCart(serviceGroupName, service_f, staff_f, details_val, price);
-
-      cart_obj = {
-        details: details_val,
-        service: service_f,
-        staff: staff_f,
-      };
-
-      cart_arr.push(cart_obj);
-
       ////console.log(cart_arr);
 
-      $.post(
-        "/serviceform",
-        {
+      let btn_submit = e.target.querySelector("button[type='submit']");
+      btn_submit.disabled = true;
+
+      let btn_submit_icon = btn_submit.querySelector("i");
+      btn_submit_icon.className = "";
+      btn_submit_icon.classList.add("spinner-border", "me-2");
+
+      $.post("/serviceform", {
           details: details_val,
           service: service_f,
           staff: staff_f,
           employeeID: staff_id,
-        },
-        function (data, status) {
-          if (status === "success") {
+      }, (data, status, xhr) => {
+          if (status === "success" && xhr.status === 201) {
             // Handle success, if needed
             //////console.log("AJAX request succeeded", data);
+
+            btn_submit.disabled = false;
+            btn_submit_icon.className = "";
+            btn_submit_icon.classList.add("fa", "fa-cart-plus");
+
+            addToCart(serviceGroupName, service_f, staff_f, details_val, price);
+
+            cart_obj = {
+              details: details_val,
+              service: service_f,
+              staff: staff_f,
+            };
+
+            cart_arr.push(cart_obj);
+
+            snackbar({
+              type: "primary",
+              text: "Service added to cart successfully.",
+            });
           } else {
             // Handle failure, if needed
             ////console.log("AJAX request failed", data);
+
+            btn_submit.disabled = false;
+            btn_submit_icon.className = "";
+            btn_submit_icon.classList.add("fa", "fa-cart-plus");
+
+            snackbar({
+              type: "error",
+              text: data.error
+            });
+          }
+        }).fail((xhr, status, error) => {
+          btn_submit.disabled = false;
+          btn_submit_icon.className = "";
+          btn_submit_icon.classList.add("fa", "fa-cart-plus");
+
+          if (xhr.status === 400) {
+            snackbar({
+              type: "error",
+              text: xhr.responseJSON.error
+            });
           }
         }
       );
-
-      snackbar({
-        type: "primary",
-        text: "Service added to cart successfully.",
-      });
     }
   });
 });

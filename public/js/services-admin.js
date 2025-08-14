@@ -189,7 +189,9 @@ $(document).ready(function () {
           }
         }
       ).fail(function (res) {
-        if (res.status === 403) {
+        if (res.status === 400) {
+          showError(res.responseJSON.error, "#add-service-collection-error-msg");
+        } else if (res.status === 403) {
           snackbar({
             type: "error",
             text: "Error: You are not logged in as an admin.",
@@ -227,30 +229,20 @@ $(document).ready(function () {
 
     if (!service_concern) {
       e.preventDefault();
-      showError(
-        "Please input a Service Concern",
-        "#edit-service-collection-error-msg"
+      showError("Please input a Service Concern", "#edit-service-collection-error-msg"
       );
     } else if (!service_title) {
       e.preventDefault();
-      showError(
-        "Please input a Service Title",
-        "#edit-service-collection-error-msg"
+      showError("Please input a Service Title", "#edit-service-collection-error-msg"
       );
-    } else if (
-      tabular_services_list.children().length == 0 &&
-      standalone_services_list.children().length == 0
+    } else if (tabular_services_list.children().length == 0 && standalone_services_list.children().length == 0
     ) {
       e.preventDefault();
-      showError(
-        "Please add at least 1 service in the collection",
-        "#edit-service-collection-error-msg"
+      showError("Please add at least 1 service in the collection", "#edit-service-collection-error-msg"
       );
     } else if (doesEditServiceCollHaveEmptyField()) {
       e.preventDefault();
-      showError(
-        "Please fill in all service fields",
-        "#edit-service-collection-error-msg"
+      showError("Please fill in all service fields", "#edit-service-collection-error-msg"
       );
     } else {
       e.preventDefault();
@@ -299,8 +291,7 @@ $(document).ready(function () {
         specialServices: standalone_services_arr,
       };
 
-      $.post(
-        "/admin/services/edit-service-collection",
+      $.post("/admin/services/edit-service-collection",
         service_coll,
         function (response) {
           if (response.hasError) {
@@ -318,7 +309,9 @@ $(document).ready(function () {
           }
         }
       ).fail(function (res) {
-        if (res.status === 403) {
+        if (res.status === 400) {
+          showError(res.responseJSON.error, "#edit-service-collection-error-msg");
+        } else if (res.status === 403) {
           snackbar({
             type: "error",
             text: "Error: You are not logged in as an admin.",
@@ -331,7 +324,7 @@ $(document).ready(function () {
         } else {
           snackbar({
             type: "error",
-            text: "Error: Something went wrong while trying to add the Service Collection.",
+            text: "Error: Something went wrong while trying to edit the Service Collection.",
             duration: "long",
           });
         }
@@ -464,20 +457,12 @@ $(document).ready(function () {
   /**
    * These event listeners resets the forms and refreshes the service collections that you can see when a modal closes
    */
-  document
-    .querySelectorAll(
-      "#add-service-collection-modal, #edit-service-collection-modal, #delete-service-collection-modal"
-    )
-    .forEach((modal) => {
+  document.querySelectorAll("#add-service-collection-modal, #edit-service-collection-modal, #delete-service-collection-modal").forEach((modal) => {
       modal.addEventListener("hidden.bs.modal", function () {
         this.querySelectorAll("input, textarea").forEach((input) => {
           input.value = "";
         });
-        this.querySelectorAll(
-          "input[type=checkbox], input[type=radio]"
-        ).forEach((input) => {
-          input.checked = "";
-        });
+        this.querySelectorAll("input[type=checkbox], input[type=radio]").forEach((input) => { input.checked = ""; });
         let error_msg = this.querySelector(".error-msg");
         if (error_msg !== null) {
           error_msg.textContent = "";
