@@ -52,6 +52,10 @@ const AdminSchema = new mongoose.Schema({
   lastPasswordChange: {
     type: Date,
     default: null,
+  },
+  previousPasswords: {
+    type: [String],
+    default: [],
   }
 });
 

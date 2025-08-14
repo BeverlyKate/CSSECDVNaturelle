@@ -60,6 +60,10 @@ const UserSchema = new mongoose.Schema({
     lastPasswordChange: {
         type: Date,
         default: null
+    },
+    previousPasswords: {
+        type: [String],
+        default: []
     }
 })
 

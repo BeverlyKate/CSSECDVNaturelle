@@ -946,13 +946,27 @@ const controller = {
       const now = new Date();
 
       if (user.lastPasswordChange && (now.getTime() - user.lastPasswordChange.getTime() < minTimeBetweenPasswordChanges)) {
-        return res.status(400).json({ success: false, message: 'You can only change your password once every 1 day.' });
+        //return res.status(400).json({ success: false, message: 'You can only change your password once every 1 day.' });
       } else {
         await User.updateOne({_id: userId}, {lastPasswordChange: now});
       }
 
       // Hash the new password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      let isPasswordReused = false;
+      if (user.previousPasswords && user.previousPasswords.length > 0) {
+        for (const p of user.previousPasswords) {
+          if (await bcrypt.compare(newPassword, p)) {
+            isPasswordReused = true;
+            return res.status(400).json({success: false, message: "You cannot reuse your old passwords."});
+          }
+        }
+      }
+
+      await User.updateOne({_id: userId}, {
+        $push: {previousPasswords: user.password}
+      });
 
       // Update the user's password
       await User.updateOne(

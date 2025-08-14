@@ -335,6 +335,20 @@ const controller = {
             const saltRounds = 10;
             const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
+            let isPasswordReused = false;
+            if (admin.previousPasswords && admin.previousPasswords.length > 0) {
+                for (const p of admin.previousPasswords) {
+                    if (await bcrypt.compare(newPassword, p)) {
+                        isPasswordReused = true;
+                        return res.status(400).json({success: false, message: "You cannot reuse your old passwords."});
+                    }
+                }
+            }
+
+            await Admin.updateOne({_id: adminId}, {
+                $push: {previousPasswords: admin.password}
+            });
+
             // Update admin password
             await Admin.updateOne(
                 { _id: adminId },
