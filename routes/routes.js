@@ -125,4 +125,7 @@ app.get("/api/employees", api_controller.getEmployees);
 
 app.get("/api/services", api_controller.getServices);
 
+app.get("/404", controller.get404);
+app.use(controller.get404);
+
 module.exports = app;

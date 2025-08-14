@@ -7,6 +7,7 @@ const Employee = require("../models/Employee");
 const Notification = require("../models/Notification");
 const dateHelper = require("../utils/dateHelper");
 const accountTimeout= require("../utils/accountTimeout");
+const validatePassword = require("../utils/validatePassword");
 
 const {logAuthAttempt,Status,UserType,AttemptType,} = require("../utils/util-log-auth-attempt");
 const {logInputValidation,ValidationRule,} = require("../utils/util-log-input-validation");
@@ -380,30 +381,54 @@ const controller = {
       return;
     }
 
-    // Check if 'password' contains at least 8 characters
-    if (password.length < 8) {
-      const error_msg = "Password must contain at least 8 characters!";
+    // // Check if 'password' contains at least 8 characters
+    // if (password.length < 8) {
+    //   const error_msg = "Password must contain at least 8 characters!";
+    //   await logInputValidation(
+    //     email,
+    //     req.path,
+    //     "password",
+    //     ValidationRule.InvalidLengthMin,
+    //     password,
+    //     error_msg
+    //   );
+    //   res.render("register", {
+    //     layout: "index",
+    //     active: { login: true },
+    //     error: error_msg,
+    //     form: {
+    //       firstName: firstName,
+    //       lastName: lastName,
+    //       email: email,
+    //       contactNumber: contactNumber,
+    //     },
+    //   });
+    //   return;
+    // }
+    // Check if password meets complexity requirements
+    if (!validatePassword(password)) {
+
+      const error_msg = "Password must be at least 8 characters long, contain uppercase, lowercase, a number, and a special character.";
       await logInputValidation(
-        email,
-        req.path,
-        "password",
-        ValidationRule.InvalidLengthMin,
-        password,
-        error_msg
+          email,
+          req.path,
+          "password",
+          ValidationRule.RegexMismatch,
+          password,
+          error_msg
       );
-      res.render("register", {
-        layout: "index",
-        active: { login: true },
-        error: error_msg,
-        form: {
-          firstName: firstName,
-          lastName: lastName,
-          email: email,
-          contactNumber: contactNumber,
-        },
-      });
-      return;
-    }
+      return res.render("register", {
+      layout: "index",
+      active: { login: true },
+      error: error_msg,
+      form: {
+          firstName,
+          lastName,
+          email,
+          contactNumber
+      }
+  });
+}
 
     const saltRounds = 10;
 
@@ -904,6 +929,14 @@ const controller = {
           success: false, 
           message: 'New password is required.' 
         });
+      }
+
+      //Password complexity check here
+      if (!validatePassword(newPassword)) {
+          return res.status(400).json({
+              success: false,
+              message: 'Password must be at least 8 characters, include uppercase, lowercase, a number, and a special character.'
+          });
       }
 
       const userId = req.session.logged_in.user.id;
