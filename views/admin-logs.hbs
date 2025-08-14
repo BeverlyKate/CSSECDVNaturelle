@@ -139,18 +139,36 @@
         order: {
             idx: 0,
             dir: "des"
-        }
+        },
+        columnDefs: [
+            {
+                targets: 0,
+                render: DataTable.render.datetime()
+            }
+        ]
     });
     new DataTable("#tbl-logs-authattempts", {
         order: {
             idx: 0,
             dir: "des"
-        }
+        },
+        columnDefs: [
+            {
+                targets: 0,
+                render: DataTable.render.datetime()
+            }
+        ]
     });
     new DataTable("#tbl-logs-accesscontrol", {
         order: {
             idx: 0,
             dir: "des"
-        }
+        },
+        columnDefs: [
+            {
+                targets: 0,
+                render: DataTable.render.datetime()
+            }
+        ]
     });
 </script>
