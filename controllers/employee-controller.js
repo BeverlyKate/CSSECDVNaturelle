@@ -648,7 +648,7 @@ const controller = {
             if (employee.lastPasswordChange && (now.getTime() - employee.lastPasswordChange.getTime() < minTimeBetweenPasswordChanges)) {
                 return res.status(400).json({ success: false, message: 'You can only change your password once every 1 day.' });
             } else {
-                await Admin.updateOne({_id: employeeId}, {lastPasswordChange: now});
+                await Employee.updateOne({_id: employeeId}, {lastPasswordChange: now});
             }
 
             // Hash the new password
