@@ -494,6 +494,13 @@ const controller = {
       res.status(500).send({ error: "An error occurred while updating your profile settings." });
     }
   },
+
+  get404: function (req, res, next) {
+    res.status(404).render("pagenotfound", {
+      layout: "index",
+      logged_in: req.session.logged_in,
+    });
+  }
 };
 
 module.exports = controller;
